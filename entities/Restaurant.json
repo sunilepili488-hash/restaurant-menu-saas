@@ -1,0 +1,246 @@
+{
+  "name": "Restaurant",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Restaurant name"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "Logo image URL"
+    },
+    "welcome_message": {
+      "type": "string",
+      "description": "Splash screen welcome text"
+    },
+    "splash_custom_code": {
+      "type": "string",
+      "description": "Custom HTML/CSS/JS for splash animation"
+    },
+    "operating_hours": {
+      "type": "string",
+      "description": "Operating hours text"
+    },
+    "currency_symbol": {
+      "type": "string",
+      "default": "\u20b9"
+    },
+    "admin_username": {
+      "type": "string",
+      "default": "admin"
+    },
+    "admin_password": {
+      "type": "string",
+      "default": "admin123"
+    },
+    "hide_user_icon": {
+      "type": "boolean",
+      "default": false
+    },
+    "order_routing_mode": {
+      "type": "string",
+      "enum": [
+        "whatsapp",
+        "website"
+      ],
+      "default": "whatsapp"
+    },
+    "whatsapp_numbers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "website_endpoint": {
+      "type": "string"
+    },
+    "table_qr_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "payment_enabled": {
+      "type": "boolean",
+      "default": false
+    },
+    "upi_id": {
+      "type": "string"
+    },
+    "upi_payee_name": {
+      "type": "string"
+    },
+    "price_slider_min": {
+      "type": "number",
+      "default": 0
+    },
+    "price_slider_max": {
+      "type": "number",
+      "default": 1500
+    },
+    "dietary_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [
+        "Veg",
+        "Non-Veg",
+        "Vegan",
+        "Jain",
+        "Gluten-Free"
+      ]
+    },
+    "prep_time_filters": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [
+        "Under 5 min",
+        "Under 10 min",
+        "Under 15 min",
+        "Under 30 min"
+      ]
+    },
+    "waiter_call_options": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "toast_message": {
+            "type": "string",
+            "description": "Customer-facing toast message shown when this option is tapped"
+          }
+        }
+      }
+    },
+    "theme_primary_color": {
+      "type": "string",
+      "default": "#C5A572"
+    },
+    "theme_bg_color": {
+      "type": "string",
+      "default": "#1A1A1A"
+    },
+    "theme_mode": {
+      "type": "string",
+      "enum": [
+        "dark",
+        "light"
+      ],
+      "default": "dark"
+    },
+    "top_dishes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Dish IDs highlighted as Today's Top Dishes"
+    },
+    "supabase_config": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "anon_key": {
+          "type": "string"
+        },
+        "connected": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "icon_settings": {
+      "type": "object",
+      "description": "Per-icon visibility/position/size config"
+    },
+    "developer_password": {
+      "type": "string",
+      "default": "saas"
+    },
+    "feature_locks": {
+      "type": "object",
+      "description": "Per-feature lock state and optional passwords"
+    },
+    "hosting_url": {
+      "type": "string",
+      "description": "Custom hosting provider URL"
+    },
+    "hosting_api_key": {
+      "type": "string",
+      "description": "API key or access token for hosting provider"
+    },
+    "hosting_connected": {
+      "type": "boolean",
+      "default": false
+    },
+    "custom_domain": {
+      "type": "string",
+      "description": "Custom domain name"
+    },
+    "domain_dns_records": {
+      "type": "string",
+      "description": "DNS verification details"
+    },
+    "domain_connected": {
+      "type": "boolean",
+      "default": false
+    },
+    "backend_mode": {
+      "type": "string",
+      "enum": [
+        "supabase",
+        "custom"
+      ],
+      "default": "supabase"
+    },
+    "hosting_config": {
+      "type": "object"
+    },
+    "domain_config": {
+      "type": "object"
+    },
+    "is_open": {
+      "type": "boolean",
+      "default": true
+    },
+    "closed_message": {
+      "type": "text",
+      "default": "Restaurant is currently closed."
+    },
+    "open_password": {
+      "type": "string",
+      "default": "000",
+      "description": "Secret password shown on closed screen to reopen restaurant"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

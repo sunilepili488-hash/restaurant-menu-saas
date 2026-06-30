@@ -1,0 +1,104 @@
+{
+  "name": "Dish",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "short_description": {
+      "type": "string"
+    },
+    "long_description": {
+      "type": "string"
+    },
+    "image_url": {
+      "type": "string"
+    },
+    "regular_price": {
+      "type": "number"
+    },
+    "sale_price": {
+      "type": "number"
+    },
+    "category_id": {
+      "type": "string"
+    },
+    "is_veg": {
+      "type": "boolean",
+      "default": true
+    },
+    "dietary_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "prep_time_value": {
+      "type": "number"
+    },
+    "prep_time_unit": {
+      "type": "string",
+      "enum": [
+        "sec",
+        "min",
+        "hr"
+      ],
+      "default": "min"
+    },
+    "like_count": {
+      "type": "number",
+      "default": 0
+    },
+    "ordered_today_count": {
+      "type": "number",
+      "default": 0
+    },
+    "ordered_today_date": {
+      "type": "string",
+      "description": "YYYY-MM-DD date for the ordered_today_count, resets at midnight"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true
+    },
+    "sort_order": {
+      "type": "number",
+      "default": 0
+    },
+    "spice_level": {
+      "type": "string",
+      "enum": [
+        "mild",
+        "medium",
+        "hot",
+        "extra_hot"
+      ],
+      "default": "medium"
+    },
+    "calories": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "name",
+    "regular_price"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

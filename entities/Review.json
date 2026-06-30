@@ -1,0 +1,52 @@
+{
+  "name": "Review",
+  "type": "object",
+  "properties": {
+    "dish_id": {
+      "type": "string"
+    },
+    "reviewer_name": {
+      "type": "string",
+      "default": "Guest"
+    },
+    "content": {
+      "type": "string"
+    },
+    "rating": {
+      "type": "number",
+      "default": 5
+    }
+  },
+  "required": [
+    "dish_id",
+    "content"
+  ],
+  "rls": {
+    "create": {},
+    "read": {},
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

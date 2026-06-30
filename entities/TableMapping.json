@@ -1,0 +1,22 @@
+{
+  "name": "TableMapping",
+  "type": "object",
+  "properties": {
+    "table_number": {
+      "type": "string"
+    },
+    "qr_url": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "table_number",
+    "qr_url"
+  ],
+  "rls": {
+    "create": {},
+    "read": {},
+    "update": {},
+    "delete": {}
+  }
+}
