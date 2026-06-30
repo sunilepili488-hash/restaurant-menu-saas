@@ -1,0 +1,179 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Lora:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light mode */
+    --background: 40 30% 94%;
+    --foreground: 30 10% 15%;
+    --card: 40 20% 97%;
+    --card-foreground: 30 10% 15%;
+    --popover: 40 20% 97%;
+    --popover-foreground: 30 10% 15%;
+    --primary: 214 66% 45%;
+    --primary-foreground: 40 30% 98%;
+    --secondary: 40 15% 90%;
+    --secondary-foreground: 30 10% 20%;
+    --muted: 40 15% 92%;
+    --muted-foreground: 30 5% 40%;
+    --accent: 38 45% 50%;
+    --accent-foreground: 40 30% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 40 15% 85%;
+    --input: 40 15% 85%;
+    --ring: 214 66% 45%;
+    --chart-1: 38 45% 50%;
+    --chart-2: 160 40% 40%;
+    --chart-3: 350 50% 50%;
+    --chart-4: 200 50% 45%;
+    --chart-5: 280 40% 50%;
+    --radius: 0.75rem;
+    --font-heading: 'Lora', serif;
+    --font-body: 'Lora', serif;
+    --font-display: 'Cormorant Garamond', serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --sidebar-background: 40 20% 96%;
+    --sidebar-foreground: 30 10% 20%;
+    --sidebar-primary: 214 66% 45%;
+    --sidebar-primary-foreground: 40 30% 98%;
+    --sidebar-accent: 40 15% 90%;
+    --sidebar-accent-foreground: 30 10% 20%;
+    --sidebar-border: 40 15% 85%;
+    --sidebar-ring: 214 66% 45%;
+  }
+
+  .dark {
+    /* Dark mode */
+    --background: 207 24% 23%;
+    --foreground: 40 20% 92%;
+    --card: 30 10% 22%;
+    --card-foreground: 40 20% 92%;
+    --popover: 30 10% 10%;
+    --popover-foreground: 40 20% 92%;
+    --primary: 214 66% 71%;
+    --primary-foreground: 185 75% 11%;
+    --secondary: 30 5% 14%;
+    --secondary-foreground: 40 15% 85%;
+    --muted: 30 5% 16%;
+    --muted-foreground: 30 8% 55%;
+    --accent: 38 45% 61%;
+    --accent-foreground: 30 10% 8%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 30 8% 20%;
+    --input: 30 8% 20%;
+    --ring: 38 45% 61%;
+    --chart-1: 38 45% 61%;
+    --chart-2: 160 40% 45%;
+    --chart-3: 350 50% 55%;
+    --chart-4: 200 50% 50%;
+    --chart-5: 280 40% 55%;
+    --sidebar-background: 30 9% 14%;
+    --sidebar-foreground: 40 15% 85%;
+    --sidebar-primary: 38 45% 61%;
+    --sidebar-primary-foreground: 30 10% 8%;
+    --sidebar-accent: 30 6% 16%;
+    --sidebar-accent-foreground: 40 15% 85%;
+    --sidebar-border: 30 8% 20%;
+    --sidebar-ring: 38 45% 61%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-body;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary) / 0.3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary) / 0.5);
+}
+
+/* Glassmorphism utility — adapts to theme */
+.glass {
+  background: hsl(var(--card) / 0.95);
+  border: 1px solid hsl(var(--border) / 0.5);
+}
+
+.glass-light {
+  background: hsl(var(--card) / 0.9);
+  border: 1px solid hsl(var(--border) / 0.3);
+}
+
+/* Gold shimmer animation */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.gold-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--accent) / 0) 0%,
+    hsl(var(--accent) / 0.3) 50%,
+    hsl(var(--accent) / 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+/* Hide scrollbar for category nav */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* GPU acceleration for animations */
+.gpu {
+  transform: translateZ(0);
+  will-change: transform;
+}
+/* Hide number input spinner arrows everywhere, keep manual typing */
+
+/* No-scrollbar utility for horizontal scroll areas */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
