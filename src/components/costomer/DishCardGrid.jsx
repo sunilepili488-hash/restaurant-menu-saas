@@ -8,10 +8,12 @@ import { User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import LazyImage from './LazyImage';
+import DishDetailSheet from './DishDetailSheet';
 
 function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
   const store = useMenuStore();
   const [expanded, setExpanded] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
   // Optimistic local override for like count — used only briefly after the
   // user taps Like, so the UI updates instantly without waiting for the
   // next 7s poll. Once the next poll brings a dish.like_count >= our
@@ -51,7 +53,10 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
   return (
     <div className="glass rounded-2xl overflow-hidden group" layout={false}>
       {/* Image */}
-      <div className="relative aspect-[4/3] overflow-hidden">
+      <div
+        className="relative aspect-[4/3] overflow-hidden cursor-pointer"
+        onClick={() => setDetailOpen(true)}
+      >
         <LazyImage
           src={dish.image_url}
           alt={dish.name}
@@ -294,6 +299,13 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <DishDetailSheet
+        dish={dish}
+        restaurant={restaurant}
+        open={detailOpen}
+        onClose={() => setDetailOpen(false)}
+      />
     </div>
   );
 }
