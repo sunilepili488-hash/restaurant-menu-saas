@@ -64,13 +64,26 @@ export default function SupabaseSection({ restaurant, onRefresh }) {
     }
   };
 
-  const handleConnect = () => {
+  const handleConnect = async () => {
     if (verifyResult !== 'success') return;
     // Update the runtime supabase client
     // Since env vars are read-only at runtime, we update localStorage
     // and the supabaseClient module reads from localStorage or env
     localStorage.setItem('VITE_SUPABASE_URL', url);
     localStorage.setItem('VITE_SUPABASE_ANON_KEY', anonKey);
+
+    // Also try to sync globally (Vercel env vars + redeploy) so every
+    // customer device picks this up, not just this browser.
+    try {
+      await fetch('/api/save-config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, key: anonKey }),
+      });
+    } catch (err) {
+      console.warn('[SupabaseSection] global sync failed:', err.message);
+    }
+
     // Force reload to apply new credentials
     window.location.reload();
   };
@@ -142,7 +155,7 @@ export default function SupabaseSection({ restaurant, onRefresh }) {
           {/* Reminder about Vercel env vars for global access */}
           <div className="glass rounded-2xl p-4 bg-amber-500/5 border border-amber-500/20">
             <p className="text-xs text-amber-700 dark:text-amber-400">
-              <strong>Note:</strong> This connection works on this device/browser. To make sure ALL your customers see the menu directly (without any connect screen), confirm that <code className="text-[10px] bg-secondary px-1 rounded">VITE_SUPABASE_URL</code> and <code className="text-[10px] bg-secondary px-1 rounded">VITE_SUPABASE_ANON_KEY</code> are also set in your Vercel project's Environment Variables, then redeploy.
+              <strong>Note:</strong> This connection auto-syncs to Vercel and redeploys so ALL your customers see the menu directly (no connect screen). If auto-sync isn't configured on the server yet, manually confirm <code className="text-[10px] bg-secondary px-1 rounded">VITE_SUPABASE_URL</code> and <code className="text-[10px] bg-secondary px-1 rounded">VITE_SUPABASE_ANON_KEY</code> are set in Vercel project's Environment Variables, then redeploy.
             </p>
           </div>
 
