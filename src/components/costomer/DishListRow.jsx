@@ -1,11 +1,13 @@
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Bookmark, ShoppingBag, Leaf, Drumstick } from 'lucide-react';
 import { menuStore, useMenuStore } from '@/lib/menuStore';
 import LazyImage from './LazyImage';
+import DishDetailSheet from './DishDetailSheet';
 
 function DishListRow({ dish, restaurant, eager }) {
   const store = useMenuStore();
+  const [detailOpen, setDetailOpen] = useState(false);
   const isFav = store.favorites.includes(dish.id);
   const curr = restaurant?.currency_symbol || '₹';
   const hasDiscount = dish.sale_price && dish.sale_price < dish.regular_price;
@@ -20,7 +22,10 @@ function DishListRow({ dish, restaurant, eager }) {
       className="glass rounded-xl p-3 flex items-center gap-3"
     >
       {/* Thumbnail with discount badge at bottom edge */}
-      <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-secondary">
+      <div
+        className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-secondary cursor-pointer"
+        onClick={() => setDetailOpen(true)}
+      >
         <LazyImage
           src={dish.image_url}
           alt={dish.name}
@@ -70,6 +75,13 @@ function DishListRow({ dish, restaurant, eager }) {
           <ShoppingBag className="w-3.5 h-3.5" />
         </motion.button>
       </div>
+
+      <DishDetailSheet
+        dish={dish}
+        restaurant={restaurant}
+        open={detailOpen}
+        onClose={() => setDetailOpen(false)}
+      />
     </motion.div>
   );
 }
