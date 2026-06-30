@@ -139,6 +139,13 @@ export default function SupabaseSection({ restaurant, onRefresh }) {
             </Button>
           </div>
 
+          {/* Reminder about Vercel env vars for global access */}
+          <div className="glass rounded-2xl p-4 bg-amber-500/5 border border-amber-500/20">
+            <p className="text-xs text-amber-700 dark:text-amber-400">
+              <strong>Note:</strong> This connection works on this device/browser. To make sure ALL your customers see the menu directly (without any connect screen), confirm that <code className="text-[10px] bg-secondary px-1 rounded">VITE_SUPABASE_URL</code> and <code className="text-[10px] bg-secondary px-1 rounded">VITE_SUPABASE_ANON_KEY</code> are also set in your Vercel project's Environment Variables, then redeploy.
+            </p>
+          </div>
+
           {/* Auto-backup */}
           <div className="glass rounded-2xl p-5">
             <div className="flex items-center justify-between">
