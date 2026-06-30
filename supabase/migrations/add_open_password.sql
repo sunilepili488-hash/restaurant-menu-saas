@@ -1,0 +1,2 @@
+ALTER TABLE restaurants
+  ADD COLUMN IF NOT EXISTS open_password TEXT DEFAULT '000';
