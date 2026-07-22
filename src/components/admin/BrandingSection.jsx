@@ -14,7 +14,7 @@ export default function BrandingSection({ restaurant, onRefresh }) {
   const [form, setForm] = useState({
     name: '', logo_url: '', welcome_message: '', operating_hours: '',
     admin_username: '', admin_password: '', hide_user_icon: false, splash_custom_code: '',
-    animated_header: false, delivery_help_phone: '',
+    animated_header: false, book_open_animation: false, delivery_help_phone: '',
     is_open: true, closed_message: 'Restaurant is currently closed. Please visit us again soon!',
     open_password: '000',
   });
@@ -36,6 +36,7 @@ export default function BrandingSection({ restaurant, onRefresh }) {
         hide_user_icon: restaurant.hide_user_icon || false,
         splash_custom_code: restaurant.splash_custom_code || '',
         animated_header: restaurant.animated_header || false,
+        book_open_animation: restaurant.book_open_animation || false,
         delivery_help_phone: restaurant.delivery_help_phone || '',
         is_open: restaurant.is_open !== undefined ? restaurant.is_open : true,
         closed_message: restaurant.closed_message || 'Restaurant is currently closed. Please visit us again soon!',
@@ -250,6 +251,18 @@ export default function BrandingSection({ restaurant, onRefresh }) {
             <Switch
               checked={form.animated_header || false}
               onCheckedChange={v => set('animated_header', v)}
+            />
+          </div>
+          <div className="flex items-center justify-between p-3 rounded-xl bg-secondary">
+            <div>
+              <Label>Book Opening Splash Transition</Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Splash screen "opens like a book" to reveal the menu (OFF = simple fade)
+              </p>
+            </div>
+            <Switch
+              checked={form.book_open_animation || false}
+              onCheckedChange={v => set('book_open_animation', v)}
             />
           </div>
         </div>
