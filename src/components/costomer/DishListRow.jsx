@@ -5,20 +5,41 @@ import { menuStore, useMenuStore } from '@/lib/menuStore';
 import LazyImage from './LazyImage';
 import DishDetailSheet from './DishDetailSheet';
 
-function DishListRow({ dish, restaurant, eager }) {
+// Returns framer-motion props for the current scroll effect (list view)
+function getScrollProps(effect, index = 0) {
+  const base = { viewport: { once: true, margin: '0px 0px -40px 0px' }, transition: { duration: 0.4, delay: index * 0.04, ease: [0.16, 1, 0.3, 1] } };
+  switch (effect) {
+    case 'slide-stagger':
+      return { ...base, initial: { opacity: 0, x: -28 }, whileInView: { opacity: 1, x: 0 } };
+    case 'scale-pop':
+      return { ...base, initial: { opacity: 0, scale: 0.9 }, whileInView: { opacity: 1, scale: 1 } };
+    case 'tilt-reveal':
+      return { ...base, initial: { opacity: 0, rotateX: 12, scale: 0.94 }, whileInView: { opacity: 1, rotateX: 0, scale: 1 }, style: { perspective: 600 } };
+    case 'fade-rise':
+    default:
+      return { ...base, initial: { opacity: 0, y: 16 }, whileInView: { opacity: 1, y: 0 } };
+  }
+}
+
+function DishListRow({ dish, restaurant, eager, index }) {
   const store = useMenuStore();
   const [detailOpen, setDetailOpen] = useState(false);
   const isFav = store.favorites.includes(dish.id);
   const curr = restaurant?.currency_symbol || '₹';
+  const icons = restaurant?.icon_settings || {};
+  const effect = restaurant?.scroll_effect || 'fade-rise';
+  const isHidden = (key) => icons[key]?.hidden === true;
+
   const hasDiscount = dish.sale_price && dish.sale_price < dish.regular_price;
   const discountPct = hasDiscount
     ? Math.round(((dish.regular_price - dish.sale_price) / dish.regular_price) * 100)
     : 0;
 
+  const scrollProps = getScrollProps(effect, index);
+
   return (
     <motion.div
-      initial={{ opacity: 0, x: -10 }}
-      animate={{ opacity: 1, x: 0 }}
+      {...scrollProps}
       className="glass rounded-xl p-3 flex items-center gap-3"
     >
       {/* Thumbnail with discount badge at bottom edge */}
@@ -58,23 +79,29 @@ function DishListRow({ dish, restaurant, eager }) {
         </div>
       </div>
 
-      {/* Actions — stacked vertically */}
-      <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
-        <motion.button
-          whileTap={{ scale: 0.8 }}
-          onClick={() => menuStore.toggleFavorite(dish.id)}
-          className="w-8 h-8 rounded-full glass flex items-center justify-center"
-        >
-          <Bookmark className={`w-3.5 h-3.5 ${isFav ? 'text-primary fill-primary' : 'text-muted-foreground'}`} />
-        </motion.button>
-        <motion.button
-          whileTap={{ scale: 0.8 }}
-          onClick={() => menuStore.addToCart(dish)}
-          className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center"
-        >
-          <ShoppingBag className="w-3.5 h-3.5" />
-        </motion.button>
-      </div>
+      {/* Actions — only shown if at least one is visible */}
+      {(!isHidden('favorite') || !isHidden('cart')) && (
+        <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
+          {!isHidden('favorite') && (
+            <motion.button
+              whileTap={{ scale: 0.8 }}
+              onClick={() => menuStore.toggleFavorite(dish.id)}
+              className="w-8 h-8 rounded-full glass flex items-center justify-center"
+            >
+              <Bookmark className={`w-3.5 h-3.5 ${isFav ? 'text-primary fill-primary' : 'text-muted-foreground'}`} />
+            </motion.button>
+          )}
+          {!isHidden('cart') && (
+            <motion.button
+              whileTap={{ scale: 0.8 }}
+              onClick={() => menuStore.addToCart(dish)}
+              className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center"
+            >
+              <ShoppingBag className="w-3.5 h-3.5" />
+            </motion.button>
+          )}
+        </div>
+      )}
 
       <DishDetailSheet
         dish={dish}
