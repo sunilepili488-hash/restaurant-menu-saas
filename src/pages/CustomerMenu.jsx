@@ -392,7 +392,6 @@ export default function CustomerMenu() {
         <TopDishesCarousel
           dishes={topDishes}
           restaurant={restaurant}
-          onReviewOpen={setReviewDish}
         />
 
         {/* View toggle — always visible, sticks to top on scroll */}
@@ -429,13 +428,14 @@ export default function CustomerMenu() {
                   restaurant={restaurant}
                   onReviewOpen={setReviewDish}
                   eager={index < 6}
+                  index={index}
                 />
               ))}
             </div>
           ) : (
             <div className="space-y-2">
               {filteredDishes.map((dish, index) => (
-                <DishListRow key={dish.id} dish={dish} restaurant={restaurant} eager={index < 6} />
+                <DishListRow key={dish.id} dish={dish} restaurant={restaurant} eager={index < 6} index={index} />
               ))}
             </div>
           )}
