@@ -1,11 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Leaf, Drumstick, Star } from 'lucide-react';
 import LazyImage from './LazyImage';
+import DishDetailSheet from './DishDetailSheet';
 
-export default React.memo(function TopDishesCarousel({ dishes, restaurant, onReviewOpen }) {
+// Scroll-effect variants for carousel cards
+function getCarouselVariants(effect) {
+  switch (effect) {
+    case 'slide-stagger':
+      return { initial: { opacity: 0, x: -28 }, whileInView: { opacity: 1, x: 0 } };
+    case 'scale-pop':
+      return { initial: { opacity: 0, scale: 0.85 }, whileInView: { opacity: 1, scale: 1 } };
+    case 'tilt-reveal':
+      return { initial: { opacity: 0, rotateY: -12, scale: 0.9 }, whileInView: { opacity: 1, rotateY: 0, scale: 1 } };
+    case 'fade-rise':
+    default:
+      return { initial: { opacity: 0, y: 16 }, whileInView: { opacity: 1, y: 0 } };
+  }
+}
+
+export default React.memo(function TopDishesCarousel({ dishes, restaurant }) {
+  const [selectedDish, setSelectedDish] = useState(null);
+
   if (!dishes || dishes.length === 0) return null;
   const curr = restaurant?.currency_symbol || '₹';
+  const effect = restaurant?.scroll_effect || 'fade-rise';
+  const { initial, whileInView } = getCarouselVariants(effect);
 
   return (
     <div className="px-4 max-w-7xl mx-auto mb-4">
@@ -14,13 +34,21 @@ export default React.memo(function TopDishesCarousel({ dishes, restaurant, onRev
         <h2 className="font-display text-lg font-semibold">Today's Top Dishes</h2>
       </div>
       <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-1">
-        {dishes.map(dish => {
+        {dishes.map((dish, idx) => {
           const hasDiscount = dish.sale_price && dish.sale_price < dish.regular_price;
           return (
             <motion.button
               key={dish.id}
+              initial={initial}
+              whileInView={whileInView}
+              viewport={{ once: true, margin: '0px 0px -40px 0px' }}
+              transition={{
+                duration: 0.45,
+                delay: idx * 0.07,
+                ease: [0.16, 1, 0.3, 1],
+              }}
               whileTap={{ scale: 0.97 }}
-              onClick={() => onReviewOpen?.(dish)}
+              onClick={() => setSelectedDish(dish)}
               className="flex-shrink-0 w-36 glass rounded-2xl overflow-hidden text-left"
             >
               <div className="relative aspect-[4/3] overflow-hidden">
@@ -52,6 +80,13 @@ export default React.memo(function TopDishesCarousel({ dishes, restaurant, onRev
           );
         })}
       </div>
+
+      <DishDetailSheet
+        dish={selectedDish}
+        restaurant={restaurant}
+        open={!!selectedDish}
+        onClose={() => setSelectedDish(null)}
+      />
     </div>
   );
 });
