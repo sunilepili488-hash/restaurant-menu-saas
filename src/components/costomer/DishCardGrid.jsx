@@ -10,7 +10,23 @@ import { Label } from '@/components/ui/label';
 import LazyImage from './LazyImage';
 import DishDetailSheet from './DishDetailSheet';
 
-function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
+// Returns framer-motion props for the current scroll effect
+function getScrollProps(effect, index = 0) {
+  const base = { viewport: { once: true, margin: '0px 0px -60px 0px' }, transition: { duration: 0.45, delay: index * 0.04, ease: [0.16, 1, 0.3, 1] } };
+  switch (effect) {
+    case 'slide-stagger':
+      return { ...base, initial: { opacity: 0, x: -32 }, whileInView: { opacity: 1, x: 0 } };
+    case 'scale-pop':
+      return { ...base, initial: { opacity: 0, scale: 0.88 }, whileInView: { opacity: 1, scale: 1 } };
+    case 'tilt-reveal':
+      return { ...base, initial: { opacity: 0, rotateX: 16, scale: 0.92 }, whileInView: { opacity: 1, rotateX: 0, scale: 1 }, style: { perspective: 600 } };
+    case 'fade-rise':
+    default:
+      return { ...base, initial: { opacity: 0, y: 24 }, whileInView: { opacity: 1, y: 0 } };
+  }
+}
+
+function DishCardGrid({ dish, restaurant, onReviewOpen, eager, index }) {
   const store = useMenuStore();
   const [expanded, setExpanded] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -28,6 +44,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
   const isFav = store.favorites.includes(dish.id);
   const isLiked = store.likedDishes[dish.id] || false;
   const icons = restaurant?.icon_settings || {};
+  const effect = restaurant?.scroll_effect || 'fade-rise';
 
   const hasDiscount = dish.sale_price && dish.sale_price < dish.regular_price;
   const discountPct = hasDiscount
@@ -50,8 +67,13 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
     entities.Dish.update(dish.id, { like_count: newCount });
   };
 
+  const scrollProps = getScrollProps(effect, index);
+
   return (
-    <div className="glass rounded-2xl overflow-hidden group" layout={false}>
+    <motion.div
+      {...scrollProps}
+      className="glass rounded-2xl overflow-hidden group"
+    >
       {/* Image */}
       <div
         className="relative aspect-[4/3] overflow-hidden cursor-pointer"
@@ -76,15 +98,17 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
           </span>
         </div>
 
-        {/* Heart icon (Favorite) — top right corner overlay */}
-        <motion.button
-          whileTap={{ scale: 0.8 }}
-          onClick={(e) => { e.stopPropagation(); menuStore.toggleFavorite(dish.id); }}
-          className="absolute top-2 right-2 w-8 h-8 rounded-full glass flex items-center justify-center"
-          title="Favorite"
-        >
-          <Heart className={`w-4 h-4 transition-colors ${isFav ? 'text-rose-500 fill-rose-500' : 'text-white/80'}`} />
-        </motion.button>
+        {/* Heart icon (Favorite) — top right corner overlay, gated */}
+        {!isHidden('favorite') && (
+          <motion.button
+            whileTap={{ scale: 0.8 }}
+            onClick={(e) => { e.stopPropagation(); menuStore.toggleFavorite(dish.id); }}
+            className="absolute top-2 right-2 w-8 h-8 rounded-full glass flex items-center justify-center"
+            title="Favorite"
+          >
+            <Heart className={`w-4 h-4 transition-colors ${isFav ? 'text-rose-500 fill-rose-500' : 'text-white/80'}`} />
+          </motion.button>
+        )}
 
         {prepTimeStr && (
           <span className="absolute bottom-2 left-2 glass text-[10px] text-foreground/80 px-2 py-1 rounded-full flex items-center gap-1">
@@ -113,59 +137,68 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
           )}
         </div>
 
-        {!isHidden('like') && (
+        {/* Like + user-count row — each gated independently */}
+        {(!isHidden('like') || !isHidden('user_count')) && (
           <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
-            <motion.button
-              whileTap={{ scale: 0.8 }}
-              onClick={handleLike}
-              className="flex items-center gap-1.5"
-            >
-              <ThumbsUp className={`w-4 h-4 transition-colors ${isLiked ? 'text-primary fill-primary' : 'text-muted-foreground'}`} />
-              <span className="text-xs text-muted-foreground">{formatCount(likeCount)}</span>
-            </motion.button>
-            <div className="flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-muted-foreground/70" />
-              <span className="text-xs text-muted-foreground">{formatCount(orderedToday)}</span>
-            </div>
+            {!isHidden('like') && (
+              <motion.button
+                whileTap={{ scale: 0.8 }}
+                onClick={handleLike}
+                className="flex items-center gap-1.5"
+              >
+                <ThumbsUp className={`w-4 h-4 transition-colors ${isLiked ? 'text-primary fill-primary' : 'text-muted-foreground'}`} />
+                <span className="text-xs text-muted-foreground">{formatCount(likeCount)}</span>
+              </motion.button>
+            )}
+            {!isHidden('user_count') && (
+              <div className="flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 text-muted-foreground/70" />
+                <span className="text-xs text-muted-foreground">{formatCount(orderedToday)}</span>
+              </div>
+            )}
           </div>
         )}
 
         {/* 3-button action row */}
-        <div className="grid grid-cols-3 gap-1 mt-2 pt-2 border-t border-border/50">
-          {/* 1. Bag — Add to cart */}
-          {!isHidden('cart') && (
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              onClick={(e) => { e.stopPropagation(); menuStore.addToCart(dish); }}
-              className="w-9 h-9 rounded-full glass flex items-center justify-center mx-auto"
-              title="Add to cart"
-            >
-              <ShoppingBag className="w-4 h-4 text-foreground/70" />
-            </motion.button>
-          )}
+        {(!isHidden('cart') || !isHidden('review') || !isHidden('view_more')) && (
+          <div className="flex items-center justify-around mt-2 pt-2 border-t border-border/50">
+            {/* 1. Bag — Add to cart */}
+            {!isHidden('cart') && (
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={(e) => { e.stopPropagation(); menuStore.addToCart(dish); }}
+                className="w-9 h-9 rounded-full glass flex items-center justify-center"
+                title="Add to cart"
+              >
+                <ShoppingBag className="w-4 h-4 text-foreground/70" />
+              </motion.button>
+            )}
 
-          {/* 2. Comment icon */}
-          {!isHidden('review') && (
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              onClick={(e) => { e.stopPropagation(); onReviewOpen?.(dish); }}
-              className="w-9 h-9 rounded-full glass flex items-center justify-center mx-auto"
-              title="Review"
-            >
-              <MessageCircle className="w-4 h-4 text-foreground/70" />
-            </motion.button>
-          )}
+            {/* 2. Comment icon */}
+            {!isHidden('review') && (
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={(e) => { e.stopPropagation(); onReviewOpen?.(dish); }}
+                className="w-9 h-9 rounded-full glass flex items-center justify-center"
+                title="Review"
+              >
+                <MessageCircle className="w-4 h-4 text-foreground/70" />
+              </motion.button>
+            )}
 
-          {/* 3. ChevronDown — More options */}
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-            className="w-9 h-9 rounded-full glass flex items-center justify-center mx-auto"
-            title="More"
-          >
-            <ChevronDown className={`w-4 h-4 text-foreground/70 transition-transform ${expanded ? 'rotate-180' : ''}`} />
-          </motion.button>
-        </div>
+            {/* 3. ChevronDown — More options (view_more gated) */}
+            {!isHidden('view_more') && (
+              <motion.button
+                whileTap={{ scale: 0.9 }}
+                onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+                className="w-9 h-9 rounded-full glass flex items-center justify-center"
+                title="More"
+              >
+                <ChevronDown className={`w-4 h-4 text-foreground/70 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+              </motion.button>
+            )}
+          </div>
+        )}
 
         <AnimatePresence>
           {expanded && dish.long_description && (
@@ -184,7 +217,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
         </AnimatePresence>
       </div>
 
-      {/* Payment Modal — Modern Redesign */}
+      {/* Payment Modal */}
       <AnimatePresence>
         {payModalOpen && (
           <motion.div
@@ -193,10 +226,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-end justify-center p-0"
           >
-            {/* Backdrop */}
             <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" onClick={() => setPayModalOpen(false)} />
-
-            {/* Modal Card — slides up */}
             <motion.div
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
@@ -204,7 +234,6 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               className="relative z-10 w-full max-w-md bg-background rounded-t-3xl shadow-2xl overflow-hidden"
             >
-              {/* Header */}
               <div className="flex items-center justify-between px-6 pt-6 pb-2">
                 <h3 className="font-display text-xl font-semibold">Pay via UPI</h3>
                 <button
@@ -216,11 +245,10 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
               </div>
 
               <div className="px-6 pb-8 space-y-5">
-                {/* Amount Input */}
                 <div className="space-y-1">
                   <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Enter Amount</label>
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-primary">₹</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-primary">{curr}</span>
                     <input
                       type="number"
                       value={payAmount}
@@ -230,43 +258,14 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
                   </div>
                 </div>
 
-                {/* UPI Options — 2x2 Grid */}
                 <div>
                   <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 block">Choose Payment App</label>
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      {
-                        id: 'gpay',
-                        name: 'Google Pay',
-                        scheme: (upiId, name, amount) => `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`,
-                        logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Google_Pay_Logo.svg/120px-Google_Pay_Logo.svg.png',
-                        bg: '#E8F0FE',
-                        color: '#4285F4',
-                      },
-                      {
-                        id: 'phonepe',
-                        name: 'PhonePe',
-                        scheme: (upiId, name, amount) => `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`,
-                        logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/PhonePe_Logo.svg/120px-PhonePe_Logo.svg.png',
-                        bg: '#EDE7F6',
-                        color: '#5F259F',
-                      },
-                      {
-                        id: 'paytm',
-                        name: 'Paytm',
-                        scheme: (upiId, name, amount) => `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`,
-                        logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Paytm_logo.png/120px-Paytm_logo.png',
-                        bg: '#E3F2FD',
-                        color: '#00BAF2',
-                      },
-                      {
-                        id: 'bhim',
-                        name: 'BHIM Pay',
-                        scheme: (upiId, name, amount) => `upi://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`,
-                        logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/120px-UPI-Logo-vector.svg.png',
-                        bg: '#FFF3E0',
-                        color: '#FF6600',
-                      },
+                      { id: 'gpay', name: 'Google Pay', scheme: (upiId, name, amount) => `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`, logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Google_Pay_Logo.svg/120px-Google_Pay_Logo.svg.png', bg: '#E8F0FE', color: '#4285F4' },
+                      { id: 'phonepe', name: 'PhonePe', scheme: (upiId, name, amount) => `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`, logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/PhonePe_Logo.svg/120px-PhonePe_Logo.svg.png', bg: '#F3E5F5', color: '#5F259F' },
+                      { id: 'paytm', name: 'Paytm', scheme: (upiId, name, amount) => `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`, logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Paytm_Logo_%28standalone%29.svg/120px-Paytm_Logo_%28standalone%29.svg.png', bg: '#E3F2FD', color: '#002970' },
+                      { id: 'bhim', name: 'BHIM Pay', scheme: (upiId, name, amount) => `upi://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`, logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/120px-UPI-Logo-vector.svg.png', bg: '#FFF3E0', color: '#FF6600' },
                     ].map(app => (
                       <button
                         key={app.id}
@@ -276,9 +275,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
                           if (!upiId) { alert('UPI ID not configured by restaurant.'); return; }
                           const url = app.scheme(upiId, payeeName, payAmount);
                           window.location.href = url;
-                          setTimeout(() => {
-                            alert('If the app did not open, please open your UPI app manually.');
-                          }, 2000);
+                          setTimeout(() => { alert('If the app did not open, please open your UPI app manually.'); }, 2000);
                         }}
                         className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-border hover:border-primary transition-all active:scale-95"
                         style={{ background: app.bg }}
@@ -290,7 +287,6 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
                   </div>
                 </div>
 
-                {/* Fallback message */}
                 <p className="text-xs text-center text-muted-foreground">
                   On desktop: if app does not open, please open your UPI app manually and pay to <strong>{restaurant?.upi_id || 'restaurant UPI ID'}</strong>
                 </p>
@@ -306,7 +302,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
         open={detailOpen}
         onClose={() => setDetailOpen(false)}
       />
-    </div>
+    </motion.div>
   );
 }
 
