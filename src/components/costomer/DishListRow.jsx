@@ -4,45 +4,29 @@ import { Bookmark, ShoppingBag, Leaf, Drumstick } from 'lucide-react';
 import { menuStore, useMenuStore } from '@/lib/menuStore';
 import LazyImage from './LazyImage';
 import DishDetailSheet from './DishDetailSheet';
+import { getScrollVariants } from '@/lib/scrollAnimations';
 
-// Returns framer-motion props for the current scroll effect (list view)
-function getScrollProps(effect, index = 0) {
-  const base = { viewport: { once: true, margin: '0px 0px -40px 0px' }, transition: { duration: 0.4, delay: index * 0.04, ease: [0.16, 1, 0.3, 1] } };
-  switch (effect) {
-    case 'slide-stagger':
-      return { ...base, initial: { opacity: 0, x: -28 }, whileInView: { opacity: 1, x: 0 } };
-    case 'scale-pop':
-      return { ...base, initial: { opacity: 0, scale: 0.9 }, whileInView: { opacity: 1, scale: 1 } };
-    case 'tilt-reveal':
-      return { ...base, initial: { opacity: 0, rotateX: 12, scale: 0.94 }, whileInView: { opacity: 1, rotateX: 0, scale: 1 }, style: { perspective: 600 } };
-    case 'fade-rise':
-    default:
-      return { ...base, initial: { opacity: 0, y: 16 }, whileInView: { opacity: 1, y: 0 } };
-  }
-}
-
-function DishListRow({ dish, restaurant, eager, index }) {
+function DishListRow({ dish, restaurant, eager }) {
   const store = useMenuStore();
   const [detailOpen, setDetailOpen] = useState(false);
   const isFav = store.favorites.includes(dish.id);
   const curr = restaurant?.currency_symbol || '₹';
-  const icons = restaurant?.icon_settings || {};
-  const effect = restaurant?.scroll_effect || 'fade-rise';
-  const isHidden = (key) => icons[key]?.hidden === true;
-
   const hasDiscount = dish.sale_price && dish.sale_price < dish.regular_price;
   const discountPct = hasDiscount
     ? Math.round(((dish.regular_price - dish.sale_price) / dish.regular_price) * 100)
     : 0;
-
-  const scrollProps = getScrollProps(effect, index);
+  const icons = restaurant?.icon_settings || {};
+  const isHidden = (key) => icons[key]?.hidden === true;
+  const scrollVariants = getScrollVariants(restaurant?.scroll_animation_style);
 
   return (
     <motion.div
-      {...scrollProps}
+      initial={scrollVariants.initial}
+      whileInView={scrollVariants.animate}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={scrollVariants.transition}
       className="glass rounded-xl p-3 flex items-center gap-3"
     >
-      {/* Thumbnail with discount badge at bottom edge */}
       <div
         className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-secondary cursor-pointer"
         onClick={() => setDetailOpen(true)}
@@ -61,7 +45,6 @@ function DishListRow({ dish, restaurant, eager, index }) {
         )}
       </div>
 
-      {/* Info */}
       <div className="flex-1 min-w-0">
         <h4 className="font-display text-sm font-semibold text-foreground truncate">{dish.name}</h4>
         <div className="flex items-center gap-2 mt-1">
@@ -79,7 +62,6 @@ function DishListRow({ dish, restaurant, eager, index }) {
         </div>
       </div>
 
-      {/* Actions — only shown if at least one is visible */}
       {(!isHidden('favorite') || !isHidden('cart')) && (
         <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
           {!isHidden('favorite') && (
