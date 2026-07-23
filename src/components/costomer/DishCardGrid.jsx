@@ -86,14 +86,16 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
         </div>
 
         {/* Heart icon (Favorite) — top right corner overlay */}
-        <motion.button
-          whileTap={{ scale: 0.8 }}
-          onClick={(e) => { e.stopPropagation(); menuStore.toggleFavorite(dish.id); }}
-          className="absolute top-2 right-2 w-8 h-8 rounded-full glass flex items-center justify-center"
-          title="Favorite"
-        >
-          <Heart className={`w-4 h-4 transition-colors ${isFav ? 'text-rose-500 fill-rose-500' : 'text-white/80'}`} />
-        </motion.button>
+        {!isHidden('favorite') && (
+          <motion.button
+            whileTap={{ scale: 0.8 }}
+            onClick={(e) => { e.stopPropagation(); menuStore.toggleFavorite(dish.id); }}
+            className="absolute top-2 right-2 w-8 h-8 rounded-full glass flex items-center justify-center"
+            title="Favorite"
+          >
+            <Heart className={`w-4 h-4 transition-colors ${isFav ? 'text-rose-500 fill-rose-500' : 'text-white/80'}`} />
+          </motion.button>
+        )}
 
         {prepTimeStr && (
           <span className="absolute bottom-2 left-2 glass text-[10px] text-foreground/80 px-2 py-1 rounded-full flex items-center gap-1">
