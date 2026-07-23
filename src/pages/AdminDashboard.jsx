@@ -22,10 +22,10 @@ import SupabaseSection from '@/components/admin/SupabaseSection';
 import OrderReceiverSection from '@/components/admin/OrderReceiverSection';
 import HomeDeliverySection from '@/components/admin/HomeDeliverySection';
 import PassSection from '@/components/admin/PassSection';
-import IconControlsSection from '@/components/admin/IconControlsSection';
-import ScrollEffectSection from '@/components/admin/ScrollEffectSection';
+import IconSettingsSection from '@/components/admin/IconSettingsSection';
 
 export default function AdminDashboard() {
+  
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [section, setSection] = useState('branding');
@@ -96,8 +96,6 @@ export default function AdminDashboard() {
       case 'waiter': return <WaiterCallSection restaurant={restaurant} onRefresh={refresh} />;
       case 'orders': return <OrderRoutingSection restaurant={restaurant} onRefresh={refresh} />;
       case 'theme': return <ThemeSection restaurant={restaurant} onRefresh={refresh} />;
-      case 'icon-controls': return <IconControlsSection restaurant={restaurant} onRefresh={refresh} />;
-      case 'scroll-effects': return <ScrollEffectSection restaurant={restaurant} onRefresh={refresh} />;
       case 'tables': return <TableQRSection restaurant={restaurant} onRefresh={refresh} />;
       case 'payments': return <PaymentsSection restaurant={restaurant} onRefresh={refresh} />;
       case 'hosting': return <HostingDomainSection restaurant={restaurant} onRefresh={refresh} />;
@@ -107,6 +105,7 @@ export default function AdminDashboard() {
       case 'locks': return <FeatureLocksSection restaurant={restaurant} onRefresh={refresh} />;
       case 'home-delivery': return <HomeDeliverySection restaurant={restaurant} onRefresh={refresh} />;
       case 'pass': return <PassSection restaurant={restaurant} onRefresh={refresh} />;
+      case 'icons': return <IconSettingsSection restaurant={restaurant} onRefresh={refresh} />;
       default: return <BrandingSection restaurant={restaurant} onRefresh={refresh} />;
     }
   };
