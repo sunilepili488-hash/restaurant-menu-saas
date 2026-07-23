@@ -162,6 +162,23 @@
       "type": "object",
       "description": "Per-icon visibility/position/size config"
     },
+    "icon_lock_password": {
+      "type": "string",
+      "default": "con#5",
+      "description": "Master password required to reveal the icon show/hide toggles in admin"
+    },
+    "scroll_animation_style": {
+      "type": "string",
+      "enum": ["fade-up", "zoom-in", "slide-fade", "flip"],
+      "default": "fade-up",
+      "description": "Scroll-in animation style applied to dish cards"
+    },
+    "splash_book_animation": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the splash screen plays a book-opening cover animation before revealing the menu"
+    },
+    },
     "developer_password": {
       "type": "string",
       "default": "saas"
