@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import {
   Store, LayoutGrid, UtensilsCrossed, Image, SlidersHorizontal,
-  Bell, Palette, QrCode, CreditCard, Globe, Lock, LogOut, ChevronLeft, Server, Star, Database, Radio, Truck, KeyRound, ToggleLeft, Sparkles
+Bell, Palette, QrCode, CreditCard, Globe, Lock, LogOut, ChevronLeft, Server, Star, Database, Radio, Truck, KeyRound, ToggleLeft
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,12 +13,11 @@ const navItems = [
   { id: 'top-dishes', label: 'Top Dishes', icon: Star },
   { id: 'banners', label: 'Banners', icon: Image },
   { id: 'filters', label: 'Filters', icon: SlidersHorizontal },
-  { id: 'waiter', label: 'Waiter Call', icon: Bell },
+  { id: 'icons', label: 'Icon Settings', icon: ToggleLeft },
+  { id: 'waiter', label: 'Waiter Call', icon: Bell },,
   { id: 'orders', label: 'Order Routing', icon: Globe },
   { id: 'order-receiver', label: 'Order Receiver', icon: Radio },
   { id: 'theme', label: 'Theme', icon: Palette },
-  { id: 'icon-controls', label: 'Icon Controls', icon: ToggleLeft },
-  { id: 'scroll-effects', label: 'Scroll Effects', icon: Sparkles },
   { id: 'tables', label: 'Table QR', icon: QrCode },
   { id: 'payments', label: 'Payments', icon: CreditCard },
   { id: 'hosting', label: 'Hosting & Domain', icon: Server },
