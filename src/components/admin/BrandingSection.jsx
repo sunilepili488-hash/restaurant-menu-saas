@@ -16,7 +16,8 @@ export default function BrandingSection({ restaurant, onRefresh }) {
     admin_username: '', admin_password: '', hide_user_icon: false, splash_custom_code: '',
     animated_header: false, book_open_animation: false, delivery_help_phone: '',
     is_open: true, closed_message: 'Restaurant is currently closed. Please visit us again soon!',
-    open_password: '000',
+    open_password: '000', splash_book_animation: false,
+  
   });
   const { saving, saved, error, save } = useSafeSave();
   const [uploading, setUploading] = useState(false);
@@ -41,6 +42,8 @@ export default function BrandingSection({ restaurant, onRefresh }) {
         is_open: restaurant.is_open !== undefined ? restaurant.is_open : true,
         closed_message: restaurant.closed_message || 'Restaurant is currently closed. Please visit us again soon!',
         open_password: restaurant.open_password || '000',
+        splash_book_animation: restaurant.splash_book_animation || false,
+      
       });
     }
   }, [restaurant]);
@@ -266,6 +269,14 @@ export default function BrandingSection({ restaurant, onRefresh }) {
             />
           </div>
         </div>
+      </div>
+
+      <div className="flex items-center justify-between p-3 rounded-xl bg-secondary">
+        <div>
+          <p className="text-sm font-medium">Book-Style Splash Animation</p>
+          <p className="text-xs text-muted-foreground">After the splash timer ends, the screen opens like a book cover to reveal the menu, instead of a plain fade</p>
+        </div>
+        <Switch checked={form.splash_book_animation} onCheckedChange={v => set('splash_book_animation', v)} />
       </div>
 
       <div>
