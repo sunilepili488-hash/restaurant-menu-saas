@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { entities } from '@/api/entities';
 import { useSafeSave } from '@/lib/saveUtils';
 import { THEMES } from '@/lib/themes';
+import { SCROLL_ANIMATION_STYLES } from '@/lib/scrollAnimations';
 import { applyThemeToCss } from '@/lib/applyTheme';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Save, Check, Loader2 } from 'lucide-react';
@@ -34,6 +35,8 @@ export default function ThemeSection({ restaurant, onRefresh }) {
   const { saving, saved, error, save } = useSafeSave();
   const [themeMode, setThemeMode] = useState('dark');
   const [previewTheme, setPreviewTheme] = useState(null);
+  const [scrollStyle, setScrollStyle] = useState('fade-up');
+  const { saving: scrollSaving, saved: scrollSaved, error: scrollError, save: scrollSave } = useSafeSave();
 
   useEffect(() => {
     if (restaurant) {
@@ -41,8 +44,15 @@ export default function ThemeSection({ restaurant, onRefresh }) {
       setBg(restaurant.theme_bg_color || '#1A1A1A');
       setCurrency(restaurant.currency_symbol || '₹');
       setThemeMode(restaurant.theme_mode || 'dark');
+      setScrollStyle(restaurant.scroll_animation_style || 'fade-up');
     }
   }, [restaurant]);
+
+  const handleSaveScrollStyle = (styleId) => {
+    setScrollStyle(styleId);
+    if (!restaurant?.id) return;
+    scrollSave(entities.Restaurant.update(restaurant.id, { scroll_animation_style: styleId }), onRefresh);
+  };
 
   const handlePreviewTheme = (theme) => {
     applyThemeToCss({ theme_mode: theme.mode, theme_css_vars: theme.cssVars });
@@ -240,6 +250,31 @@ export default function ThemeSection({ restaurant, onRefresh }) {
         </Button>
         {error && <p className="text-sm text-destructive">{error}</p>}
       </div>
+
+      {/* Section C — Dish Card Scroll Animation */}
+      <div className="space-y-4 pt-4 border-t border-border">
+        <h3 className="font-display text-lg font-semibold">Dish Card Scroll Animation</h3>
+        <p className="text-sm text-muted-foreground">Choose how dish cards animate into view as the customer scrolls.</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {SCROLL_ANIMATION_STYLES.map(style => (
+            <button
+              key={style.id}
+              onClick={() => handleSaveScrollStyle(style.id)}
+              className={`p-3 rounded-xl border-2 text-left transition-all ${
+                scrollStyle === style.id ? 'border-primary bg-primary/10' : 'border-border'
+              }`}
+            >
+              <p className="text-sm font-medium">{style.label}</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">{style.description}</p>
+            </button>
+          ))}
+        </div>
+        {scrollSaving && <p className="text-xs text-muted-foreground">Saving...</p>}
+        {scrollSaved && <p className="text-xs text-green-500">Saved ✓</p>}
+        {scrollError && <p className="text-sm text-destructive">{scrollError}</p>}
+      </div>
     </div>
   );
 }
+    
+  
