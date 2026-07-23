@@ -392,8 +392,8 @@ export default function CustomerMenu() {
         <TopDishesCarousel
           dishes={topDishes}
           restaurant={restaurant}
-          onReviewOpen={setReviewDish}
         />
+        
 
         {/* View toggle — always visible, sticks to top on scroll */}
         <div className="px-4 max-w-7xl mx-auto z-30 sticky top-[58px] md:top-[62px] bg-background py-3">
