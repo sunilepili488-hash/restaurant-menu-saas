@@ -124,20 +124,24 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
           )}
         </div>
 
-        {!isHidden('like') && (
+        {(!isHidden('like') || !isHidden('ordered_count')) && (
           <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
-            <motion.button
-              whileTap={{ scale: 0.8 }}
-              onClick={handleLike}
-              className="flex items-center gap-1.5"
-            >
-              <ThumbsUp className={`w-4 h-4 transition-colors ${isLiked ? 'text-primary fill-primary' : 'text-muted-foreground'}`} />
-              <span className="text-xs text-muted-foreground">{formatCount(likeCount)}</span>
-            </motion.button>
-            <div className="flex items-center gap-1.5">
-              <User className="w-3.5 h-3.5 text-muted-foreground/70" />
-              <span className="text-xs text-muted-foreground">{formatCount(orderedToday)}</span>
-            </div>
+            {!isHidden('like') && (
+              <motion.button
+                whileTap={{ scale: 0.8 }}
+                onClick={handleLike}
+                className="flex items-center gap-1.5"
+              >
+                <ThumbsUp className={`w-4 h-4 transition-colors ${isLiked ? 'text-primary fill-primary' : 'text-muted-foreground'}`} />
+                <span className="text-xs text-muted-foreground">{formatCount(likeCount)}</span>
+              </motion.button>
+            )}
+            {!isHidden('ordered_count') && (
+              <div className="flex items-center gap-1.5">
+                <User className="w-3.5 h-3.5 text-muted-foreground/70" />
+                <span className="text-xs text-muted-foreground">{formatCount(orderedToday)}</span>
+              </div>
+            )}
           </div>
         )}
 
@@ -168,14 +172,16 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
           )}
 
           {/* 3. ChevronDown — More options */}
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-            className="w-9 h-9 rounded-full glass flex items-center justify-center mx-auto"
-            title="More"
-          >
-            <ChevronDown className={`w-4 h-4 text-foreground/70 transition-transform ${expanded ? 'rotate-180' : ''}`} />
-          </motion.button>
+          {!isHidden('view_more') && (
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+              className="w-9 h-9 rounded-full glass flex items-center justify-center mx-auto"
+              title="More"
+            >
+              <ChevronDown className={`w-4 h-4 text-foreground/70 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+            </motion.button>
+          )}
         </div>
 
         <AnimatePresence>
@@ -317,7 +323,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
         open={detailOpen}
         onClose={() => setDetailOpen(false)}
       />
-    </div>
+    </motion.div>
   );
 }
 
