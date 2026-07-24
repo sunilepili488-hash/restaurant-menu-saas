@@ -8,6 +8,7 @@ export default React.memo(function TopDishesCarousel({ dishes, restaurant }) {
   const [detailDish, setDetailDish] = useState(null);
   if (!dishes || dishes.length === 0) return null;
   const curr = restaurant?.currency_symbol || '₹';
+  const cardRadius = restaurant?.theme_css_vars?.['--radius'] || '0.75rem';
 
   return (
     <div className="px-4 max-w-7xl mx-auto mb-4">
@@ -23,7 +24,8 @@ export default React.memo(function TopDishesCarousel({ dishes, restaurant }) {
               key={dish.id}
               whileTap={{ scale: 0.97 }}
               onClick={() => setDetailDish(dish)}
-              className="flex-shrink-0 w-36 glass rounded-2xl overflow-hidden text-left"
+              className="flex-shrink-0 w-36 glass overflow-hidden text-left"
+              style={{ borderRadius: cardRadius }}
             >
               <div className="relative aspect-[4/3] overflow-hidden">
                 <LazyImage
