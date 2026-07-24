@@ -110,8 +110,8 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={onCartClick}
-              className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0"
-            >
+className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0"
+              
               <ShoppingBag className="w-4 h-4" />
             </motion.button>
             {cartCount > 0 && (
