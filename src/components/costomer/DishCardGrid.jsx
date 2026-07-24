@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import LazyImage from './LazyImage';
 import DishDetailSheet from './DishDetailSheet';
 import { getScrollVariants } from '@/lib/scrollAnimations';
+import { getScrollVariants, SCROLL_VIEWPORT } from '@/lib/scrollAnimations';
 
 function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
   const store = useMenuStore();
@@ -58,7 +59,8 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
       layout={false}
       initial={scrollVariants.initial}
       whileInView={scrollVariants.animate}
-      viewport={{ once: true, amount: 0.2 }}
+      viewport={SCROLL_VIEWPORT}
+      style={{ willChange: 'transform, opacity' }}
       transition={scrollVariants.transition}
     >
       {/* Image */}
