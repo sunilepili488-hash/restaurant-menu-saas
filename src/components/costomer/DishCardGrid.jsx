@@ -57,7 +57,16 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
     entities.Dish.update(dish.id, { like_count: newCount });
   };
 
-  
+  return (
+    <motion.div
+      className="glass overflow-hidden group"
+      layout={false}
+      initial={scrollVariants.initial}
+      whileInView={scrollVariants.animate}
+      viewport={SCROLL_VIEWPORT}
+      style={{ willChange: 'transform, opacity', borderRadius: cardRadius, boxShadow: cardShadow }}
+      transition={scrollVariants.transition}
+    >
       {/* Image */}
       <div
         className="relative aspect-[4/3] overflow-hidden cursor-pointer"
