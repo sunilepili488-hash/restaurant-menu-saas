@@ -75,7 +75,7 @@ export default function MenuHeader({ restaurant, onSearchOpen, onFilterOpen, onU
                     <span className="font-display text-lg md:text-xl font-bold text-foreground truncate whitespace-nowrap">
                       {restaurant?.name || 'Restaurant'}
                     </span>
-                    <span className="ml-1 w-2 h-2 rounded-full bg-green-500 animate-pulse flex-shrink-0" />
+                    <span className="ml-1 w-2 h-2 rounded-full bg-primary animate-pulse flex-shrink-0" />
                   </motion.div>
                 ) : (
                   <motion.div
@@ -105,7 +105,7 @@ export default function MenuHeader({ restaurant, onSearchOpen, onFilterOpen, onU
               <div className="min-w-0">
                 <h1 className="font-display text-lg md:text-xl font-semibold text-foreground truncate leading-tight">
                   {restaurant?.name || 'Restaurant'}
-                  <span className="ml-1 inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse align-middle" />
+                  <span className="ml-1 inline-block w-2 h-2 rounded-full bg-primary animate-pulse align-middle" />
                 </h1>
                 {restaurant?.operating_hours && (
                   <p className="text-[10px] md:text-xs text-muted-foreground leading-tight truncate">
