@@ -4,7 +4,7 @@ import { Bookmark, ShoppingBag, Leaf, Drumstick } from 'lucide-react';
 import { menuStore, useMenuStore } from '@/lib/menuStore';
 import LazyImage from './LazyImage';
 import DishDetailSheet from './DishDetailSheet';
-import { getScrollVariants } from '@/lib/scrollAnimations';
+import { getScrollVariants, SCROLL_VIEWPORT } from '@/lib/scrollAnimations';
 
 function DishListRow({ dish, restaurant, eager }) {
   const store = useMenuStore();
@@ -23,7 +23,8 @@ function DishListRow({ dish, restaurant, eager }) {
     <motion.div
       initial={scrollVariants.initial}
       whileInView={scrollVariants.animate}
-      viewport={{ once: true, amount: 0.2 }}
+      viewport={SCROLL_VIEWPORT}
+      style={{ willChange: 'transform, opacity' }}
       transition={scrollVariants.transition}
       className="glass rounded-xl p-3 flex items-center gap-3"
     >
