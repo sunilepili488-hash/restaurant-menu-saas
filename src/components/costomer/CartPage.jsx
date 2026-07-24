@@ -288,7 +288,7 @@ export default function CartPage({ open, onClose, dishes = [], restaurant, onPay
                               {lo.status === 'ready' && (
                                 <Button
                                   size="sm"
-                                  className="w-full mt-2 bg-green-600 text-white gap-1"
+                                  className="w-full mt-2 bg-primary text-primary-foreground gap-1"
                                   onClick={() => menuStore.removeLockedOrder(lo.groupId)}
                                 >
                                   ✅ Confirm & Dismiss
