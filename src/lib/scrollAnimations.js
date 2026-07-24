@@ -3,6 +3,12 @@ export const SCROLL_ANIMATION_STYLES = [
   { id: 'zoom-in', label: 'Zoom In', description: 'Cards scale up from a slight zoom' },
   { id: 'slide-fade', label: 'Slide Fade', description: 'Cards slide in from the side while fading in' },
   { id: 'flip', label: 'Flip Reveal', description: 'Cards flip into view along the X axis' },
+  // Shared viewport config for all scroll-in animations. `amount: 0.15` +
+// negative bottom margin means the animation starts firing slightly BEFORE
+// the card's edge reaches the screen edge — so by the time it's visible,
+// the animation already looks smooth instead of popping in at the last
+// moment (this removes the "lag" feeling while scrolling fast).
+export const SCROLL_VIEWPORT = { once: true, amount: 0.15, margin: '0px 0px -80px 0px' };
 ];
 
 export function getScrollVariants(style = 'fade-up') {
