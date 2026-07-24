@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import LazyImage from './LazyImage';
 import DishDetailSheet from './DishDetailSheet';
-import { getScrollVariants } from '@/lib/scrollAnimations';
 import { getScrollVariants, SCROLL_VIEWPORT } from '@/lib/scrollAnimations';
 
 function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
