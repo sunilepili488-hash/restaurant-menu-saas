@@ -112,13 +112,14 @@
 /* Glassmorphism utility — adapts to theme */
 .glass {
   background: hsl(var(--card) / 0.95);
-  border: 1px solid hsl(var(--border) / 0.5);
+  border: 1.5px solid hsl(var(--foreground) / 0.35);
 }
 
 .glass-light {
   background: hsl(var(--card) / 0.9);
-  border: 1px solid hsl(var(--border) / 0.3);
+  border: 1.5px solid hsl(var(--foreground) / 0.3);
 }
+
 
 /* Gold shimmer animation */
 @keyframes shimmer {
