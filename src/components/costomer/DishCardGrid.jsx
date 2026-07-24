@@ -1,6 +1,7 @@
 import React, { useState, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, ThumbsUp, ShoppingBag, Leaf, Drumstick, Heart, ChevronDown, MessageCircle, X } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
+import { Clock, ThumbsUp, ShoppingBag, Leaf, Drumstick, Heart, ChevronDown, MessageCircle, X, Sparkles } from 'lucide-react';
 import { menuStore, useMenuStore } from '@/lib/menuStore';
 import { entities } from '@/api/entities';
 import { formatCount, getOrderedToday } from '@/lib/formatUtils';
@@ -42,6 +43,10 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
 
   const isHidden = (key) => icons[key]?.hidden === true;
   const scrollVariants = getScrollVariants(restaurant?.scroll_animation_style);
+  const themeVars = restaurant?.theme_css_vars || {};
+  const cardRadius = themeVars['--radius'] || '0.75rem';
+  const cardShadow = themeVars['--card-shadow'] || 'none';
+  const ThemeIcon = LucideIcons[themeVars['--card-icon']] || Sparkles;
 
   const handleLike = async (e) => {
     e.stopPropagation();
@@ -54,7 +59,9 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
 
   return (
     <motion.div
-      className="glass rounded-2xl overflow-hidden group"
+      <motion.div
+      className="glass overflow-hidden group"
+      style={{ borderRadius: cardRadius, boxShadow: cardShadow }}
       layout={false}
       initial={scrollVariants.initial}
       whileInView={scrollVariants.animate}
@@ -74,6 +81,14 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
           eager={eager}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
+          {/* Theme signature icon */}
+        <span
+          className="absolute top-2 right-11 w-7 h-7 rounded-full flex items-center justify-center backdrop-blur-sm"
+          style={{ backgroundColor: 'hsl(var(--primary) / 0.85)' }}
+          title="Theme"
+        >
+          <ThemeIcon className="w-3.5 h-3.5" style={{ color: 'hsl(var(--primary-foreground))' }} />
+        </span>
 
         <div className="absolute top-2 left-2 flex items-center gap-1.5">
           {hasDiscount && (
