@@ -58,14 +58,13 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
   };
 
   return (
-      <motion.div
+    <motion.div
       className="glass overflow-hidden group"
-      style={{ borderRadius: cardRadius, boxShadow: cardShadow }}
       layout={false}
       initial={scrollVariants.initial}
       whileInView={scrollVariants.animate}
       viewport={SCROLL_VIEWPORT}
-      style={{ willChange: 'transform, opacity' }}
+      style={{ willChange: 'transform, opacity', borderRadius: cardRadius, boxShadow: cardShadow }}
       transition={scrollVariants.transition}
     >
       {/* Image */}
