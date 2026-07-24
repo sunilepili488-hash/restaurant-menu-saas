@@ -114,9 +114,9 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
         )}
 
         {prepTimeStr && (
-          <span className="absolute bottom-2 left-2 glass text-[10px] text-foreground/80 px-2 py-1 rounded-full flex items-center gap-1">
-            <Clock className="w-3 h-3" /> {prepTimeStr}
-          </span>
+  <span className="absolute bottom-2 left-2 glass text-[10px] font-semibold text-foreground px-2 py-1 rounded-full flex items-center gap-1">
+    <Clock className="w-3 h-3" /> {prepTimeStr}
+  </span>
         )}
       </div>
 
