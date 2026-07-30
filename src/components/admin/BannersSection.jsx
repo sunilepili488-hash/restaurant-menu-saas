@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { entities } from '@/api/entities';
-import { Plus, Trash2, Pencil, Upload } from 'lucide-react';
+import { supabase } from '@/api/supabaseClient';
+import { Plus, Trash2, Pencil, Upload, Loader2, Check, X } from 'lucide-react';
 
 export default function BannersSection({ banners = [], onRefresh }) {
   const [dialogOpen, setDialogOpen] = useState(false);
