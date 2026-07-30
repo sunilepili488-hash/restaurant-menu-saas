@@ -9,7 +9,7 @@ export const SCROLL_ANIMATION_STYLES = [
 // the animation already looks smooth instead of popping in at the last
 // moment (this removes the "lag" feeling while scrolling fast).
 export const SCROLL_VIEWPORT = { once: true, amount: 0.15, margin: '0px 0px -80px 0px' };
-];
+
 
 export function getScrollVariants(style = 'fade-up') {
   switch (style) {
