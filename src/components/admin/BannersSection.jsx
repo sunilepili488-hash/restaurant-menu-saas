@@ -11,6 +11,10 @@ export default function BannersSection({ banners = [], onRefresh }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({ title: '', subtitle: '', image_url: '', bg_color: '#C5A572', text_color: '#FFFFFF', sort_order: 0 });
   const [editId, setEditId] = useState(null);
+  const [uploading, setUploading] = useState(false);
+const [uploadStatus, setUploadStatus] = useState({ success: false, error: '' });
+
+const clearUploadStatus = () => setTimeout(() => setUploadStatus({ success: false, error: '' }), 2000);
 
   const openNew = () => { setForm({ title: '', subtitle: '', image_url: '', bg_color: '#C5A572', text_color: '#FFFFFF', sort_order: banners.length }); setEditId(null); setDialogOpen(true); };
   const openEdit = (b) => { setForm({ ...b }); setEditId(b.id); setDialogOpen(true); };
