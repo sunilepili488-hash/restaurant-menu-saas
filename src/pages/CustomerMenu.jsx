@@ -285,9 +285,12 @@ export default function CustomerMenu() {
     return <ConnectSupabase />;
   }
 
-  if (showSplash) {
-    return <SplashScreen restaurant={restaurant} onComplete={() => setShowSplash(false)} />;
+ if (showSplash) {
+  if (!restaurant) {
+    return <div className="fixed inset-0 z-[100] bg-background" />;
   }
+  return <SplashScreen restaurant={restaurant} onComplete={() => setShowSplash(false)} />;
+}
 
   // Change 8 + 9: Closed restaurant gate — show after splash, before menu
   if (restaurant && restaurant.is_open === false) {
