@@ -28,11 +28,64 @@ const clearUploadStatus = () => setTimeout(() => setUploadStatus({ success: fals
   const handleDelete = async (id) => { await entities.Banner.delete(id); onRefresh(); };
 
   const handleImageUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const file_url = URL.createObjectURL(file);
-    set('image_url', file_url);
-  };
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  if (!supabase) {
+    setUploadStatus({ success: false, error: 'Supabase is not connected' });
+    setTimeout(() => setUploadStatus({ success: false, error: '' }), 5000);
+    return;
+  }
+
+  const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+  if (!allowed.includes(file.type)) {
+    setUploadStatus({ success: false, error: 'Only JPG, PNG and WEBP images are allowed' });
+    setTimeout(() => setUploadStatus({ success: false, error: '' }), 5000);
+    e.target.value = '';
+    return;
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    setUploadStatus({ success: false, error: 'Image must be under 5MB' });
+    setTimeout(() => setUploadStatus({ success: false, error: '' }), 5000);
+    e.target.value = '';
+    return;
+  }
+
+  setUploading(true);
+  try {
+    const ext = file.name.split('.').pop().toLowerCase();
+    const fileName = `banner-${Date.now()}.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('restaurant-assets')
+      .upload(fileName, file, { upsert: true, contentType: file.type });
+
+    if (uploadError) {
+      setUploadStatus({ success: false, error: `Upload failed: ${uploadError.message}` });
+      setTimeout(() => setUploadStatus({ success: false, error: '' }), 5000);
+      setUploading(false);
+      e.target.value = '';
+      return;
+    }
+
+    const { data } = supabase.storage.from('restaurant-assets').getPublicUrl(fileName);
+    set('image_url', data.publicUrl);
+    setUploadStatus({ success: true, error: '' });
+    clearUploadStatus();
+  } catch (err) {
+    setUploadStatus({ success: false, error: err.message || 'Upload error' });
+    setTimeout(() => setUploadStatus({ success: false, error: '' }), 5000);
+  }
+
+  setUploading(false);
+  e.target.value = '';
+};
+
+const handleRemoveImage = () => {
+  set('image_url', '');
+  setUploadStatus({ success: false, error: '' });
+};
 
   return (
     <div className="space-y-6">
