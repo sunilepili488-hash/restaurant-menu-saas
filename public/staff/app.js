@@ -104,14 +104,12 @@ function connectAndShowDashboard() {
 }
 
 function setupDashboardControls() {
-  document.querySelectorAll('.tab').forEach(function(tab) {
-    tab.addEventListener('click', function() {
-      activeTab = tab.dataset.tab;
-      document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
-      tab.classList.add('active');
-      isDeliveryMode = false;
-      renderOrders();
-    });
+ document.getElementById('search-input').addEventListener('input', function(e) {
+  searchQuery = e.target.value.toLowerCase().trim();
+  isDeliveryMode = (searchQuery === 'hd');
+  document.getElementById('stat-card-delivery').classList.toggle('hidden', !isDeliveryMode);
+  renderOrders();
+});
   });
   document.getElementById('search-input').addEventListener('input', function(e) {
     searchQuery = e.target.value.toLowerCase().trim();
