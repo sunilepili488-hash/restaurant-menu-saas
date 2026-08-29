@@ -563,8 +563,15 @@ function renderWaiterCard(order) {
 // BATCH CARD (Kitchen Batch tab — one card per dish that has 2+ active orders)
 // ═══════════════════════════════════════════════════
 function renderBatchCard(cluster) {
-  var chips = cluster.entries.map(function(e){
-    return '<span class="batch-chip status-'+e.status+'">'+escHtml(e.table)+' · ×'+e.qty+'</span>';
+  var byTable = {};
+  cluster.entries.forEach(function(e) {
+    if (!byTable[e.table]) byTable[e.table] = { table: e.table, qty: 0, status: e.status };
+    byTable[e.table].qty += e.qty;
+    byTable[e.table].status = e.status;
+  });
+  var chips = Object.keys(byTable).map(function(t){
+    var row = byTable[t];
+    return '<span class="batch-chip status-'+row.status+'">'+escHtml(row.table)+' · ×'+row.qty+'</span>';
   }).join('');
   return '<div class="batch-card">' +
     '<div class="batch-card-header">' +
