@@ -37,9 +37,7 @@
           <span class="live-dot" title="Connected"></span>
         </div>
         <div class="header-right">
-          <button id="sound-select-btn" class="icon-btn" title="Change Sound">
-            <span style="font-size:16px">🎵</span>
-          </button>
+          <button id="sound-select-btn" class="icon-btn" title="Change Sound"><span style="font-size:16px">🎵</span></button>
           <button id="sound-toggle" class="icon-btn" title="Toggle Sound">
             <svg id="sound-on-icon" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
             <svg id="sound-off-icon" class="icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
@@ -49,8 +47,6 @@
           </button>
         </div>
       </div>
-
-      <!-- Sound Selector Dropdown -->
       <div id="sound-menu" class="sound-menu hidden">
         <button class="sound-option active" data-sound="bell">🔔 Classic Bell</button>
         <button class="sound-option" data-sound="chime">✨ Gentle Chime</button>
@@ -58,11 +54,10 @@
         <button class="sound-option" data-sound="melody">🎵 Soft Melody</button>
         <button class="sound-test-btn" id="test-sound-btn">▶ Test Sound</button>
       </div>
-
       <div class="search-row">
         <div class="search-bar">
           <svg class="search-icon icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="search-input" placeholder="Search table or dish..." autocomplete="off">
+          <input type="text" id="search-input" placeholder="Table no. / dish name / 'hd' for delivery" autocomplete="off">
         </div>
       </div>
     </header>
@@ -78,7 +73,6 @@
     <div class="tab-bar" id="tab-bar">
       <button class="tab active" data-tab="confirmation"><span class="tab-text">Pending</span><span class="tab-badge" id="badge-confirmation">0</span></button>
       <button class="tab" data-tab="processing"><span class="tab-text">Progress</span><span class="tab-badge" id="badge-processing">0</span></button>
-      <button class="tab" data-tab="delivery"><span class="tab-text">Delivery</span><span class="tab-badge" id="badge-delivery">0</span></button>
       <button class="tab" data-tab="waiter"><span class="tab-text">Calls</span><span class="tab-badge" id="badge-waiter">0</span></button>
     </div>
 
