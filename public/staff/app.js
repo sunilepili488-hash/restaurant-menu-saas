@@ -12,6 +12,8 @@ let searchQuery = '';
 let currentSound = localStorage.getItem('staff_sound') || 'bell';
 let lastDataHash = '';
 let isDeliveryMode = false;
+let sameDishWindowMinutes = 5; // default until synced from Supabase app_settings table
+let dishClusters = []; // recomputed on every fetchOrders/updateStats pass
 const currency = '₹';
 
 // ═══ Icons ═══
@@ -92,9 +94,12 @@ function connectAndShowDashboard() {
   if ('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
   setupDashboardControls();
   setupSoundMenu();
+  setupSettingsMenu();
+  fetchSettings();
   fetchOrders();
   subscribeToRealtime();
   setInterval(fetchOrders, 7000);
+  setInterval(fetchSettings, 15000); // picks up changes made from the Admin Panel too
   setInterval(updateTimeLabels, 30000);
 }
 
@@ -148,6 +153,21 @@ function setupSoundMenu() {
     });
   });
   testBtn.addEventListener('click', function(){ playCurrentSound(); });
+}
+
+function setupSettingsMenu() {
+  var menu = document.getElementById('settings-menu');
+  var btn = document.getElementById('settings-btn');
+  var input = document.getElementById('window-input');
+  var saveBtn = document.getElementById('window-save-btn');
+  input.value = sameDishWindowMinutes;
+  btn.addEventListener('click', function(){ menu.classList.toggle('hidden'); });
+  document.addEventListener('click', function(e){ if(!menu.contains(e.target) && e.target!==btn && !btn.contains(e.target)) menu.classList.add('hidden'); });
+  saveBtn.addEventListener('click', function() {
+    var mins = parseInt(input.value) || 5;
+    saveSameDishWindow(mins);
+    menu.classList.add('hidden');
+  });
 }
 
 // ═══════════════════════════════════════════════════
@@ -224,12 +244,103 @@ async function deleteOrder(id) { if(!db)return; try{await db.from('order').delet
 async function resolveWaiterCall(id) { await updateOrderStatus(id, 'completed'); }
 
 // ═══════════════════════════════════════════════════
+// SAME-DISH WINDOW SETTING (synced with Admin Panel via app_settings table)
+// ═══════════════════════════════════════════════════
+async function fetchSettings() {
+  if (!db) return;
+  try {
+    var r = await db.from('app_settings').select('same_dish_window_minutes').eq('id', 1).single();
+    if (r.error) return; // table may not exist yet — fine, keep the default
+    if (r.data && r.data.same_dish_window_minutes != null && r.data.same_dish_window_minutes !== sameDishWindowMinutes) {
+      sameDishWindowMinutes = r.data.same_dish_window_minutes;
+      var wi = document.getElementById('window-input');
+      if (wi && document.activeElement !== wi) wi.value = sameDishWindowMinutes;
+      updateStats(); renderOrders();
+    }
+  } catch (e) { /* ignore — settings sync is best-effort */ }
+}
+
+async function saveSameDishWindow(mins) {
+  if (!db) return;
+  try {
+    var r = await db.from('app_settings').upsert({ id: 1, same_dish_window_minutes: mins, updated_at: new Date().toISOString() });
+    if (r.error) throw r.error;
+    sameDishWindowMinutes = mins;
+    showToast('Match window: ' + mins + ' min');
+    updateStats(); renderOrders();
+  } catch (e) { showToast('Failed to save ❌'); }
+}
+
+// ═══════════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════════
 function showToast(msg) { var el=document.getElementById('toast');document.getElementById('toast-msg').textContent=msg;el.classList.remove('hidden');el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(function(){el.classList.remove('show');setTimeout(function(){el.classList.add('hidden');},300);},2000); }
 function timeAgo(d) { var m=Math.floor((Date.now()-new Date(d).getTime())/60000); if(m<1)return'just now'; if(m<60)return m+'m ago'; var h=Math.floor(m/60); return h+'h '+(m%60)+'m ago'; }
 function escHtml(s) { var d=document.createElement('div');d.textContent=s;return d.innerHTML; }
 function updateTimeLabels() { document.querySelectorAll('[data-created-at]').forEach(function(el){el.textContent=timeAgo(el.dataset.createdAt);}); }
+
+// ═══════════════════════════════════════════════════
+// SAME-DISH BATCHING
+// Groups active (pending/confirmed only — never ready) orders that
+// share a dish name and were placed within sameDishWindowMinutes of
+// each other. Used for: the match badge + inline note on order cards,
+// and the dedicated Kitchen Batch tab.
+// ═══════════════════════════════════════════════════
+function normalizeDishName(name) { return String(name||'').trim().toLowerCase(); }
+
+function orderLabel(o) { return o.is_home_delivery ? 'Delivery' : ('Table ' + (o.table_number || 'N/A')); }
+
+function computeDishBatches() {
+  var windowMs = sameDishWindowMinutes * 60000;
+  var active = allOrders.filter(function(o){ return o.type === 'order' && (o.status === 'pending' || o.status === 'confirmed'); });
+
+  var byDish = {};
+  active.forEach(function(o) {
+    (o.items || []).forEach(function(item) {
+      var key = normalizeDishName(item.name);
+      if (!key) return;
+      if (!byDish[key]) byDish[key] = [];
+      byDish[key].push({
+        orderId: o.id, table: orderLabel(o), status: o.status,
+        qty: item.qty || 0, dishName: item.name, created_at: o.created_at
+      });
+    });
+  });
+
+  var clusters = [];
+  Object.keys(byDish).forEach(function(key) {
+    var list = byDish[key].slice().sort(function(a,b){ return new Date(a.created_at) - new Date(b.created_at); });
+    var current = [list[0]];
+    for (var i = 1; i < list.length; i++) {
+      var gap = new Date(list[i].created_at) - new Date(current[current.length-1].created_at);
+      if (gap <= windowMs) { current.push(list[i]); }
+      else { if (current.length > 1) clusters.push(buildCluster(current)); current = [list[i]]; }
+    }
+    if (current.length > 1) clusters.push(buildCluster(current));
+  });
+  return clusters;
+}
+
+function buildCluster(entries) {
+  return { dishName: entries[0].dishName, totalQty: entries.reduce(function(s,e){return s+e.qty;},0), entries: entries };
+}
+
+// Returns { dishNameKey: { dishName, totalQty, others: [{table, status}] } } for one order,
+// only including dishes that actually matched something else.
+function getOrderDishMatches(orderId, clusters) {
+  var res = {};
+  clusters.forEach(function(cl) {
+    var self = cl.entries.find(function(e){ return e.orderId === orderId; });
+    if (!self) return;
+    var others = cl.entries.filter(function(e){ return e.orderId !== orderId; });
+    if (others.length === 0) return;
+    res[normalizeDishName(cl.dishName)] = {
+      dishName: cl.dishName, totalQty: cl.totalQty,
+      others: others.map(function(e){ return { table: e.table, status: e.status }; })
+    };
+  });
+  return res;
+}
 
 // ═══════════════════════════════════════════════════
 // STATS
@@ -254,12 +365,19 @@ function updateStats() {
   document.getElementById('badge-confirmation').textContent = l.pending.length;
   document.getElementById('badge-processing').textContent = l.confirmed.length + l.ready.length;
   document.getElementById('badge-waiter').textContent = l.waiterCalls.length;
+
+  dishClusters = computeDishBatches();
+  document.getElementById('badge-batch').textContent = dishClusters.length;
 }
 
+// Matches "4", "T4", "t4" all against a table_number stored as "4" (or "T4").
+// Also still matches dish names and waiter-call labels, unchanged.
 function matchesSearch(order) {
   if (!searchQuery || searchQuery === 'hd') return true;
   var q = searchQuery;
-  if (String(order.table_number||'').toLowerCase().includes(q)) return true;
+  var qTable = q.replace(/^t/i, '').trim();
+  var orderTable = String(order.table_number || '').toLowerCase().replace(/^t/i, '').trim();
+  if (qTable && orderTable && orderTable === qTable) return true;
   if ((order.items||[]).some(function(i){return(i.name||'').toLowerCase().includes(q);})) return true;
   if ((order.waiter_call_label||'').toLowerCase().includes(q)) return true;
   return false;
@@ -297,6 +415,9 @@ function renderOrders() {
       var w=l.waiterCalls.filter(matchesSearch);
       html = w.length===0 ? emptyState('🛎️','No waiter calls') : w.map(function(o){return renderWaiterCard(o);}).join('');
       break;
+    case 'batch':
+      html = dishClusters.length===0 ? emptyState('🍳','No matching dishes right now') : dishClusters.map(renderBatchCard).join('');
+      break;
   }
   container.innerHTML = html;
   attachCardEvents();
@@ -318,11 +439,22 @@ function renderOrderCard(order, statusClass) {
   else if (isConfirmed) actions = '<button class="action-btn ready" data-action="ready" data-id="'+order.id+'">'+ICONS.checkCheck+'</button>';
   else if (isReady) actions = '<button class="action-btn delete" data-action="delete" data-id="'+order.id+'">'+ICONS.trash+'</button>';
 
+  var matches = getOrderDishMatches(order.id, dishClusters);
+  var otherTables = new Set();
+  Object.keys(matches).forEach(function(k){ matches[k].others.forEach(function(o){ otherTables.add(o.table); }); });
+  var matchBadge = otherTables.size > 0 ? '<span class="match-badge">🔁 +'+otherTables.size+'</span>' : '';
+
   var itemsHtml = items.map(function(item) {
-    return '<div class="item-row">' +
+    var match = matches[normalizeDishName(item.name)];
+    var row = '<div class="item-row">' +
       '<span class="item-main"><span class="item-name">' + escHtml(item.name||'') + '</span><span class="item-qty">×' + item.qty + '</span></span>' +
       '<span class="item-price">' + currency + (item.price * item.qty).toLocaleString() + '</span>' +
     '</div>';
+    if (match) {
+      var othersText = match.others.map(function(o){ return escHtml(o.table)+' ('+o.status+')'; }).join(', ');
+      row += '<div class="item-match-note">🔁 Also: '+othersText+' · ×'+match.totalQty+' total</div>';
+    }
+    return row;
   }).join('');
 
   return '<div class="order-card status-'+statusClass+'" data-order-id="'+order.id+'">' +
@@ -330,6 +462,7 @@ function renderOrderCard(order, statusClass) {
       '<div class="card-header-left">' +
         '<span class="card-table">'+ICONS.table+' Table '+escHtml(order.table_number||'N/A')+'</span>' +
         '<span class="card-status status-'+statusClass+'">'+statusClass+'</span>' +
+        matchBadge +
       '</div>' +
       '<span class="card-time" data-created-at="'+order.created_at+'">'+timeAgo(order.created_at)+'</span>' +
     '</div>' +
@@ -369,16 +502,27 @@ function renderDeliveryCard(order) {
   else if (isConfirmed) actions = '<button class="action-btn ready" data-action="ready" data-id="'+order.id+'">'+ICONS.checkCheck+'</button>';
   else if (isReady) actions = '<button class="action-btn complete" data-action="complete" data-id="'+order.id+'">'+ICONS.truck+'</button>';
 
+  var matches = getOrderDishMatches(order.id, dishClusters);
+  var otherTables = new Set();
+  Object.keys(matches).forEach(function(k){ matches[k].others.forEach(function(o){ otherTables.add(o.table); }); });
+  var matchBadge = otherTables.size > 0 ? '<span class="match-badge">🔁 +'+otherTables.size+'</span>' : '';
+
   var itemsHtml = items.map(function(item){
-    return '<div class="item-row">' +
+    var match = matches[normalizeDishName(item.name)];
+    var row = '<div class="item-row">' +
       '<span class="item-main"><span class="item-name">'+escHtml(item.name||'')+'</span><span class="item-qty">×'+item.qty+'</span></span>' +
       '<span class="item-price">'+currency+(item.price*item.qty).toLocaleString()+'</span>' +
     '</div>';
+    if (match) {
+      var othersText = match.others.map(function(o){ return escHtml(o.table)+' ('+o.status+')'; }).join(', ');
+      row += '<div class="item-match-note">🔁 Also: '+othersText+' · ×'+match.totalQty+' total</div>';
+    }
+    return row;
   }).join('');
 
   return '<div class="order-card status-delivery" data-order-id="'+order.id+'">' +
     '<div class="card-header">' +
-      '<div class="delivery-header-row">'+ICONS.truck+'<span class="delivery-title">Home Delivery</span><span class="otp-badge">OTP '+escHtml(String(otp))+'</span></div>' +
+      '<div class="delivery-header-row">'+ICONS.truck+'<span class="delivery-title">Home Delivery</span><span class="otp-badge">OTP '+escHtml(String(otp))+'</span>'+matchBadge+'</div>' +
       '<span class="card-time" data-created-at="'+order.created_at+'">'+timeAgo(order.created_at)+'</span>' +
     '</div>' +
     '<div class="delivery-info">' +
@@ -414,6 +558,22 @@ function renderWaiterCard(order) {
     '<div class="waiter-icon-wrap">'+ICONS.bell+'</div>' +
     '<div class="waiter-info"><p class="waiter-label">'+escHtml(order.waiter_call_label||'Waiter Call')+'</p><p class="waiter-meta">'+(order.table_number?'Table '+escHtml(order.table_number):'No table')+' · <span data-created-at="'+order.created_at+'">'+timeAgo(order.created_at)+'</span></p></div>' +
     '<button class="resolve-btn" data-action="resolve" data-id="'+order.id+'">'+ICONS.check+' Resolve</button>' +
+  '</div>';
+}
+
+// ═══════════════════════════════════════════════════
+// BATCH CARD (Kitchen Batch tab — one card per dish that has 2+ active orders)
+// ═══════════════════════════════════════════════════
+function renderBatchCard(cluster) {
+  var chips = cluster.entries.map(function(e){
+    return '<span class="batch-chip status-'+e.status+'">'+escHtml(e.table)+' · ×'+e.qty+'</span>';
+  }).join('');
+  return '<div class="batch-card">' +
+    '<div class="batch-card-header">' +
+      '<span class="batch-dish-name">'+escHtml(cluster.dishName)+'</span>' +
+      '<span class="batch-qty">×'+cluster.totalQty+' total</span>' +
+    '</div>' +
+    '<div class="batch-chips">'+chips+'</div>' +
   '</div>';
 }
 
