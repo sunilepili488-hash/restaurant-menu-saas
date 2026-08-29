@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════
-// AuraMenu Staff App v2.1
+// AuraMenu Staff App v2.2
 // ═══════════════════════════════════════════════════
 
 let db = null;
@@ -16,10 +16,8 @@ const currency = '₹';
 
 // ═══ Icons ═══
 const ICONS = {
-  table: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
+  table: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
   clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
-  eye: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
-  chevDown: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg>',
   check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
   checkCheck: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 7 17l-5-5"/><path d="m22 10-7.5 7.5L13 16"/></svg>',
   x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
@@ -28,7 +26,7 @@ const ICONS = {
   phone: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
   mapPin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
   bell: '🔔',
-  timer: '<svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  timer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
 };
 
 // ═══════════════════════════════════════════════════
@@ -230,7 +228,6 @@ async function resolveWaiterCall(id) { await updateOrderStatus(id, 'completed');
 // ═══════════════════════════════════════════════════
 function showToast(msg) { var el=document.getElementById('toast');document.getElementById('toast-msg').textContent=msg;el.classList.remove('hidden');el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(function(){el.classList.remove('show');setTimeout(function(){el.classList.add('hidden');},300);},2000); }
 function timeAgo(d) { var m=Math.floor((Date.now()-new Date(d).getTime())/60000); if(m<1)return'just now'; if(m<60)return m+'m ago'; var h=Math.floor(m/60); return h+'h '+(m%60)+'m ago'; }
-function shortId(id) { return String(id||'').slice(0,5); }
 function escHtml(s) { var d=document.createElement('div');d.textContent=s;return d.innerHTML; }
 function updateTimeLabels() { document.querySelectorAll('[data-created-at]').forEach(function(el){el.textContent=timeAgo(el.dataset.createdAt);}); }
 
@@ -308,7 +305,7 @@ function renderOrders() {
 function emptyState(e,t) { return '<div class="empty-state"><span class="empty-state-emoji">'+e+'</span><p class="empty-state-text">'+escHtml(t)+'</p></div>'; }
 
 // ═══════════════════════════════════════════════════
-// ORDER CARD (Premium — Centered Header)
+// ORDER CARD — minimal: accent bar tells status, items always visible
 // ═══════════════════════════════════════════════════
 function renderOrderCard(order, statusClass) {
   var items = order.items || [];
@@ -321,43 +318,29 @@ function renderOrderCard(order, statusClass) {
   else if (isConfirmed) actions = '<button class="action-btn ready" data-action="ready" data-id="'+order.id+'">'+ICONS.checkCheck+'</button>';
   else if (isReady) actions = '<button class="action-btn delete" data-action="delete" data-id="'+order.id+'">'+ICONS.trash+'</button>';
 
-  // Items with serial numbers + qty badge near price
-  var itemsHtml = items.map(function(item, idx) {
+  var itemsHtml = items.map(function(item) {
     return '<div class="item-row">' +
-      '<span class="item-serial">' + (idx+1) + '</span>' +
-      '<span class="item-name">' + escHtml(item.name||'') + '</span>' +
-      '<span class="item-qty-badge">×' + item.qty + '</span>' +
+      '<span class="item-main"><span class="item-name">' + escHtml(item.name||'') + '</span><span class="item-qty">×' + item.qty + '</span></span>' +
       '<span class="item-price">' + currency + (item.price * item.qty).toLocaleString() + '</span>' +
     '</div>';
   }).join('');
 
-  return '<div class="order-card" data-order-id="'+order.id+'">' +
-    // Centered header
+  return '<div class="order-card status-'+statusClass+'" data-order-id="'+order.id+'">' +
     '<div class="card-header">' +
-      '<div class="card-header-center">' +
-        '<span class="table-badge">'+ICONS.table+' Table '+escHtml(order.table_number||'N/A')+'</span>' +
-        '<span class="status-pill '+statusClass+'">'+statusClass+'</span>' +
+      '<div class="card-header-left">' +
+        '<span class="card-table">'+ICONS.table+' Table '+escHtml(order.table_number||'N/A')+'</span>' +
+        '<span class="card-status status-'+statusClass+'">'+statusClass+'</span>' +
       '</div>' +
-      '<div class="card-meta-row">' +
-        '<span class="card-time" data-created-at="'+order.created_at+'">'+ICONS.clock+' '+timeAgo(order.created_at)+'</span>' +
-      '</div>' +
+      '<span class="card-time" data-created-at="'+order.created_at+'">'+timeAgo(order.created_at)+'</span>' +
     '</div>' +
 
-    // View Items BUTTON with ID
-    '<button class="view-items-btn" data-toggle="'+order.id+'">' +
-      ICONS.eye + ' View Items' +
-      '<span class="btn-id">#'+shortId(order.id)+'</span>' +
-      ICONS.chevDown +
-    '</button>' +
-
-    // Items panel
-    '<div class="card-items" id="items-'+order.id+'">' +
+    '<div class="card-items">' +
       itemsHtml +
-      (order.special_instructions ? '<div class="special-box"><p>📝 '+escHtml(order.special_instructions)+'</p></div>' : '') +
-      (order.total > 0 ? '<div class="subtotal-row"><span class="subtotal-label">Subtotal</span><span class="subtotal-value">'+currency+order.total.toLocaleString()+'</span></div>' : '') +
     '</div>' +
 
-    // Footer
+    (order.special_instructions ? '<div class="special-box"><p>📝 '+escHtml(order.special_instructions)+'</p></div>' : '') +
+    (order.total > 0 ? '<div class="subtotal-row"><span class="subtotal-label">Total</span><span class="subtotal-value">'+currency+order.total.toLocaleString()+'</span></div>' : '') +
+
     '<div class="card-footer">' +
       '<div class="prep-row">'+ICONS.timer+'<input class="prep-input" type="text" inputmode="numeric" value="'+prepVal+'" data-prep-id="'+order.id+'" data-prep-confirmed="'+isConfirmed+'"><span class="prep-unit">min</span></div>' +
       '<div class="card-actions">'+actions+'</div>' +
@@ -386,17 +369,37 @@ function renderDeliveryCard(order) {
   else if (isConfirmed) actions = '<button class="action-btn ready" data-action="ready" data-id="'+order.id+'">'+ICONS.checkCheck+'</button>';
   else if (isReady) actions = '<button class="action-btn complete" data-action="complete" data-id="'+order.id+'">'+ICONS.truck+'</button>';
 
-  var itemsHtml = items.map(function(item,idx){
-    return '<div class="item-row"><span class="item-serial">'+(idx+1)+'</span><span class="item-name">'+escHtml(item.name||'')+'</span><span class="item-qty-badge">×'+item.qty+'</span><span class="item-price">'+currency+(item.price*item.qty).toLocaleString()+'</span></div>';
+  var itemsHtml = items.map(function(item){
+    return '<div class="item-row">' +
+      '<span class="item-main"><span class="item-name">'+escHtml(item.name||'')+'</span><span class="item-qty">×'+item.qty+'</span></span>' +
+      '<span class="item-price">'+currency+(item.price*item.qty).toLocaleString()+'</span>' +
+    '</div>';
   }).join('');
 
-  return '<div class="order-card" data-order-id="'+order.id+'">' +
-    '<div class="card-header"><div class="card-header-center"><div class="delivery-header-row">'+ICONS.truck+'<span class="delivery-title">Home Delivery</span><span class="otp-badge">OTP: '+escHtml(String(otp))+'</span></div></div><div class="card-meta-row"><span class="card-time" data-created-at="'+order.created_at+'">'+ICONS.clock+' '+timeAgo(order.created_at)+'</span></div></div>' +
-    '<div class="delivery-info"><div class="customer-row"><div class="customer-name">'+escHtml(order.delivery_name||'N/A')+(order.delivery_phone?' <a href="tel:'+order.delivery_phone+'" class="customer-phone">'+ICONS.phone+' '+escHtml(order.delivery_phone)+'</a>':'')+'</div>'+(addrStr?'<div class="customer-address">'+ICONS.mapPin+'<span>'+escHtml(addrStr)+'</span></div>':'')+'</div><div style="display:flex;align-items:center;gap:8px;"><span class="payment-badge '+(pay==='upi'?'upi':'cod')+'">'+(pay==='upi'?'UPI Paid':'COD')+'</span>'+(order.total>0?'<span class="delivery-total">'+currency+order.total.toLocaleString()+'</span>':'')+'</div></div>' +
-    '<div class="field-row" style="padding-top:4px">'+ICONS.truck+'<span class="field-label">Delivery:</span><input class="field-input" type="text" inputmode="numeric" value="'+dTime+'" data-delivery-id="'+order.id+'" style="width:50px"><span class="prep-unit">min</span></div>' +
-    '<div class="field-row" style="padding-bottom:4px">'+ICONS.phone+'<span class="field-label">Rider:</span><input class="field-input" type="tel" value="'+escHtml(dPhone)+'" placeholder="Phone" data-dboy-id="'+order.id+'"></div>' +
-    '<button class="view-items-btn" data-toggle="'+order.id+'">'+ICONS.eye+' View Items <span class="btn-id">#'+shortId(order.id)+'</span>'+ICONS.chevDown+'</button>' +
-    '<div class="card-items" id="items-'+order.id+'">'+itemsHtml+(order.special_instructions?'<div class="special-box"><p>📝 '+escHtml(order.special_instructions)+'</p></div>':'')+'</div>' +
+  return '<div class="order-card status-delivery" data-order-id="'+order.id+'">' +
+    '<div class="card-header">' +
+      '<div class="delivery-header-row">'+ICONS.truck+'<span class="delivery-title">Home Delivery</span><span class="otp-badge">OTP '+escHtml(String(otp))+'</span></div>' +
+      '<span class="card-time" data-created-at="'+order.created_at+'">'+timeAgo(order.created_at)+'</span>' +
+    '</div>' +
+    '<div class="delivery-info">' +
+      '<div class="customer-row">' +
+        '<div class="customer-name">'+escHtml(order.delivery_name||'N/A')+(order.delivery_phone?' <a href="tel:'+order.delivery_phone+'" class="customer-phone">'+ICONS.phone+' '+escHtml(order.delivery_phone)+'</a>':'')+'</div>' +
+        (addrStr?'<div class="customer-address">'+ICONS.mapPin+'<span>'+escHtml(addrStr)+'</span></div>':'') +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:8px;">' +
+        '<span class="payment-badge '+(pay==='upi'?'upi':'cod')+'">'+(pay==='upi'?'UPI Paid':'COD')+'</span>' +
+        (order.total>0?'<span class="delivery-total">'+currency+order.total.toLocaleString()+'</span>':'') +
+      '</div>' +
+    '</div>' +
+
+    '<div class="card-items">'+itemsHtml+'</div>' +
+    (order.special_instructions?'<div class="special-box"><p>📝 '+escHtml(order.special_instructions)+'</p></div>':'') +
+
+    '<div class="delivery-fields">' +
+      '<div class="field-row">'+ICONS.truck+'<span class="field-label">Delivery</span><input class="field-input" type="text" inputmode="numeric" value="'+dTime+'" data-delivery-id="'+order.id+'" style="max-width:56px"><span class="prep-unit">min</span></div>' +
+      '<div class="field-row">'+ICONS.phone+'<span class="field-label">Rider</span><input class="field-input" type="tel" value="'+escHtml(dPhone)+'" placeholder="Phone number" data-dboy-id="'+order.id+'"></div>' +
+    '</div>' +
+
     '<div class="card-footer"><div></div><div class="card-actions">'+actions+'</div></div>' +
     '<div class="cancel-row hidden" id="cancel-'+order.id+'"><input class="cancel-input" type="text" placeholder="Reason" id="cancel-reason-'+order.id+'"><button class="cancel-confirm-btn" data-action="do-cancel" data-id="'+order.id+'">Cancel</button><button class="cancel-back-btn" data-action="cancel-back" data-id="'+order.id+'">Back</button></div>' +
   '</div>';
@@ -437,12 +440,6 @@ function attachCardEvents() {
 
 function handleCardClick(e) {
   var btn = e.target.closest('[data-action]');
-  var toggle = e.target.closest('[data-toggle]');
-  if (toggle) {
-    var el = document.getElementById('items-'+toggle.dataset.toggle);
-    if (el) { el.classList.toggle('open'); toggle.classList.toggle('open'); }
-    return;
-  }
   if (!btn) return;
   var id = btn.dataset.id;
   switch (btn.dataset.action) {
