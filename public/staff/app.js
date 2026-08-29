@@ -104,21 +104,20 @@ function connectAndShowDashboard() {
 }
 
 function setupDashboardControls() {
- document.getElementById('search-input').addEventListener('input', function(e) {
-  searchQuery = e.target.value.toLowerCase().trim();
-  isDeliveryMode = (searchQuery === 'hd');
-  document.getElementById('stat-card-delivery').classList.toggle('hidden', !isDeliveryMode);
-  renderOrders();
-});
+  document.querySelectorAll('.tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      activeTab = tab.dataset.tab;
+      document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+      tab.classList.add('active');
+      isDeliveryMode = false;
+      renderOrders();
+    });
   });
   document.getElementById('search-input').addEventListener('input', function(e) {
     searchQuery = e.target.value.toLowerCase().trim();
-    // "hd" = show delivery orders
-    if (searchQuery === 'hd') {
-      isDeliveryMode = true;
-    } else {
-      isDeliveryMode = false;
-    }
+    // "hd" = show delivery orders (and the Delivery stat box); anything else hides both again
+    isDeliveryMode = (searchQuery === 'hd');
+    document.getElementById('stat-card-delivery').classList.toggle('hidden', !isDeliveryMode);
     renderOrders();
   });
   document.getElementById('sound-toggle').addEventListener('click', function() {
@@ -563,11 +562,13 @@ function renderWaiterCard(order) {
 // BATCH CARD (Kitchen Batch tab — one card per dish that has 2+ active orders)
 // ═══════════════════════════════════════════════════
 function renderBatchCard(cluster) {
+  // Merge entries so the same table appears once (qty combined) even if
+  // that table has 2+ matching orders of this dish in the window.
   var byTable = {};
   cluster.entries.forEach(function(e) {
     if (!byTable[e.table]) byTable[e.table] = { table: e.table, qty: 0, status: e.status };
     byTable[e.table].qty += e.qty;
-    byTable[e.table].status = e.status;
+    byTable[e.table].status = e.status; // most recent entry's status wins for the chip color
   });
   var chips = Object.keys(byTable).map(function(t){
     var row = byTable[t];
