@@ -37,6 +37,7 @@
           <span class="live-dot" title="Connected"></span>
         </div>
         <div class="header-right">
+          <button id="settings-btn" class="icon-btn" title="Same Dish Match Settings"><span style="font-size:15px">⏱️</span></button>
           <button id="sound-select-btn" class="icon-btn" title="Change Sound"><span style="font-size:15px">🎵</span></button>
           <button id="sound-toggle" class="icon-btn" title="Toggle Sound">
             <svg id="sound-on-icon" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
@@ -45,6 +46,16 @@
           <button id="logout-btn" class="icon-btn" title="Logout">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           </button>
+        </div>
+      </div>
+      <div id="settings-menu" class="sound-menu hidden">
+        <div class="settings-row">
+          <label class="settings-label">Same Dish Match Window — orders within this many minutes of each other will be flagged as the same batch</label>
+          <div class="settings-input-row">
+            <input type="number" id="window-input" min="1" max="60" value="5">
+            <span class="prep-unit">min</span>
+            <button class="sound-test-btn" id="window-save-btn">Save</button>
+          </div>
         </div>
       </div>
       <div id="sound-menu" class="sound-menu hidden">
@@ -74,6 +85,7 @@
       <button class="tab active" data-tab="confirmation"><span class="tab-text">Pending</span><span class="tab-badge" id="badge-confirmation">0</span></button>
       <button class="tab" data-tab="processing"><span class="tab-text">Progress</span><span class="tab-badge" id="badge-processing">0</span></button>
       <button class="tab" data-tab="waiter"><span class="tab-text">Calls</span><span class="tab-badge" id="badge-waiter">0</span></button>
+      <button class="tab" data-tab="batch"><span class="tab-text">Batch</span><span class="tab-badge" id="badge-batch">0</span></button>
     </div>
 
     <main class="order-list" id="order-list"></main>
