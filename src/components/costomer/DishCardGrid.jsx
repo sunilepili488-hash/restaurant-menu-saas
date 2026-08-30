@@ -1,13 +1,10 @@
-import React, { useState, memo } from 'react';
+import React, { useState, useRef, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import * as LucideIcons from 'lucide-react';
-import { Clock, ThumbsUp, ShoppingBag, Leaf, Drumstick, Heart, ChevronDown, MessageCircle, X, Sparkles } from 'lucide-react';
+import { Clock, ThumbsUp, ShoppingBag, Leaf, Drumstick, Heart, ChevronDown, MessageCircle, X } from 'lucide-react';
 import { menuStore, useMenuStore } from '@/lib/menuStore';
 import { entities } from '@/api/entities';
 import { formatCount, getOrderedToday } from '@/lib/formatUtils';
 import { User } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import LazyImage from './LazyImage';
 import DishDetailSheet from './DishDetailSheet';
 import { getScrollVariants, SCROLL_VIEWPORT } from '@/lib/scrollAnimations';
@@ -22,9 +19,15 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
   // next 7s poll. Once the next poll brings a dish.like_count >= our
   // optimistic value, we drop the override and trust the live prop again.
   const [optimisticLike, setOptimisticLike] = useState(null);
-  const likeCount = optimisticLike !== null && optimisticLike > (dish.like_count || 0)
+  const likeCount = optimisticLike !== null && optimisticLike !== (dish.like_count || 0)
     ? optimisticLike
     : (dish.like_count || 0);
+
+  // Change 14 fix: prevents a fast double-tap (or a duplicate event fire)
+  // from calling handleLike twice, which was causing dislike to subtract
+  // 2 instead of 1. While locked, taps are ignored until the previous
+  // like/unlike request has actually finished.
+  const likeLockRef = useRef(false);
 
   const [payModalOpen, setPayModalOpen] = useState(false);
   const [payAmount, setPayAmount] = useState(dish.sale_price || dish.regular_price || 0);
@@ -49,15 +52,33 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
   const themeVars = restaurant?.theme_css_vars || {};
   const cardRadius = themeVars['--radius'] || '0.75rem';
   const cardShadow = themeVars['--card-shadow'] || 'none';
-  const ThemeIcon = LucideIcons[themeVars['--card-icon']] || Sparkles;
 
+  // Change 14: single, locked like/unlike handler — exactly +1 or -1, never both.
   const handleLike = async (e) => {
     e.stopPropagation();
+    if (likeLockRef.current) return;
+    likeLockRef.current = true;
+
+    const wasLiked = isLiked; // snapshot state BEFORE toggling
     const nowLiked = menuStore.toggleLike(dish.id);
     const baseCount = dish.like_count || 0;
-    const newCount = nowLiked ? baseCount + 1 : Math.max(0, baseCount - 1);
+    // Compute the new count from the pre-toggle state, so a rapid repeat
+    // tap (even if it slips through) can never apply the same delta twice.
+    const newCount = wasLiked
+      ? Math.max(0, baseCount - 1)
+      : baseCount + 1;
+
     setOptimisticLike(newCount);
-    entities.Dish.update(dish.id, { like_count: newCount });
+
+    try {
+      await entities.Dish.update(dish.id, { like_count: newCount });
+    } catch (err) {
+      console.error('Failed to update like count:', err);
+    } finally {
+      // Small cooldown so a genuine second tap is still allowed, but an
+      // accidental double-fire from the same tap is swallowed.
+      setTimeout(() => { likeLockRef.current = false; }, 500);
+    }
   };
 
   return (
@@ -80,15 +101,6 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
           className="absolute inset-0 w-full h-full object-cover"
         />
 
-        {/* Theme signature icon */}
-        <span
-          className="absolute top-2 right-11 w-7 h-7 rounded-full flex items-center justify-center backdrop-blur-sm"
-          style={{ backgroundColor: 'hsl(var(--primary) / 0.85)' }}
-          title="Theme"
-        >
-          <ThemeIcon className="w-3.5 h-3.5" style={{ color: 'hsl(var(--primary-foreground))' }} />
-        </span>
-
         <div className="absolute top-2 left-2 flex items-center gap-1.5">
           {hasDiscount && (
             <span className="bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
@@ -100,15 +112,16 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
           </span>
         </div>
 
-        {/* Heart icon (Favorite) — top right corner overlay */}
+        {/* Heart icon (Favorite) — top right corner overlay.
+            Change 3: border darkened so it stays visible on white/light themes. */}
         {!isHidden('favorite') && (
           <motion.button
             whileTap={{ scale: 0.8 }}
             onClick={(e) => { e.stopPropagation(); menuStore.toggleFavorite(dish.id); }}
-            className="absolute top-2 right-2 w-8 h-8 rounded-full glass flex items-center justify-center"
+            className="absolute top-2 right-2 w-8 h-8 rounded-full glass border-2 border-neutral-800/50 flex items-center justify-center shadow-sm"
             title="Favorite"
           >
-            <Heart className={`w-4 h-4 transition-colors ${isFav ? 'text-rose-500 fill-rose-500' : 'text-white/80'}`} />
+            <Heart className={`w-4 h-4 transition-colors ${isFav ? 'text-rose-500 fill-rose-500' : 'text-white/90'}`} />
           </motion.button>
         )}
 
@@ -217,7 +230,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
         </AnimatePresence>
       </div>
 
-      {/* Payment Modal — Modern Redesign */}
+      {/* Payment Modal (per-card quick pay) */}
       <AnimatePresence>
         {payModalOpen && (
           <motion.div
@@ -226,10 +239,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-end justify-center p-0"
           >
-            {/* Backdrop */}
             <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" onClick={() => setPayModalOpen(false)} />
-
-            {/* Modal Card — slides up */}
             <motion.div
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
@@ -237,7 +247,6 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               className="relative z-10 w-full max-w-md bg-background rounded-t-3xl shadow-2xl overflow-hidden"
             >
-              {/* Header */}
               <div className="flex items-center justify-between px-6 pt-6 pb-2">
                 <h3 className="font-display text-xl font-semibold">Pay via UPI</h3>
                 <button
@@ -249,7 +258,6 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
               </div>
 
               <div className="px-6 pb-8 space-y-5">
-                {/* Amount Input */}
                 <div className="space-y-1">
                   <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Enter Amount</label>
                   <div className="relative">
@@ -263,7 +271,6 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
                   </div>
                 </div>
 
-                {/* UPI Options — 2x2 Grid */}
                 <div>
                   <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 block">Choose Payment App</label>
                   <div className="grid grid-cols-2 gap-3">
@@ -323,7 +330,6 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
                   </div>
                 </div>
 
-                {/* Fallback message */}
                 <p className="text-xs text-center text-muted-foreground">
                   On desktop: if app does not open, please open your UPI app manually and pay to <strong>{restaurant?.upi_id || 'restaurant UPI ID'}</strong>
                 </p>
