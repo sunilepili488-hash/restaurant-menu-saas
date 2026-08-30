@@ -6,9 +6,14 @@ import { entities } from '@/api/entities';
 import { useSafeSave } from '@/lib/saveUtils';
 import { Save, Plus, Trash2 } from 'lucide-react';
 
+const DEFAULT_PLACE_ORDER_MESSAGE = '🎉 Your order has been received! Your waiter will come to you shortly for confirmation.';
+
 export default function WaiterCallSection({ restaurant, onRefresh }) {
   const [options, setOptions] = useState([]);
   const [newLabel, setNewLabel] = useState('');
+  // Change 13: editable "Place Order" confirmation message shown to the
+  // customer in the centered popup card after they place an order.
+  const [placeOrderMessage, setPlaceOrderMessage] = useState(DEFAULT_PLACE_ORDER_MESSAGE);
   const { saving, saved, error, save } = useSafeSave();
 
   useEffect(() => {
@@ -19,6 +24,7 @@ export default function WaiterCallSection({ restaurant, onRefresh }) {
         { label: 'Call Waiter', icon: 'hand', toast_message: 'Your waiter has been notified and will be with you shortly! 🙋' },
         { label: 'Need Refill', icon: 'coffee', toast_message: 'Your refill is on the way! 🥤' },
       ]);
+      setPlaceOrderMessage(restaurant.place_order_message || DEFAULT_PLACE_ORDER_MESSAGE);
     }
   }, [restaurant]);
 
@@ -28,11 +34,29 @@ export default function WaiterCallSection({ restaurant, onRefresh }) {
     setNewLabel('');
   };
 
-  const handleSave = () => save(entities.Restaurant.update(restaurant.id, { waiter_call_options: options }), onRefresh);
+  const handleSave = () => save(
+    entities.Restaurant.update(restaurant.id, { waiter_call_options: options, place_order_message: placeOrderMessage }),
+    onRefresh
+  );
 
   return (
     <div className="space-y-6">
       <h2 className="font-display text-2xl font-semibold">Waiter Call Options</h2>
+
+      {/* Change 13: Place Order confirmation message, editable here */}
+      <div className="p-3 rounded-xl bg-card border border-border space-y-2">
+        <Label className="text-sm font-medium">Place Order confirmation message</Label>
+        <p className="text-xs text-muted-foreground">
+          Shown to the customer in a popup card right after they tap "Place Order".
+        </p>
+        <Input
+          value={placeOrderMessage}
+          onChange={e => setPlaceOrderMessage(e.target.value)}
+          placeholder={DEFAULT_PLACE_ORDER_MESSAGE}
+          className="bg-secondary text-sm"
+        />
+      </div>
+
       <div className="flex gap-2">
         <Input value={newLabel} onChange={e => setNewLabel(e.target.value)} placeholder="New option label" className="bg-secondary" onKeyDown={e => e.key === 'Enter' && addOption()} />
         <Button onClick={addOption} className="gap-1"><Plus className="w-4 h-4" /> Add</Button>
