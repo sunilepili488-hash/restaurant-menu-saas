@@ -14,6 +14,9 @@ let lastDataHash = '';
 let isDeliveryMode = false;
 let sameDishWindowMinutes = 5; // default until synced from Supabase app_settings table
 let dishClusters = []; // recomputed on every fetchOrders/updateStats pass
+let editingOrderIds = new Set(); // order ids currently open in edit mode
+let editDrafts = {}; // orderId -> draft copy of items[] being edited (not yet saved)
+let pushSubscribed = localStorage.getItem('staff_push_on') === 'true';
 const currency = '₹';
 
 // ═══ Icons ═══
@@ -29,30 +32,41 @@ const ICONS = {
   mapPin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>',
   bell: '🔔',
   timer: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  pencil: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>',
+  bellRing: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>',
 };
 
 // ═══════════════════════════════════════════════════
-// 4 SOUNDS (Louder)
+// 4 SOUNDS — shared AudioContext (unlocked on first tap) so sound
+// plays immediately and reliably even when triggered by a realtime
+// event (not a direct click), which mobile browsers otherwise block.
 // ═══════════════════════════════════════════════════
+let audioCtx = null;
+function ensureAudioContext() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume().catch(function(){});
+  return audioCtx;
+}
+
 function playCurrentSound() {
   if (!soundEnabled) return;
   try { ({bell:playBellSound,chime:playChimeSound,alert:playAlertSound,melody:playMelodySound}[currentSound]||playBellSound)(); } catch(e){}
 }
 
 function playBellSound() {
-  var ctx = new (window.AudioContext||window.webkitAudioContext)(), now = ctx.currentTime;
+  var ctx = ensureAudioContext(), now = ctx.currentTime;
   [0,0.45].forEach(function(d){[523,659,784].forEach(function(f,i){var o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;o.type='sine';g.gain.setValueAtTime(0.5-i*0.1,now+d);g.gain.exponentialRampToValueAtTime(0.001,now+d+0.7);o.start(now+d);o.stop(now+d+0.7);});});
 }
 function playChimeSound() {
-  var ctx = new (window.AudioContext||window.webkitAudioContext)(), now = ctx.currentTime;
+  var ctx = ensureAudioContext(), now = ctx.currentTime;
   [0,0.25,0.5].forEach(function(d,i){var f=[600,800,1000][i],o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;o.type='sine';g.gain.setValueAtTime(0.45,now+d);g.gain.exponentialRampToValueAtTime(0.001,now+d+0.5);o.start(now+d);o.stop(now+d+0.5);});
 }
 function playAlertSound() {
-  var ctx = new (window.AudioContext||window.webkitAudioContext)(), now = ctx.currentTime;
+  var ctx = ensureAudioContext(), now = ctx.currentTime;
   [0,0.18,0.36].forEach(function(d){var o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=1000;o.type='square';g.gain.setValueAtTime(0.5,now+d);g.gain.exponentialRampToValueAtTime(0.001,now+d+0.14);o.start(now+d);o.stop(now+d+0.14);});
 }
 function playMelodySound() {
-  var ctx = new (window.AudioContext||window.webkitAudioContext)(), now = ctx.currentTime;
+  var ctx = ensureAudioContext(), now = ctx.currentTime;
   [523,659,784,1047].forEach(function(f,i){var d=i*0.13,o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=f;o.type='sine';g.gain.setValueAtTime(0.45,now+d);g.gain.exponentialRampToValueAtTime(0.001,now+d+0.45);o.start(now+d);o.stop(now+d+0.45);});
 }
 
@@ -74,6 +88,7 @@ function showPinScreen() {
   var pinBtn = document.getElementById('pin-submit');
   var pinErr = document.getElementById('pin-error');
   function tryLogin() {
+    ensureAudioContext(); // unlock audio on this real user gesture — sounds play reliably afterwards
     var pin = pinInput.value.trim();
     if (!pin) { pinErr.textContent = 'Please enter PIN'; return; }
     if (pin === STAFF_CONFIG.STAFF_PIN) {
@@ -95,6 +110,7 @@ function connectAndShowDashboard() {
   setupDashboardControls();
   setupSoundMenu();
   setupSettingsMenu();
+  setupPushToggle();
   fetchSettings();
   fetchOrders();
   subscribeToRealtime();
@@ -165,6 +181,84 @@ function setupSettingsMenu() {
     saveSameDishWindow(mins);
     menu.classList.add('hidden');
   });
+}
+
+// ═══════════════════════════════════════════════════
+// BACKGROUND PUSH NOTIFICATIONS
+// A plain website/PWA cannot keep JavaScript running forever once it is
+// swiped away from Recent Apps — that's an OS-level restriction on every
+// browser. The only way notifications (with sound) reliably still arrive
+// after the app is removed from Recents is real Web Push: the OS itself
+// wakes the service worker for an incoming push, app open or not.
+// This toggle subscribes/unsubscribes the device for that.
+// ═══════════════════════════════════════════════════
+function setupPushToggle() {
+  var btn = document.getElementById('push-toggle-btn');
+  if (!btn) return;
+  updatePushToggleUI();
+  btn.addEventListener('click', async function() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      showToast('Push not supported on this browser ❌'); return;
+    }
+    if (pushSubscribed) { await disablePush(); } else { await enablePush(); }
+    updatePushToggleUI();
+  });
+  // If a subscription already exists from a previous visit, keep the toggle in sync.
+  if (pushSubscribed) reconfirmPushSubscription();
+}
+
+function updatePushToggleUI() {
+  var btn = document.getElementById('push-toggle-btn');
+  if (!btn) return;
+  btn.classList.toggle('active', pushSubscribed);
+  btn.title = pushSubscribed ? 'Background notifications: ON' : 'Background notifications: OFF';
+}
+
+function urlBase64ToUint8Array(base64String) {
+  var padding = '='.repeat((4 - base64String.length % 4) % 4);
+  var base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  var rawData = atob(base64), outputArray = new Uint8Array(rawData.length);
+  for (var i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+
+async function enablePush() {
+  try {
+    var perm = await Notification.requestPermission();
+    if (perm !== 'granted') { showToast('Notification permission denied ❌'); return; }
+    var reg = await navigator.serviceWorker.ready;
+    var sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(STAFF_CONFIG.VAPID_PUBLIC_KEY)
+    });
+    await db.from('push_subscriptions').upsert({
+      endpoint: sub.endpoint, subscription: sub.toJSON(), updated_at: new Date().toISOString()
+    }, { onConflict: 'endpoint' });
+    pushSubscribed = true;
+    localStorage.setItem('staff_push_on', 'true');
+    showToast('Background notifications ON 🔔');
+  } catch (e) { console.error('[Push]', e); showToast('Could not enable push ❌'); }
+}
+
+async function disablePush() {
+  try {
+    var reg = await navigator.serviceWorker.ready;
+    var sub = await reg.pushManager.getSubscription();
+    if (sub) { await db.from('push_subscriptions').delete().eq('endpoint', sub.endpoint); await sub.unsubscribe(); }
+    pushSubscribed = false;
+    localStorage.setItem('staff_push_on', 'false');
+    showToast('Background notifications OFF');
+  } catch (e) { console.error('[Push]', e); showToast('Could not disable push ❌'); }
+}
+
+// Makes sure the subscription Supabase has on file still matches this device
+// (e.g. browser cleared it) — re-subscribes silently if it went missing.
+async function reconfirmPushSubscription() {
+  try {
+    var reg = await navigator.serviceWorker.ready;
+    var sub = await reg.pushManager.getSubscription();
+    if (!sub) { await enablePush(); updatePushToggleUI(); }
+  } catch (e) {}
 }
 
 // ═══════════════════════════════════════════════════
@@ -240,6 +334,19 @@ async function updateDeliveryBoyPhone(id, phone) { if(!db)return; await db.from(
 async function deleteOrder(id) { if(!db)return; try{await db.from('order').delete().eq('id',id);showToast('Deleted');lastDataHash='';fetchOrders();}catch(e){showToast('Failed ❌');} }
 async function resolveWaiterCall(id) { await updateOrderStatus(id, 'completed'); }
 
+async function saveEdit(id) {
+  if (!db) return;
+  var items = editDrafts[id] || [];
+  var total = items.reduce(function(s,i){ return s + (i.price||0)*i.qty; }, 0);
+  try {
+    var r = await db.from('order').update({ items: items, total: total, updated_at: new Date().toISOString() }).eq('id', id);
+    if (r.error) throw r.error;
+    showToast('Order updated ✅');
+  } catch (e) { showToast('Failed to save ❌'); }
+  editingOrderIds.delete(id); delete editDrafts[id];
+  lastDataHash = ''; fetchOrders();
+}
+
 // ═══════════════════════════════════════════════════
 // SAME-DISH WINDOW SETTING (synced with Admin Panel via app_settings table)
 // ═══════════════════════════════════════════════════
@@ -285,7 +392,7 @@ function updateTimeLabels() { document.querySelectorAll('[data-created-at]').for
 // ═══════════════════════════════════════════════════
 function normalizeDishName(name) { return String(name||'').trim().toLowerCase(); }
 
-function orderLabel(o) { return o.is_home_delivery ? 'Delivery' : ('Table ' + (o.table_number || 'N/A')); }
+function orderLabel(o) { return o.is_home_delivery ? 'Delivery' : ('T' + (o.table_number || 'N/A')); }
 
 function computeDishBatches() {
   var windowMs = sameDishWindowMinutes * 60000;
@@ -322,8 +429,9 @@ function buildCluster(entries) {
   return { dishName: entries[0].dishName, totalQty: entries.reduce(function(s,e){return s+e.qty;},0), entries: entries };
 }
 
-// Returns { dishNameKey: { dishName, totalQty, others: [{table, status}] } } for one order,
-// only including dishes that actually matched something else.
+// Returns { dishNameKey: { dishName, others: [{table, status, qty}] } } for one order —
+// "others" is grouped PER TABLE (qty summed) so a table with 2 matching orders of the
+// same dish shows once as "T5 ×2", not as two separate mentions.
 function getOrderDishMatches(orderId, clusters) {
   var res = {};
   clusters.forEach(function(cl) {
@@ -331,9 +439,15 @@ function getOrderDishMatches(orderId, clusters) {
     if (!self) return;
     var others = cl.entries.filter(function(e){ return e.orderId !== orderId; });
     if (others.length === 0) return;
+    var byTable = {};
+    others.forEach(function(e) {
+      if (!byTable[e.table]) byTable[e.table] = { table: e.table, qty: 0, status: e.status };
+      byTable[e.table].qty += e.qty;
+      byTable[e.table].status = e.status;
+    });
     res[normalizeDishName(cl.dishName)] = {
-      dishName: cl.dishName, totalQty: cl.totalQty,
-      others: others.map(function(e){ return { table: e.table, status: e.status }; })
+      dishName: cl.dishName,
+      others: Object.keys(byTable).map(function(t){ return byTable[t]; })
     };
   });
   return res;
@@ -426,33 +540,63 @@ function emptyState(e,t) { return '<div class="empty-state"><span class="empty-s
 // ORDER CARD — minimal: accent bar tells status, items always visible
 // ═══════════════════════════════════════════════════
 function renderOrderCard(order, statusClass) {
-  var items = order.items || [];
+  var isEditing = editingOrderIds.has(order.id);
+  var items = isEditing ? editDrafts[order.id] : (order.items || []);
   var avgPrep = items.length > 0 ? Math.ceil(items.reduce(function(s,i){return s+(i.prep_time||15);},0)/items.length) : 15;
   var prepVal = order.prep_time_override || avgPrep;
   var isPending = order.status==='pending', isConfirmed = order.status==='confirmed', isReady = order.status==='ready';
 
-  var actions = '';
-  if (isPending) actions = '<button class="action-btn confirm" data-action="confirm" data-id="'+order.id+'">'+ICONS.check+'</button><button class="action-btn cancel" data-action="start-cancel" data-id="'+order.id+'">'+ICONS.x+'</button>';
-  else if (isConfirmed) actions = '<button class="action-btn ready" data-action="ready" data-id="'+order.id+'">'+ICONS.checkCheck+'</button>';
-  else if (isReady) actions = '<button class="action-btn delete" data-action="delete" data-id="'+order.id+'">'+ICONS.trash+'</button>';
-
-  var matches = getOrderDishMatches(order.id, dishClusters);
+  var matches = isEditing ? {} : getOrderDishMatches(order.id, dishClusters);
   var otherTables = new Set();
   Object.keys(matches).forEach(function(k){ matches[k].others.forEach(function(o){ otherTables.add(o.table); }); });
   var matchBadge = otherTables.size > 0 ? '<span class="match-badge">🔁 +'+otherTables.size+'</span>' : '';
 
-  var itemsHtml = items.map(function(item) {
-    var match = matches[normalizeDishName(item.name)];
-    var row = '<div class="item-row">' +
-      '<span class="item-main"><span class="item-name">' + escHtml(item.name||'') + '</span><span class="item-qty">×' + item.qty + '</span></span>' +
-      '<span class="item-price">' + currency + (item.price * item.qty).toLocaleString() + '</span>' +
-    '</div>';
-    if (match) {
-      var othersText = match.others.map(function(o){ return escHtml(o.table)+' ('+o.status+')'; }).join(', ');
-      row += '<div class="item-match-note">🔁 Also: '+othersText+' · ×'+match.totalQty+' total</div>';
-    }
-    return row;
-  }).join('');
+  var itemsHtml;
+  if (isEditing) {
+    itemsHtml = items.map(function(item, idx) {
+      return '<div class="edit-item-box">' +
+        '<div class="edit-item-top">' +
+          '<span class="edit-item-name">'+escHtml(item.name||'')+'</span>' +
+          '<button class="edit-remove-btn" data-action="edit-remove" data-id="'+order.id+'" data-idx="'+idx+'">'+ICONS.trash+'</button>' +
+        '</div>' +
+        '<div class="edit-item-bottom">' +
+          '<div class="edit-qty-stepper">' +
+            '<button class="edit-qty-btn" data-action="edit-qty-dec" data-id="'+order.id+'" data-idx="'+idx+'">−</button>' +
+            '<span class="edit-qty-val">'+item.qty+'</span>' +
+            '<button class="edit-qty-btn" data-action="edit-qty-inc" data-id="'+order.id+'" data-idx="'+idx+'">+</button>' +
+          '</div>' +
+          '<span class="edit-item-price">'+currency+((item.price||0)*item.qty).toLocaleString()+'</span>' +
+        '</div>' +
+      '</div>';
+    }).join('') || '<p class="empty-state-text" style="padding:10px 0;">All items removed — save to apply, or discard.</p>';
+  } else {
+    itemsHtml = items.map(function(item) {
+      var match = matches[normalizeDishName(item.name)];
+      var row = '<div class="item-row">' +
+        '<span class="item-main"><span class="item-name">' + escHtml(item.name||'') + '</span><span class="item-qty">×' + item.qty + '</span></span>' +
+        '<span class="item-price">' + currency + (item.price * item.qty).toLocaleString() + '</span>' +
+      '</div>';
+      if (match) {
+        var othersText = match.others.map(function(o){ return escHtml(o.table)+' ('+o.status+') ×'+o.qty; }).join(', ');
+        row += '<div class="item-match-note">🔁 Also: '+othersText+'</div>';
+      }
+      return row;
+    }).join('');
+  }
+
+  var displayTotal = isEditing ? items.reduce(function(s,i){return s+(i.price||0)*i.qty;},0) : order.total;
+
+  var actionsHtml;
+  if (isEditing) {
+    actionsHtml = '<button class="action-btn discard" data-action="discard-edit" data-id="'+order.id+'">'+ICONS.x+'</button>' +
+      '<button class="action-btn edit saving" data-action="toggle-edit" data-id="'+order.id+'">'+ICONS.check+'</button>';
+  } else {
+    var baseActions = '';
+    if (isPending) baseActions = '<button class="action-btn confirm" data-action="confirm" data-id="'+order.id+'">'+ICONS.check+'</button><button class="action-btn cancel" data-action="start-cancel" data-id="'+order.id+'">'+ICONS.x+'</button>';
+    else if (isConfirmed) baseActions = '<button class="action-btn ready" data-action="ready" data-id="'+order.id+'">'+ICONS.checkCheck+'</button>';
+    else if (isReady) baseActions = '<button class="action-btn delete" data-action="delete" data-id="'+order.id+'">'+ICONS.trash+'</button>';
+    actionsHtml = baseActions + '<button class="action-btn edit" data-action="toggle-edit" data-id="'+order.id+'">'+ICONS.pencil+'</button>';
+  }
 
   return '<div class="order-card status-'+statusClass+'" data-order-id="'+order.id+'">' +
     '<div class="card-header">' +
@@ -468,16 +612,15 @@ function renderOrderCard(order, statusClass) {
       itemsHtml +
     '</div>' +
 
-    (order.special_instructions ? '<div class="special-box"><p>📝 '+escHtml(order.special_instructions)+'</p></div>' : '') +
-    (order.total > 0 ? '<div class="subtotal-row"><span class="subtotal-label">Total</span><span class="subtotal-value">'+currency+order.total.toLocaleString()+'</span></div>' : '') +
+    (!isEditing && order.special_instructions ? '<div class="special-box"><p>📝 '+escHtml(order.special_instructions)+'</p></div>' : '') +
+    (displayTotal > 0 ? '<div class="subtotal-row"><span class="subtotal-label">Total</span><span class="subtotal-value">'+currency+displayTotal.toLocaleString()+'</span></div>' : '') +
 
     '<div class="card-footer">' +
       '<div class="prep-row">'+ICONS.timer+'<input class="prep-input" type="text" inputmode="numeric" value="'+prepVal+'" data-prep-id="'+order.id+'" data-prep-confirmed="'+isConfirmed+'"><span class="prep-unit">min</span></div>' +
-      '<div class="card-actions">'+actions+'</div>' +
+      '<div class="card-actions">'+actionsHtml+'</div>' +
     '</div>' +
 
     '<div class="cancel-row hidden" id="cancel-'+order.id+'">' +
-      '<input class="cancel-input" type="text" placeholder="Reason" id="cancel-reason-'+order.id+'">' +
       '<button class="cancel-confirm-btn" data-action="do-cancel" data-id="'+order.id+'">Cancel</button>' +
       '<button class="cancel-back-btn" data-action="cancel-back" data-id="'+order.id+'">Back</button>' +
     '</div>' +
@@ -511,8 +654,8 @@ function renderDeliveryCard(order) {
       '<span class="item-price">'+currency+(item.price*item.qty).toLocaleString()+'</span>' +
     '</div>';
     if (match) {
-      var othersText = match.others.map(function(o){ return escHtml(o.table)+' ('+o.status+')'; }).join(', ');
-      row += '<div class="item-match-note">🔁 Also: '+othersText+' · ×'+match.totalQty+' total</div>';
+      var othersText = match.others.map(function(o){ return escHtml(o.table)+' ('+o.status+') ×'+o.qty; }).join(', ');
+      row += '<div class="item-match-note">🔁 Also: '+othersText+'</div>';
     }
     return row;
   }).join('');
@@ -542,7 +685,7 @@ function renderDeliveryCard(order) {
     '</div>' +
 
     '<div class="card-footer"><div></div><div class="card-actions">'+actions+'</div></div>' +
-    '<div class="cancel-row hidden" id="cancel-'+order.id+'"><input class="cancel-input" type="text" placeholder="Reason" id="cancel-reason-'+order.id+'"><button class="cancel-confirm-btn" data-action="do-cancel" data-id="'+order.id+'">Cancel</button><button class="cancel-back-btn" data-action="cancel-back" data-id="'+order.id+'">Back</button></div>' +
+    '<div class="cancel-row hidden" id="cancel-'+order.id+'"><button class="cancel-confirm-btn" data-action="do-cancel" data-id="'+order.id+'">Cancel</button><button class="cancel-back-btn" data-action="cancel-back" data-id="'+order.id+'">Back</button></div>' +
   '</div>';
 }
 
@@ -551,9 +694,10 @@ function renderDeliveryCard(order) {
 // ═══════════════════════════════════════════════════
 function renderWaiterCard(order) {
   var mins = Math.floor((Date.now()-new Date(order.created_at).getTime())/60000);
+  var tableBadge = order.table_number ? '<span class="waiter-table-badge">T'+escHtml(order.table_number)+'</span>' : '<span class="waiter-table-badge muted">No table</span>';
   return '<div class="waiter-card '+(mins>=5?'old':'')+'" data-order-id="'+order.id+'">' +
     '<div class="waiter-icon-wrap">'+ICONS.bell+'</div>' +
-    '<div class="waiter-info"><p class="waiter-label">'+escHtml(order.waiter_call_label||'Waiter Call')+'</p><p class="waiter-meta">'+(order.table_number?'Table '+escHtml(order.table_number):'No table')+' · <span data-created-at="'+order.created_at+'">'+timeAgo(order.created_at)+'</span></p></div>' +
+    '<div class="waiter-info"><p class="waiter-label">'+escHtml(order.waiter_call_label||'Waiter Call')+'</p><div class="waiter-meta-row">'+tableBadge+'<span class="waiter-time" data-created-at="'+order.created_at+'">'+timeAgo(order.created_at)+'</span></div></div>' +
     '<button class="resolve-btn" data-action="resolve" data-id="'+order.id+'">'+ICONS.check+' Resolve</button>' +
   '</div>';
 }
@@ -620,10 +764,39 @@ function handleCardClick(e) {
       var cr=document.getElementById('cancel-'+id), ft=btn.closest('.order-card').querySelector('.card-footer');
       if(cr)cr.classList.remove('hidden'); if(ft)ft.classList.add('hidden'); break;
     case 'do-cancel':
-      var ri=document.getElementById('cancel-reason-'+id);
-      updateOrderStatus(id,'cancelled',ri?ri.value.trim()||undefined:undefined); break;
+      updateOrderStatus(id,'cancelled'); break;
     case 'cancel-back':
       var cr2=document.getElementById('cancel-'+id), ft2=btn.closest('.order-card').querySelector('.card-footer');
       if(cr2)cr2.classList.add('hidden'); if(ft2)ft2.classList.remove('hidden'); break;
+    case 'toggle-edit':
+      if (editingOrderIds.has(id)) { saveEdit(id); }
+      else {
+        var ord = allOrders.find(function(o){ return o.id === id; });
+        if (!ord) return;
+        editingOrderIds.add(id);
+        editDrafts[id] = JSON.parse(JSON.stringify(ord.items || []));
+        renderOrders();
+      }
+      break;
+    case 'discard-edit':
+      editingOrderIds.delete(id); delete editDrafts[id]; renderOrders(); break;
+    case 'edit-qty-inc': {
+      var idxInc = parseInt(btn.dataset.idx);
+      if (editDrafts[id] && editDrafts[id][idxInc]) { editDrafts[id][idxInc].qty += 1; renderOrders(); }
+      break;
+    }
+    case 'edit-qty-dec': {
+      var idxDec = parseInt(btn.dataset.idx);
+      if (editDrafts[id] && editDrafts[id][idxDec]) {
+        editDrafts[id][idxDec].qty = Math.max(1, editDrafts[id][idxDec].qty - 1);
+        renderOrders();
+      }
+      break;
+    }
+    case 'edit-remove': {
+      var idxRem = parseInt(btn.dataset.idx);
+      if (editDrafts[id]) { editDrafts[id].splice(idxRem, 1); renderOrders(); }
+      break;
+    }
   }
 }
