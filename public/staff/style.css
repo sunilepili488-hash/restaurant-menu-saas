@@ -98,6 +98,7 @@ body {
   transition: background 0.15s;
 }
 .icon-btn:active { background: var(--border); }
+#push-toggle-btn.active { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.4); color: var(--green); }
 
 /* ═══ SOUND MENU ═══ */
 .sound-menu {
@@ -230,10 +231,11 @@ body {
 }
 .special-box p { font-size: 12.5px; color: var(--amber); }
 
-/* ─── Subtotal ─── */
+/* ─── Subtotal — its own boxed card ─── */
 .subtotal-row {
   display: flex; justify-content: space-between; align-items: center;
-  margin-top: 8px; padding-top: 10px; border-top: 1px solid var(--border);
+  margin-top: 10px; padding: 10px 12px;
+  background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-sm);
 }
 .subtotal-label { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }
 .subtotal-value { font-size: 16px; font-weight: 700; color: var(--primary); }
@@ -266,21 +268,41 @@ body {
 .action-btn.ready { background: rgba(34,197,94,0.1); color: var(--green); }
 .action-btn.complete { background: rgba(59,130,246,0.1); color: var(--blue); }
 .action-btn.delete { background: rgba(239,68,68,0.08); color: var(--red); }
+.action-btn.edit { background: rgba(197,165,114,0.12); color: var(--primary); }
+.action-btn.edit.saving { background: rgba(34,197,94,0.12); color: var(--green); }
+.action-btn.discard { background: rgba(239,68,68,0.08); color: var(--red); }
 
-/* ─── Cancel ─── */
-.cancel-row { display: flex; gap: 6px; align-items: center; padding-top: 12px; }
-.cancel-input {
-  flex: 1; height: 36px; padding: 0 10px;
-  background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-xs);
-  color: var(--text); font-size: 13px; outline: none;
-}
-.cancel-input:focus { border-color: var(--red); }
+/* ─── Cancel — just Cancel / Back now ─── */
+.cancel-row { display: flex; gap: 8px; padding-top: 12px; }
 .cancel-confirm-btn, .cancel-back-btn {
-  height: 36px; padding: 0 14px; border: none; border-radius: var(--radius-xs);
-  font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;
+  flex: 1; height: 38px; border: none; border-radius: var(--radius-xs);
+  font-size: 13px; font-weight: 600; cursor: pointer;
 }
 .cancel-confirm-btn { background: var(--red); color: white; }
 .cancel-back-btn { background: var(--bg-secondary); color: var(--text); border: 1px solid var(--border); }
+
+/* ─── Edit mode: each dish in its own boxed card ─── */
+.edit-item-box {
+  background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 10px 12px; margin-bottom: 8px;
+}
+.edit-item-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.edit-item-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.edit-remove-btn {
+  width: 28px; height: 28px; border-radius: 50%; border: none; flex-shrink: 0;
+  background: rgba(239,68,68,0.1); color: var(--red); display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.edit-remove-btn svg { width: 14px; height: 14px; }
+.edit-item-bottom { display: flex; align-items: center; justify-content: space-between; }
+.edit-qty-stepper { display: flex; align-items: center; gap: 12px; }
+.edit-qty-btn {
+  width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--border-light);
+  background: var(--bg-secondary); color: var(--text); font-size: 16px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1;
+}
+.edit-qty-btn:active { background: var(--border); }
+.edit-qty-val { font-size: 15px; font-weight: 700; min-width: 18px; text-align: center; }
+.edit-item-price { font-size: 14px; font-weight: 700; color: var(--primary); }
 
 /* ═══ WAITER CARD ═══ */
 .waiter-card {
@@ -297,7 +319,13 @@ body {
 .waiter-card.old .waiter-icon-wrap { background: rgba(239,68,68,0.1); }
 .waiter-info { flex: 1; min-width: 0; }
 .waiter-label { font-size: 14.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.waiter-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.waiter-meta-row { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
+.waiter-table-badge {
+  font-size: 12.5px; font-weight: 700; color: var(--text);
+  background: var(--bg-tertiary); padding: 3px 10px; border-radius: 8px;
+}
+.waiter-table-badge.muted { color: var(--text-muted); font-weight: 600; }
+.waiter-time { font-size: 12px; color: var(--text-muted); }
 .resolve-btn {
   height: 34px; padding: 0 14px; background: var(--green); color: white; border: none; border-radius: var(--radius-sm);
   font-size: 12.5px; font-weight: 600; cursor: pointer;
