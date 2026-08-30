@@ -99,9 +99,13 @@ export default function CartPage({ open, onClose, dishes = [], restaurant, onPay
       const today = getTodayStr();
       cartItems.forEach(item => {
         const baseCount = item.dish?.ordered_today_date === today ? (item.dish?.ordered_today_count || 0) : 0;
+        // Change 10/11: also track a running lifetime total, used to sort
+        // dishes and categories by overall popularity (not just today's count).
+        const newTotal = (item.dish?.total_ordered_count || 0) + item.quantity;
         entities.Dish.update(item.dish_id, {
           ordered_today_count: baseCount + item.quantity,
           ordered_today_date: today,
+          total_ordered_count: newTotal,
         });
       });
 
@@ -185,20 +189,22 @@ export default function CartPage({ open, onClose, dishes = [], restaurant, onPay
                               <p className="font-display text-sm font-semibold truncate">{dish.name}</p>
                               <p className="text-xs text-primary">{curr}{(dish.sale_price || dish.regular_price).toLocaleString()}</p>
                             </div>
-                            <motion.button
-                              whileTap={{ scale: 0.8 }}
-                              onClick={() => menuStore.moveToCart(dish)}
-                              className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0"
-                            >
-                              <ShoppingBag className="w-3.5 h-3.5" />
-                            </motion.button>
                           </motion.div>
                         ))}
                       </AnimatePresence>
                       {favDishes.length > 0 && (
-                        <p className="text-center text-[11px] text-muted-foreground/60 pt-2">
-                          Swipe a dish right to remove it from favourites.
-                        </p>
+                        <>
+                          <p className="text-center text-[11px] text-muted-foreground/60 pt-2">
+                            Swipe a dish right to remove it from favourites.
+                          </p>
+                          {/* Change 8: single bulk "Add All to Cart" button instead of one button per dish */}
+                          <Button
+                            onClick={() => favDishes.forEach(dish => menuStore.moveToCart(dish))}
+                            className="w-full mt-2 bg-primary text-primary-foreground gap-2"
+                          >
+                            <ShoppingBag className="w-4 h-4" /> Add All to Cart ({favDishes.length})
+                          </Button>
+                        </>
                       )}
                     </div>
                   </TabsContent>
