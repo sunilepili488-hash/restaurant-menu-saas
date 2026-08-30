@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { entities } from '@/api/entities';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { LayoutGrid, List, Check, Clock, X, Package } from 'lucide-react';
+import { LayoutGrid, List, Type, Check, Clock, X, Package } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import SplashScreen from '@/components/costomer/SplashScreen';
@@ -11,6 +11,7 @@ import BannerCarousel from '@/components/costomer/BannerCarousel';
 import CategoryNav from '@/components/costomer/CategoryNav';
 import DishCardGrid from '@/components/costomer/DishCardGrid';
 import DishListRow from '@/components/costomer/DishListRow';
+import DishTextRow from '@/components/costomer/DishTextRow';
 import TopDishesCarousel from '@/components/costomer/TopDishesCarousel';
 import SearchOverlay from '@/components/costomer/SearchOverlay';
 import FilterPanel from '@/components/costomer/FilterPanel';
@@ -231,16 +232,32 @@ export default function CustomerMenu() {
       }
     }
 
+    // Change 10: default sort is by popularity — the most-ordered dish shows
+    // first. Falls back to today's order count, then like count, if a dish
+    // doesn't have a lifetime total yet.
     if (!filters?.sortBy) {
-      const sorted = [...result].sort((a, b) => (b.like_count || 0) - (a.like_count || 0));
-      const top3Ids = sorted.slice(0, 3).map(d => d.id);
-      const top3 = result.filter(d => top3Ids.includes(d.id));
-      const rest = result.filter(d => !top3Ids.includes(d.id));
-      result = [...top3, ...rest];
+      result = [...result].sort((a, b) => {
+        const aPop = a.total_ordered_count ?? a.ordered_today_count ?? 0;
+        const bPop = b.total_ordered_count ?? b.ordered_today_count ?? 0;
+        if (bPop !== aPop) return bPop - aPop;
+        return (b.like_count || 0) - (a.like_count || 0);
+      });
     }
 
     return result;
   }, [dishes, activeCategory, filters]);
+
+  // Change 11: categories are shown in order of popularity too — the
+  // category whose dishes get ordered the most appears first in the bar.
+  const sortedCategories = useMemo(() => {
+    const popularity = {};
+    dishes.forEach(d => {
+      if (!d.category_id) return;
+      const pop = d.total_ordered_count ?? d.ordered_today_count ?? 0;
+      popularity[d.category_id] = (popularity[d.category_id] || 0) + pop;
+    });
+    return [...categories].sort((a, b) => (popularity[b.id] || 0) - (popularity[a.id] || 0));
+  }, [categories, dishes]);
 
   // Today's top dishes
   const topDishes = useMemo(() => {
@@ -386,7 +403,7 @@ export default function CustomerMenu() {
         <BannerCarousel banners={banners} liveOrderData={liveOrderData} />
 
         <CategoryNav
-          categories={categories}
+          categories={sortedCategories}
           activeCategory={activeCategory}
           onSelect={setActiveCategory}
         />
@@ -416,6 +433,14 @@ export default function CustomerMenu() {
                 className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'glass text-muted-foreground'}`}
               >
                 <List className="w-4 h-4 flex-shrink-0" />
+              </button>
+              {/* Change 9: third view — text only, no image */}
+              <button
+                onClick={() => setViewMode('text')}
+                title="Text-only view"
+                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${viewMode === 'text' ? 'bg-primary text-primary-foreground' : 'glass text-muted-foreground'}`}
+              >
+                <Type className="w-4 h-4 flex-shrink-0" />
               </button>
             </div>
           </div>
