@@ -186,6 +186,7 @@ export default function CustomerMenu() {
     return () => clearInterval(interval);
   }, [store.lockedOrders?.length]);
 
+
   // Apply filters and sorting
   const filteredDishes = useMemo(() => {
     let result = [...dishes];
@@ -294,7 +295,8 @@ export default function CustomerMenu() {
   const handleOrderPlaced = () => {
     setCartOpen(false);
     setOrderToast(true);
-    setTimeout(() => setOrderToast(false), 3000);
+    // Change 12: stays visible for 4 seconds (was 3)
+    setTimeout(() => setOrderToast(false), 4000);
   };
 
   // If Supabase is not configured, show the connect screen
@@ -398,7 +400,7 @@ export default function CustomerMenu() {
         hideUserIcon={restaurant?.hide_user_icon}
       />
 
-      {/* Content below sticky header */}
+            {/* Content below sticky header */}
       <div className="pt-[60px] md:pt-[64px]">
         <BannerCarousel banners={banners} liveOrderData={liveOrderData} />
 
@@ -460,10 +462,17 @@ export default function CustomerMenu() {
                 />
               ))}
             </div>
-          ) : (
+          ) : viewMode === 'list' ? (
             <div className="space-y-2">
               {filteredDishes.map((dish, index) => (
                 <DishListRow key={dish.id} dish={dish} restaurant={restaurant} eager={index < 6} />
+              ))}
+            </div>
+          ) : (
+            // Change 9: text-only view — no images, just name/price/desc/likes
+            <div className="space-y-2">
+              {filteredDishes.map(dish => (
+                <DishTextRow key={dish.id} dish={dish} restaurant={restaurant} />
               ))}
             </div>
           )}
@@ -504,12 +513,34 @@ export default function CustomerMenu() {
         </div>
       )}
 
-      {/* Order confirmation toast */}
-      {orderToast && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[90] bg-green-500 text-white rounded-full px-5 py-3 shadow-lg flex items-center gap-2 max-w-[90%]">
-          <span className="text-sm font-medium text-center">🎉 Your order has been received! Your waiter will come to you shortly for confirmation.</span>
-        </div>
-      )}
+      {/* Order confirmation toast — Change 12: centered rectangle card, 4s,
+          Change 13: message text is editable by the owner from the admin
+          panel's Waiter Call section (restaurant.place_order_message) */}
+      <AnimatePresence>
+        {orderToast && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[95] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.85, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.85, opacity: 0, y: 10 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              className="bg-background rounded-2xl shadow-2xl p-6 max-w-sm w-full text-center border border-border"
+            >
+              <div className="w-14 h-14 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-3">
+                <Check className="w-7 h-7 text-green-500" />
+              </div>
+              <p className="text-sm font-medium text-foreground leading-relaxed">
+                {restaurant?.place_order_message || '🎉 Your order has been received! Your waiter will come to you shortly for confirmation.'}
+              </p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <FilterPanel
         open={filterOpen}
         onClose={() => setFilterOpen(false)}
@@ -528,9 +559,8 @@ export default function CustomerMenu() {
         restaurant={restaurant}
         onPay={handlePay}
         defaultTab={cartTab}
-        onOrderPlaced={handleOrderPlaced}
-      />
-      <PaymentSheet
+
+            <PaymentSheet
         open={payOpen}
         onClose={() => setPayOpen(false)}
         restaurant={restaurant}
