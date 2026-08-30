@@ -37,6 +37,9 @@
           <span class="live-dot" title="Connected"></span>
         </div>
         <div class="header-right">
+          <button id="push-toggle-btn" class="icon-btn" title="Background notifications: OFF">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          </button>
           <button id="settings-btn" class="icon-btn" title="Same Dish Match Settings"><span style="font-size:15px">⏱️</span></button>
           <button id="sound-select-btn" class="icon-btn" title="Change Sound"><span style="font-size:15px">🎵</span></button>
           <button id="sound-toggle" class="icon-btn" title="Toggle Sound">
@@ -78,7 +81,7 @@
       <div class="stat-card"><span class="stat-number blue" id="stat-confirmed">0</span><span class="stat-label">Confirmed</span></div>
       <div class="stat-card"><span class="stat-number green" id="stat-ready">0</span><span class="stat-label">Ready</span></div>
       <div class="stat-card hidden" id="stat-card-delivery"><span class="stat-number orange" id="stat-delivery">0</span><span class="stat-label">Delivery</span></div>
-      <div class="stat-card stat-card-wide"><span class="stat-number red" id="stat-calls">0</span><span class="stat-label">Calls</span></div>
+      <div class="stat-card"><span class="stat-number red" id="stat-calls">0</span><span class="stat-label">Calls</span></div>
     </div>
 
     <div class="tab-bar" id="tab-bar">
