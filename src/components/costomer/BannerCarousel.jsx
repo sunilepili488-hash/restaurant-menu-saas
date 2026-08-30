@@ -25,7 +25,6 @@ function getSplitTimerMessage(remaining) {
 }
 
 function SingleTimerDisplay({ timer }) {
-  // If no timer started yet (not home delivery), show waiting state
   if (!timer.timer_started_at && !timer.is_home_delivery) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-1 text-white"
@@ -74,7 +73,6 @@ function SingleTimerDisplay({ timer }) {
 }
 
 function SplitTimerDisplay({ timer, side }) {
-  // If no timer started yet (not home delivery), show waiting state
   if (!timer.timer_started_at && !timer.is_home_delivery) {
     return (
       <div
@@ -159,10 +157,8 @@ export default function BannerCarousel({ banners = [], liveOrderData = {} }) {
   const lockedOrders = store.lockedOrders || [];
   const activeTimers = lockedOrders
     .filter(lo => {
-      // Only show timer if order is still active (not completed/cancelled/ready)
       const live = liveOrderData[lo.groupId];
       if (live?.status === 'completed' || live?.status === 'cancelled') return false;
-      // Change 6: Hide timer when order is marked ready
       if (live?.status === 'ready') return false;
       if (live?.is_ready) return false;
       return true;
@@ -172,17 +168,14 @@ export default function BannerCarousel({ banners = [], liveOrderData = {} }) {
 
       let estimatedReady;
       if (live?.timer_started_at && live?.prep_time_override) {
-        // Waiter has confirmed and set a real timer — use Supabase data
         estimatedReady = new Date(
           new Date(live.timer_started_at).getTime() + live.prep_time_override * 60 * 1000
         ).toISOString();
       } else if (lo.is_home_delivery && live?.delivery_time_minutes) {
-        // Home delivery — use delivery time from Supabase
         estimatedReady = new Date(
           new Date(lo.placedAt || lo.createdAt).getTime() + live.delivery_time_minutes * 60 * 1000
         ).toISOString();
       } else {
-        // Fallback: use client-side estimate until waiter confirms
         estimatedReady = lo.estimatedReady;
       }
 
@@ -198,7 +191,6 @@ export default function BannerCarousel({ banners = [], liveOrderData = {} }) {
   const displayItems = useMemo(() => {
     const items = active.map((b, i) => ({ type: 'banner', data: b, key: `banner-${i}` }));
 
-    // Only ONE timer banner slot in the carousel
     if (activeTimers.length > 0) {
       items.push({ type: 'timer', data: activeTimers, key: 'timer-slot' });
     }
@@ -212,8 +204,9 @@ export default function BannerCarousel({ banners = [], liveOrderData = {} }) {
   }, [displayItems.length]);
 
   useEffect(() => {
+    // Change 5: faster auto-slide (was 4000ms)
     if (displayItems.length <= 1) return;
-    const interval = setInterval(next, 4000);
+    const interval = setInterval(next, 2000);
     return () => clearInterval(interval);
   }, [next, displayItems.length]);
 
@@ -236,7 +229,7 @@ export default function BannerCarousel({ banners = [], liveOrderData = {} }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+              transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
               style={{ willChange: 'transform' }}
             >
               <TimerBanner activeTimers={item.data} />
@@ -253,7 +246,7 @@ export default function BannerCarousel({ banners = [], liveOrderData = {} }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+              transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
             >
               <h3
                 className="font-display text-xl md:text-2xl font-bold"
