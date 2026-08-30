@@ -18,7 +18,6 @@ export default function MenuHeader({ restaurant, onSearchOpen, onFilterOpen, onU
       const unlocked = localStorage.getItem('icon_unlocked') === 'true';
       setIsOwnerMode(unlocked);
     };
-    // Check on storage events and periodically
     window.addEventListener('storage', check);
     const interval = setInterval(check, 2000);
     return () => {
@@ -48,8 +47,9 @@ export default function MenuHeader({ restaurant, onSearchOpen, onFilterOpen, onU
     </motion.button>
   );
 
+  // Change 4: header border removed — only dish cards keep a border now
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-primary/10">
+    <header className="fixed top-0 left-0 right-0 z-50 glass">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         {/* Left: Logo + Name + Hours (animated or static) */}
         <div className="flex items-center gap-3 min-w-0 flex-1">
