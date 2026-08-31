@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, CreditCard, Bell, X, Receipt, Droplets, HandHelping, Coffee, Heart } from 'lucide-react';
+import { ShoppingBag, CreditCard, Bell, X, Receipt, Droplets, HandHelping, Coffee, Heart, Check } from 'lucide-react';
 import { menuStore } from '@/lib/menuStore';
 import { entities } from '@/api/entities';
 
@@ -34,7 +34,6 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
   const sendAlert = (label) => {
     const state = menuStore.getState();
     const tableNum = state.tableNumber;
-    const msg = `🔔 ${label}${tableNum ? ` — Table ${tableNum}` : ''}`;
 
     entities.Order.create({
       type: 'waiter_call',
@@ -46,30 +45,31 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
     const opt = options.find(o => o.label === label);
     const toastMsg = opt?.toast_message || defaultToastMessages[label] || `${label} request sent! ✨`;
     setToast(toastMsg);
-    setTimeout(() => setToast(null), 3000);
+    // Change 12: confirmation stays visible for 4 seconds (was 3)
+    setTimeout(() => setToast(null), 4000);
 
     setWaiterOpen(false);
   };
 
   return (
     <>
-      {/* Waiter call bottom sheet — slides up from bottom, does NOT move the bar */}
+      {/* Change 1: Waiter call — CENTER modal card (was a bottom sheet) */}
       <AnimatePresence>
         {waiterOpen && (
-          <>
+          <motion.div
+            className="fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/50 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setWaiterOpen(false)}
+          >
             <motion.div
-              className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setWaiterOpen(false)}
-            />
-            <motion.div
-              className="fixed bottom-0 left-0 right-0 z-[61] bg-background rounded-t-3xl p-5 pb-8"
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="bg-background rounded-2xl p-5 w-full max-w-sm shadow-2xl border border-border"
+              initial={{ scale: 0.9, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 10 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 26 }}
+              onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-display text-lg font-semibold">Call Waiter</h3>
@@ -98,7 +98,7 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
                 })}
               </div>
             </motion.div>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
 
@@ -137,7 +137,7 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
             </motion.button>
           </div>
 
-          {/* 3rd: Payment (CreditCard) icon — NEW */}
+          {/* 3rd: Payment (CreditCard) icon */}
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={onPaymentClick}
@@ -146,7 +146,7 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
             <CreditCard className="w-4 h-4" />
           </motion.button>
 
-          {/* 4th: Bell icon (waiter call) — keep existing */}
+          {/* 4th: Bell icon (waiter call) */}
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => setWaiterOpen(true)}
@@ -157,12 +157,32 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
         </div>
       </div>
 
-      {/* Auto-dismissing waiter call toast */}
-      {toast && (
-        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[90] bg-accent text-accent-foreground rounded-full px-5 py-3 shadow-lg flex items-center gap-2 max-w-[90%]">
-          <span className="text-sm font-medium text-center">{toast}</span>
-        </div>
-      )}
+      {/* Change 12: waiter-call confirmation — CENTER rectangle card, 4 seconds
+          (was a small pill near the top). Uses the per-option toast_message
+          that the owner can already edit in the admin Waiter Call section. */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            className="fixed inset-0 z-[90] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              className="bg-background rounded-2xl shadow-2xl p-6 max-w-sm w-full text-center border border-border pointer-events-auto"
+              initial={{ scale: 0.85, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.85, opacity: 0, y: 10 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+            >
+              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+                <Check className="w-7 h-7 text-primary" />
+              </div>
+              <p className="text-sm font-medium text-foreground leading-relaxed">{toast}</p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
