@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { entities } from '@/api/entities';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -46,6 +46,13 @@ export default function CustomerMenu() {
   const [showOpenPrompt, setShowOpenPrompt] = useState(false);
   const [openPwInput, setOpenPwInput] = useState('');
   const [openPwError, setOpenPwError] = useState(false);
+  // Change: progressive/infinite-scroll loading — only render a batch of
+  // dishes at a time; the next batch loads just BEFORE the user reaches
+  // the bottom (pre-loaded ahead of the eye), and once rendered a dish
+  // never re-renders/re-loads on scroll-back (it just stays mounted).
+  const BATCH_SIZE = 8;
+  const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
+  const scrollSentinelRef = useRef(null);
   const store = useMenuStore();
   const queryClient = useQueryClient();
 
@@ -247,16 +254,60 @@ export default function CustomerMenu() {
     return result;
   }, [dishes, activeCategory, filters]);
 
-  // Change 11: categories are shown in order of popularity too — the
-  // category whose dishes get ordered the most appears first in the bar.
+  // Reset the visible batch whenever the customer changes category/filters/
+  // view — so a fresh list starts from the top batch again.
+  useEffect(() => {
+    setVisibleCount(BATCH_SIZE);
+  }, [activeCategory, filters, viewMode]);
+
+  // Load the next batch BEFORE the user physically scrolls to the bottom —
+  // rootMargin gives it a big head start so it's already rendered by the
+  // time their eyes get there (no visible pop-in / loading lag).
+  useEffect(() => {
+    const el = scrollSentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount(prev => Math.min(prev + BATCH_SIZE, filteredDishes.length));
+        }
+      },
+      { rootMargin: '700px 0px 700px 0px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [filteredDishes.length, viewMode, visibleCount]);
+
+  const visibleDishes = useMemo(
+    () => filteredDishes.slice(0, visibleCount),
+    [filteredDishes, visibleCount]
+  );
+
+  // Change 11 — REAL fix: previously this recomputed on EVERY dish poll
+  // (every 7s), so the category order kept reshuffling while the customer
+  // was browsing — that's what looked like a category "moving back to All".
+  // Now the popularity order is computed ONCE and frozen in a ref; it only
+  // changes if a genuinely new category shows up (which gets appended at
+  // the end, never disturbing the existing order).
+  const categoryOrderRef = React.useRef(null);
   const sortedCategories = useMemo(() => {
-    const popularity = {};
-    dishes.forEach(d => {
-      if (!d.category_id) return;
-      const pop = d.total_ordered_count ?? d.ordered_today_count ?? 0;
-      popularity[d.category_id] = (popularity[d.category_id] || 0) + pop;
+    if (!categoryOrderRef.current) {
+      const popularity = {};
+      dishes.forEach(d => {
+        if (!d.category_id) return;
+        const pop = d.total_ordered_count ?? d.ordered_today_count ?? 0;
+        popularity[d.category_id] = (popularity[d.category_id] || 0) + pop;
+      });
+      categoryOrderRef.current = [...categories]
+        .sort((a, b) => (popularity[b.id] || 0) - (popularity[a.id] || 0))
+        .map(c => c.id);
+    }
+    const orderIndex = new Map(categoryOrderRef.current.map((id, i) => [id, i]));
+    return [...categories].sort((a, b) => {
+      const ai = orderIndex.has(a.id) ? orderIndex.get(a.id) : Infinity;
+      const bi = orderIndex.has(b.id) ? orderIndex.get(b.id) : Infinity;
+      return ai - bi;
     });
-    return [...categories].sort((a, b) => (popularity[b.id] || 0) - (popularity[a.id] || 0));
   }, [categories, dishes]);
 
   // Today's top dishes
@@ -416,22 +467,27 @@ export default function CustomerMenu() {
         />
         
 
-        {/* View toggle — always visible, sticks to top on scroll */}
-        <div className="px-4 max-w-7xl mx-auto z-30 sticky top-[58px] md:top-[62px] bg-background py-3">
+        {/* View toggle — always visible, sticks below the category bar.
+            Change 4(bug): the old sticky offset (58px) nearly matched the
+            category bar's own offset (60px), so on scroll both stuck at
+            almost the same spot and the category bar (higher z-index)
+            covered this row, making it look "hidden". Pushed further down
+            so it sits cleanly below the category bar instead. */}
+        <div className="px-4 max-w-7xl mx-auto z-30 sticky top-[112px] md:top-[120px] bg-background py-3">
           <div className="flex items-center justify-between">
             <p className="text-xs text-muted-foreground">
               {filteredDishes.length} dish{filteredDishes.length !== 1 ? 'es' : ''}
             </p>
-            <div className="flex gap-1">
+            <div className="flex gap-1.5">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${viewMode === 'grid' ? 'bg-primary text-primary-foreground' : 'glass text-muted-foreground'}`}
+                className={`h-9 w-9 rounded-xl flex items-center justify-center transition-colors flex-shrink-0 ${viewMode === 'grid' ? 'bg-primary text-primary-foreground' : 'glass text-muted-foreground'}`}
               >
                 <LayoutGrid className="w-4 h-4 flex-shrink-0" />
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'glass text-muted-foreground'}`}
+                className={`h-9 w-9 rounded-xl flex items-center justify-center transition-colors flex-shrink-0 ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'glass text-muted-foreground'}`}
               >
                 <List className="w-4 h-4 flex-shrink-0" />
               </button>
@@ -439,7 +495,7 @@ export default function CustomerMenu() {
               <button
                 onClick={() => setViewMode('text')}
                 title="Text-only view"
-                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${viewMode === 'text' ? 'bg-primary text-primary-foreground' : 'glass text-muted-foreground'}`}
+                className={`h-9 w-9 rounded-xl flex items-center justify-center transition-colors flex-shrink-0 ${viewMode === 'text' ? 'bg-primary text-primary-foreground' : 'glass text-muted-foreground'}`}
               >
                 <Type className="w-4 h-4 flex-shrink-0" />
               </button>
@@ -451,29 +507,36 @@ export default function CustomerMenu() {
         <div className="px-4 max-w-7xl mx-auto">
           {viewMode === 'grid' ? (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-              {filteredDishes.map((dish, index) => (
+              {visibleDishes.map((dish, index) => (
                 <DishCardGrid
                   key={dish.id}
                   dish={dish}
                   restaurant={restaurant}
                   onReviewOpen={setReviewDish}
-                  eager={index < 6}
+                  eager={index < 4}
                 />
               ))}
             </div>
           ) : viewMode === 'list' ? (
             <div className="space-y-2">
-              {filteredDishes.map((dish, index) => (
-                <DishListRow key={dish.id} dish={dish} restaurant={restaurant} eager={index < 6} />
+              {visibleDishes.map((dish, index) => (
+                <DishListRow key={dish.id} dish={dish} restaurant={restaurant} eager={index < 4} />
               ))}
             </div>
           ) : (
-            // Change 9: text-only view — no images, just name/price/desc/likes
+            // Change 9: text-only view — no images, just name/price/likes
             <div className="space-y-2">
-              {filteredDishes.map(dish => (
+              {visibleDishes.map(dish => (
                 <DishTextRow key={dish.id} dish={dish} restaurant={restaurant} />
               ))}
             </div>
+          )}
+
+          {/* Invisible sentinel — pre-loads the next batch well before the
+              user actually scrolls to it, so it's already there by the
+              time their eyes reach it. */}
+          {visibleCount < filteredDishes.length && (
+            <div ref={scrollSentinelRef} className="h-1 w-full" />
           )}
 
           {filteredDishes.length === 0 && (
@@ -521,13 +584,14 @@ export default function CustomerMenu() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.12 }}
             className="fixed inset-0 z-[95] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm"
           >
             <motion.div
               initial={{ scale: 0.85, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.85, opacity: 0, y: 10 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              transition={{ type: 'spring', stiffness: 550, damping: 34 }}
               className="bg-background rounded-2xl shadow-2xl p-6 max-w-sm w-full text-center border border-border"
             >
               <div className="w-14 h-14 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-3">
