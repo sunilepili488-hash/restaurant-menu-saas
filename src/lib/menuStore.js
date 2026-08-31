@@ -37,6 +37,15 @@ function notify() {
   listeners.forEach(fn => fn(state));
 }
 
+// Change 14 fix: per-dish lock timestamps. Root cause of the "dislike
+// subtracts 2 instead of 1" bug was toggleLike firing twice in quick
+// succession for the same dish (e.g. a duplicate click/touch event, or the
+// same dish being rendered in two lists at once). This lock lives in the
+// store itself — the single source of truth — so it protects every caller,
+// not just one component.
+const likeLocks = {};
+const LIKE_LOCK_MS = 500;
+
 export const menuStore = {
   getState: () => state,
   subscribe: (fn) => {
@@ -79,8 +88,20 @@ export const menuStore = {
   },
   isFavorite: (dishId) => state.favorites.includes(dishId),
 
-  // Likes
+  // Likes — Change 14: locked so a dish can only be toggled once per
+  // LIKE_LOCK_MS window, no matter how many times/places it's called from.
   toggleLike: (dishId) => {
+    const now = Date.now();
+    const lastToggle = likeLocks[dishId] || 0;
+
+    if (now - lastToggle < LIKE_LOCK_MS) {
+      // A toggle for this dish was already processed a moment ago —
+      // ignore this duplicate call and just report the current state
+      // instead of toggling again.
+      return !!state.likedDishes[dishId];
+    }
+    likeLocks[dishId] = now;
+
     const isLiked = !!state.likedDishes[dishId];
     state = { ...state, likedDishes: { ...state.likedDishes, [dishId]: !isLiked } };
     notify();
