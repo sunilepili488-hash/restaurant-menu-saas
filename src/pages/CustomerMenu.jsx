@@ -491,7 +491,7 @@ export default function CustomerMenu() {
         {/* Change: view toggle now spans the FULL width as 3 equal, thin,
             slightly-rounded segments (left / center / right) — dish count
             text removed for now, per request. */}
-        <div className="px-4 max-w-7xl mx-auto z-30 sticky top-[112px] md:top-[120px] bg-background py-3">
+        <div className="px-4 max-w-7xl mx-auto z-30 sticky top-[124px] md:top-[132px] bg-background py-3">
           <div className="flex items-center gap-2">
             {[
               { mode: 'grid', Icon: LayoutGrid, label: 'Grid view' },
