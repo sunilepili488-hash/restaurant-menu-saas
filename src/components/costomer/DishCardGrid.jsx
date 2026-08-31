@@ -6,7 +6,7 @@ import { entities } from '@/api/entities';
 import { formatCount, getOrderedToday } from '@/lib/formatUtils';
 import { User } from 'lucide-react';
 import LazyImage from './LazyImage';
-import DishDetailSheet from './DishDetailSheet';
+import DishQuickViewModal from './DishQuickViewModal';
 
 function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
   const store = useMenuStore();
@@ -131,12 +131,13 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
         </div>
 
         {/* Heart icon (Favorite) — top right corner overlay.
-            Change 3: border darkened so it stays visible on white/light themes. */}
+            Change: border darkened further so it stays clearly visible on
+            bright/white dish photos (was too light to see). */}
         {!isHidden('favorite') && (
           <motion.button
             whileTap={{ scale: 0.8 }}
             onClick={(e) => { e.stopPropagation(); menuStore.toggleFavorite(dish.id); }}
-            className="absolute top-2 right-2 w-8 h-8 rounded-full glass border-2 border-neutral-800/50 flex items-center justify-center shadow-sm"
+            className="absolute top-2 right-2 w-8 h-8 rounded-full glass border-2 border-neutral-900/80 flex items-center justify-center shadow-sm"
             title="Favorite"
           >
             <Heart className={`w-4 h-4 transition-colors ${isFav ? 'text-rose-500 fill-rose-500' : 'text-white/90'}`} />
@@ -357,11 +358,13 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
         )}
       </AnimatePresence>
 
-      <DishDetailSheet
+      <DishQuickViewModal
         dish={dish}
         restaurant={restaurant}
         open={detailOpen}
         onClose={() => setDetailOpen(false)}
+        onCommentClick={(d) => onReviewOpen?.(d)}
+        detailed
       />
     </motion.div>
   );
