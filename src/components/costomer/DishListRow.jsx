@@ -4,7 +4,6 @@ import { Bookmark, ShoppingBag, Leaf, Drumstick } from 'lucide-react';
 import { menuStore, useMenuStore } from '@/lib/menuStore';
 import LazyImage from './LazyImage';
 import DishDetailSheet from './DishDetailSheet';
-import { getScrollVariants, SCROLL_VIEWPORT } from '@/lib/scrollAnimations';
 
 function DishListRow({ dish, restaurant, eager }) {
   const store = useMenuStore();
@@ -17,15 +16,16 @@ function DishListRow({ dish, restaurant, eager }) {
     : 0;
   const icons = restaurant?.icon_settings || {};
   const isHidden = (key) => icons[key]?.hidden === true;
-  const scrollVariants = getScrollVariants(restaurant?.scroll_animation_style);
 
+  // Change: removed the scroll-triggered "whileInView" reveal (same root
+  // cause as the grid/text views) — rows now animate in immediately on
+  // mount instead of waiting for an IntersectionObserver to "see" them.
   return (
     <motion.div
-      initial={scrollVariants.initial}
-      whileInView={scrollVariants.animate}
-      viewport={SCROLL_VIEWPORT}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
       style={{ willChange: 'transform, opacity' }}
-      transition={scrollVariants.transition}
+      transition={{ duration: 0.25, ease: 'easeOut' }}
       className="glass rounded-xl p-3 flex items-center gap-3"
     >
       <div
