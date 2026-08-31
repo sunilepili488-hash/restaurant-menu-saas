@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { entities } from '@/api/entities';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -46,13 +46,17 @@ export default function CustomerMenu() {
   const [showOpenPrompt, setShowOpenPrompt] = useState(false);
   const [openPwInput, setOpenPwInput] = useState('');
   const [openPwError, setOpenPwError] = useState(false);
-  // Change: progressive/infinite-scroll loading — only render a batch of
-  // dishes at a time; the next batch loads just BEFORE the user reaches
-  // the bottom (pre-loaded ahead of the eye), and once rendered a dish
-  // never re-renders/re-loads on scroll-back (it just stays mounted).
-  const BATCH_SIZE = 8;
-  const [visibleCount, setVisibleCount] = useState(BATCH_SIZE);
-  const scrollSentinelRef = useRef(null);
+  // Change: professional progressive loading.
+  // - INITIAL_BATCH renders immediately on mount — enough to fill a
+  //   normal phone screen — so dishes are NEVER blank/waiting for a
+  //   scroll gesture before they show up.
+  // - NEXT_BATCH is the small chunk that loads in as the user nears the
+  //   bottom, so it feels instant rather than a big visible "loading" jump.
+  // - Once a dish is rendered it stays mounted (we only ever grow
+  //   visibleCount), so scrolling back up never re-triggers a reload.
+  const INITIAL_BATCH = 10;
+  const NEXT_BATCH = 6;
+  const [visibleCount, setVisibleCount] = useState(INITIAL_BATCH);
   const store = useMenuStore();
   const queryClient = useQueryClient();
 
@@ -257,26 +261,43 @@ export default function CustomerMenu() {
   // Reset the visible batch whenever the customer changes category/filters/
   // view — so a fresh list starts from the top batch again.
   useEffect(() => {
-    setVisibleCount(BATCH_SIZE);
+    setVisibleCount(INITIAL_BATCH);
   }, [activeCategory, filters, viewMode]);
 
-  // Load the next batch BEFORE the user physically scrolls to the bottom —
-  // rootMargin gives it a big head start so it's already rendered by the
-  // time their eyes get there (no visible pop-in / loading lag).
+  // Change: real window-scroll based pagination (rAF-throttled) instead of
+  // an IntersectionObserver sentinel. The old sentinel approach depended on
+  // the browser "seeing" an off-screen marker element intersect — which is
+  // exactly why dishes only ever appeared AFTER the first manual scroll,
+  // and why loading stalled after one batch. A plain scroll/resize listener
+  // has no such dependency: it runs once immediately on mount (filling the
+  // rest of the screen right away if needed) and again on every scroll, and
+  // it naturally stops doing anything once every dish is already visible.
   useEffect(() => {
-    const el = scrollSentinelRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setVisibleCount(prev => Math.min(prev + BATCH_SIZE, filteredDishes.length));
-        }
-      },
-      { rootMargin: '700px 0px 700px 0px' }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [filteredDishes.length, viewMode, visibleCount]);
+    let ticking = false;
+    const checkAndLoadMore = () => {
+      ticking = false;
+      const scrollY = window.scrollY || document.documentElement.scrollTop;
+      const viewportH = window.innerHeight;
+      const fullH = document.documentElement.scrollHeight;
+      const distanceToBottom = fullH - (scrollY + viewportH);
+      if (distanceToBottom < 800) {
+        setVisibleCount(prev => (prev >= filteredDishes.length ? prev : Math.min(prev + NEXT_BATCH, filteredDishes.length)));
+      }
+    };
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(checkAndLoadMore);
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    checkAndLoadMore();
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [filteredDishes.length]);
 
   const visibleDishes = useMemo(
     () => filteredDishes.slice(0, visibleCount),
@@ -467,39 +488,28 @@ export default function CustomerMenu() {
         />
         
 
-        {/* View toggle — always visible, sticks below the category bar.
-            Change 4(bug): the old sticky offset (58px) nearly matched the
-            category bar's own offset (60px), so on scroll both stuck at
-            almost the same spot and the category bar (higher z-index)
-            covered this row, making it look "hidden". Pushed further down
-            so it sits cleanly below the category bar instead. */}
+        {/* Change: view toggle now spans the FULL width as 3 equal, thin,
+            slightly-rounded segments (left / center / right) — dish count
+            text removed for now, per request. */}
         <div className="px-4 max-w-7xl mx-auto z-30 sticky top-[112px] md:top-[120px] bg-background py-3">
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">
-              {filteredDishes.length} dish{filteredDishes.length !== 1 ? 'es' : ''}
-            </p>
-            <div className="flex gap-1.5">
+          <div className="flex items-center gap-2">
+            {[
+              { mode: 'grid', Icon: LayoutGrid, label: 'Grid view' },
+              { mode: 'list', Icon: List, label: 'List view' },
+              { mode: 'text', Icon: Type, label: 'Text-only view' },
+            ].map(({ mode, Icon, label }) => (
               <button
-                onClick={() => setViewMode('grid')}
-                className={`h-9 w-9 rounded-xl flex items-center justify-center transition-colors flex-shrink-0 ${viewMode === 'grid' ? 'bg-primary text-primary-foreground' : 'glass text-muted-foreground'}`}
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                title={label}
+                aria-label={label}
+                className={`flex-1 h-9 rounded-lg flex items-center justify-center transition-colors ${
+                  viewMode === mode ? 'bg-primary text-primary-foreground' : 'glass text-muted-foreground'
+                }`}
               >
-                <LayoutGrid className="w-4 h-4 flex-shrink-0" />
+                <Icon className="w-4 h-4 flex-shrink-0" />
               </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`h-9 w-9 rounded-xl flex items-center justify-center transition-colors flex-shrink-0 ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'glass text-muted-foreground'}`}
-              >
-                <List className="w-4 h-4 flex-shrink-0" />
-              </button>
-              {/* Change 9: third view — text only, no image */}
-              <button
-                onClick={() => setViewMode('text')}
-                title="Text-only view"
-                className={`h-9 w-9 rounded-xl flex items-center justify-center transition-colors flex-shrink-0 ${viewMode === 'text' ? 'bg-primary text-primary-foreground' : 'glass text-muted-foreground'}`}
-              >
-                <Type className="w-4 h-4 flex-shrink-0" />
-              </button>
-            </div>
+            ))}
           </div>
         </div>
 
@@ -530,13 +540,6 @@ export default function CustomerMenu() {
                 <DishTextRow key={dish.id} dish={dish} restaurant={restaurant} />
               ))}
             </div>
-          )}
-
-          {/* Invisible sentinel — pre-loads the next batch well before the
-              user actually scrolls to it, so it's already there by the
-              time their eyes reach it. */}
-          {visibleCount < filteredDishes.length && (
-            <div ref={scrollSentinelRef} className="h-1 w-full" />
           )}
 
           {filteredDishes.length === 0 && (
