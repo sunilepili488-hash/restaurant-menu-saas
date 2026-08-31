@@ -186,7 +186,6 @@ export default function CustomerMenu() {
     return () => clearInterval(interval);
   }, [store.lockedOrders?.length]);
 
-
   // Apply filters and sorting
   const filteredDishes = useMemo(() => {
     let result = [...dishes];
@@ -400,7 +399,7 @@ export default function CustomerMenu() {
         hideUserIcon={restaurant?.hide_user_icon}
       />
 
-            {/* Content below sticky header */}
+      {/* Content below sticky header */}
       <div className="pt-[60px] md:pt-[64px]">
         <BannerCarousel banners={banners} liveOrderData={liveOrderData} />
 
@@ -559,8 +558,9 @@ export default function CustomerMenu() {
         restaurant={restaurant}
         onPay={handlePay}
         defaultTab={cartTab}
-
-            <PaymentSheet
+        onOrderPlaced={handleOrderPlaced}
+      />
+      <PaymentSheet
         open={payOpen}
         onClose={() => setPayOpen(false)}
         restaurant={restaurant}
