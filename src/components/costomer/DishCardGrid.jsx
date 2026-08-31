@@ -1,4 +1,4 @@
-import React, { useState, useRef, memo } from 'react';
+import React, { useState, useRef, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, ThumbsUp, ShoppingBag, Leaf, Drumstick, Heart, ChevronDown, MessageCircle, X } from 'lucide-react';
 import { menuStore, useMenuStore } from '@/lib/menuStore';
@@ -22,6 +22,16 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
   const likeCount = optimisticLike !== null && optimisticLike !== (dish.like_count || 0)
     ? optimisticLike
     : (dish.like_count || 0);
+
+  // Once the server (via poll/realtime) confirms a count that has caught
+  // up with our optimistic value, drop the override and trust the fresh
+  // prop again — keeps us from drifting away from the real Supabase value
+  // over a long session.
+  useEffect(() => {
+    if (optimisticLike !== null && (dish.like_count || 0) >= optimisticLike) {
+      setOptimisticLike(null);
+    }
+  }, [dish.like_count]);
 
   // Change 14 fix: prevents a fast double-tap (or a duplicate event fire)
   // from calling handleLike twice, which was causing dislike to subtract
@@ -53,7 +63,14 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
   const cardRadius = themeVars['--radius'] || '0.75rem';
   const cardShadow = themeVars['--card-shadow'] || 'none';
 
-  // Change 14: single, locked like/unlike handler — exactly +1 or -1, never both.
+  // Change 14 — REAL fix: previously `baseCount` was read from the `dish`
+  // prop, which only refreshes every ~7s (poll interval). If you liked and
+  // then quickly disliked before the next poll, the calculation used a
+  // STALE count and the final number came out wrong (this is what was
+  // causing the reported "-2 instead of -1" behaviour).
+  // Fix: always calculate from our own last-known value (optimisticLike),
+  // and only fall back to the dish prop the very first time. Once the
+  // server/poll catches up and confirms our value, we drop the override.
   const handleLike = async (e) => {
     e.stopPropagation();
     if (likeLockRef.current) return;
@@ -61,9 +78,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
 
     const wasLiked = isLiked; // snapshot state BEFORE toggling
     const nowLiked = menuStore.toggleLike(dish.id);
-    const baseCount = dish.like_count || 0;
-    // Compute the new count from the pre-toggle state, so a rapid repeat
-    // tap (even if it slips through) can never apply the same delta twice.
+    const baseCount = optimisticLike !== null ? optimisticLike : (dish.like_count || 0);
     const newCount = wasLiked
       ? Math.max(0, baseCount - 1)
       : baseCount + 1;
