@@ -42,18 +42,19 @@ export default function DishQuickViewModal({ dish, restaurant, open, onClose, on
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
+          transition={{ duration: 0.1 }}
           className="fixed inset-0 z-[70] flex items-center justify-center p-6 bg-black/50 backdrop-blur-sm"
           onClick={onClose}
         >
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
+            initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 32 }}
+            exit={{ scale: 0.95, opacity: 0 }}
+            transition={{ duration: 0.12, ease: 'easeOut' }}
             className="relative w-full max-w-[280px] bg-background rounded-2xl shadow-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Close button */}
             <button
               onClick={onClose}
               className="absolute top-2 right-2 w-7 h-7 rounded-full glass flex items-center justify-center z-10"
@@ -71,6 +72,8 @@ export default function DishQuickViewModal({ dish, restaurant, open, onClose, on
                 eager
                 className="w-full h-full object-cover"
               />
+
+              {/* Top-left: Discount + Veg/NonVeg */}
               <div className="absolute top-2 left-2 flex items-center gap-1.5">
                 {hasDiscount && (
                   <span className="bg-primary text-primary-foreground text-[9px] font-bold px-1.5 py-0.5 rounded-full">
@@ -80,17 +83,30 @@ export default function DishQuickViewModal({ dish, restaurant, open, onClose, on
                 <span className={`w-4 h-4 rounded-full flex items-center justify-center ${dish.is_veg ? 'bg-green-600' : 'bg-red-600'}`}>
                   {dish.is_veg ? <Leaf className="w-2.5 h-2.5 text-white" /> : <Drumstick className="w-2.5 h-2.5 text-white" />}
                 </span>
-                {detailed && !isHidden('favorite') && (
-                  <motion.button
-                    whileTap={{ scale: 0.8 }}
-                    onClick={(e) => { e.stopPropagation(); menuStore.toggleFavorite(dish.id); }}
-                    className="w-6 h-6 rounded-full bg-black/50 backdrop-blur-sm border-2 border-black flex items-center justify-center"
-                    title="Favorite"
-                  >
-                    <Heart className={`w-3 h-3 transition-colors ${isFav ? 'text-rose-500 fill-rose-500' : 'text-white/90'}`} />
-                  </motion.button>
-                )}
               </div>
+
+              {/* Bottom-left: Like button (bigger, on image) */}
+              {detailed && !isHidden('like') && (
+                <button
+                  onClick={handleLike}
+                  className="absolute bottom-2 left-2 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm px-2.5 py-1.5 rounded-full z-10"
+                >
+                  <ThumbsUp className={`w-4.5 h-4.5 transition-colors ${isLiked ? 'text-primary fill-primary' : 'text-white/90'}`} style={{ width: '18px', height: '18px' }} />
+                  <span className="text-xs font-semibold text-white">{formatCount(likeCount)}</span>
+                </button>
+              )}
+
+              {/* Bottom-right: Heart/Favorite button (bigger, on image) */}
+              {detailed && !isHidden('favorite') && (
+                <motion.button
+                  whileTap={{ scale: 0.85 }}
+                  onClick={(e) => { e.stopPropagation(); menuStore.toggleFavorite(dish.id); }}
+                  className="absolute bottom-2 right-2 w-9 h-9 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center z-10"
+                  title="Favorite"
+                >
+                  <Heart className={`transition-colors ${isFav ? 'text-rose-500 fill-rose-500' : 'text-white/90'}`} style={{ width: '20px', height: '20px' }} />
+                </motion.button>
+              )}
             </div>
 
             {/* Content */}
@@ -113,13 +129,6 @@ export default function DishQuickViewModal({ dish, restaurant, open, onClose, on
                   </span>
                 )}
               </div>
-
-              {detailed && !isHidden('like') && (
-                <button onClick={handleLike} className="flex items-center justify-center gap-1.5 mt-2">
-                  <ThumbsUp className={`w-3.5 h-3.5 transition-colors ${isLiked ? 'text-primary fill-primary' : 'text-muted-foreground'}`} />
-                  <span className="text-xs text-muted-foreground">{formatCount(likeCount)} likes</span>
-                </button>
-              )}
 
               {/* Actions */}
               <div className="flex items-center justify-center gap-3 mt-3 pt-3 border-t border-border/50">
