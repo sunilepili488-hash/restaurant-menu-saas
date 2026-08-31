@@ -1,13 +1,11 @@
-import React, { memo, useState } from 'react';
+import React, { memo } from 'react';
 import { motion } from 'framer-motion';
 import { Bookmark, ShoppingBag, Leaf, Drumstick } from 'lucide-react';
 import { menuStore, useMenuStore } from '@/lib/menuStore';
 import LazyImage from './LazyImage';
-import DishQuickViewModal from './DishQuickViewModal';
 
-function DishListRow({ dish, restaurant, onReviewOpen, eager }) {
+function DishListRow({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
   const store = useMenuStore();
-  const [detailOpen, setDetailOpen] = useState(false);
   const isFav = store.favorites.includes(dish.id);
   const curr = restaurant?.currency_symbol || '₹';
   const hasDiscount = dish.sale_price && dish.sale_price < dish.regular_price;
@@ -17,9 +15,6 @@ function DishListRow({ dish, restaurant, onReviewOpen, eager }) {
   const icons = restaurant?.icon_settings || {};
   const isHidden = (key) => icons[key]?.hidden === true;
 
-  // Change: removed the scroll-triggered "whileInView" reveal (same root
-  // cause as the grid/text views) — rows now animate in immediately on
-  // mount instead of waiting for an IntersectionObserver to "see" them.
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -30,7 +25,7 @@ function DishListRow({ dish, restaurant, onReviewOpen, eager }) {
     >
       <div
         className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-secondary cursor-pointer"
-        onClick={() => setDetailOpen(true)}
+        onClick={() => onImageClick?.(dish)}
       >
         <LazyImage
           src={dish.image_url}
@@ -85,15 +80,6 @@ function DishListRow({ dish, restaurant, onReviewOpen, eager }) {
           )}
         </div>
       )}
-
-      <DishQuickViewModal
-        dish={dish}
-        restaurant={restaurant}
-        open={detailOpen}
-        onClose={() => setDetailOpen(false)}
-        onCommentClick={(d) => onReviewOpen?.(d)}
-        detailed
-      />
     </motion.div>
   );
 }
