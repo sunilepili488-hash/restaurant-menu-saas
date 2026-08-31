@@ -3,9 +3,9 @@ import { motion } from 'framer-motion';
 import { Bookmark, ShoppingBag, Leaf, Drumstick } from 'lucide-react';
 import { menuStore, useMenuStore } from '@/lib/menuStore';
 import LazyImage from './LazyImage';
-import DishDetailSheet from './DishDetailSheet';
+import DishQuickViewModal from './DishQuickViewModal';
 
-function DishListRow({ dish, restaurant, eager }) {
+function DishListRow({ dish, restaurant, onReviewOpen, eager }) {
   const store = useMenuStore();
   const [detailOpen, setDetailOpen] = useState(false);
   const isFav = store.favorites.includes(dish.id);
@@ -86,11 +86,13 @@ function DishListRow({ dish, restaurant, eager }) {
         </div>
       )}
 
-      <DishDetailSheet
+      <DishQuickViewModal
         dish={dish}
         restaurant={restaurant}
         open={detailOpen}
         onClose={() => setDetailOpen(false)}
+        onCommentClick={(d) => onReviewOpen?.(d)}
+        detailed
       />
     </motion.div>
   );
