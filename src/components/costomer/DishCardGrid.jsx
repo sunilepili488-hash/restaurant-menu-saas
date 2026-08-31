@@ -7,7 +7,6 @@ import { formatCount, getOrderedToday } from '@/lib/formatUtils';
 import { User } from 'lucide-react';
 import LazyImage from './LazyImage';
 import DishDetailSheet from './DishDetailSheet';
-import { getScrollVariants, SCROLL_VIEWPORT } from '@/lib/scrollAnimations';
 
 function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
   const store = useMenuStore();
@@ -58,7 +57,6 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
     : null;
 
   const isHidden = (key) => icons[key]?.hidden === true;
-  const scrollVariants = getScrollVariants(restaurant?.scroll_animation_style);
   const themeVars = restaurant?.theme_css_vars || {};
   const cardRadius = themeVars['--radius'] || '0.75rem';
   const cardShadow = themeVars['--card-shadow'] || 'none';
@@ -96,15 +94,20 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
     }
   };
 
+  // Change: removed the scroll-triggered "whileInView" reveal — that was
+  // the real cause of dishes staying invisible until the user manually
+  // scrolled (the observer sometimes never fired on first paint, e.g.
+  // right after the splash screen unmounts). Cards now animate in once,
+  // immediately on mount, and never re-trigger — no dependency on
+  // scrolling to "see" them.
   return (
     <motion.div
       className="glass overflow-hidden group"
       layout={false}
-      initial={scrollVariants.initial}
-      whileInView={scrollVariants.animate}
-      viewport={SCROLL_VIEWPORT}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
       style={{ willChange: 'transform, opacity', borderRadius: cardRadius, boxShadow: cardShadow }}
-      transition={scrollVariants.transition}
+      transition={{ duration: 0.25, ease: 'easeOut' }}
     >
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden cursor-pointer" onClick={() => setDetailOpen(true)}>
