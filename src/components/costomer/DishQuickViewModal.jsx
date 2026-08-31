@@ -1,16 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ShoppingBag, MessageCircle, Leaf, Drumstick } from 'lucide-react';
-import { menuStore } from '@/lib/menuStore';
+import { X, ShoppingBag, MessageCircle, Leaf, Drumstick, Heart, ThumbsUp } from 'lucide-react';
+import { menuStore, useMenuStore } from '@/lib/menuStore';
+import { entities } from '@/api/entities';
+import { formatCount } from '@/lib/formatUtils';
 import LazyImage from './LazyImage';
 
-// Change: small CENTERED quick-view card — used from the text-only (3rd)
-// view when a row is tapped. Deliberately lightweight: small image, name,
-// price, add-to-cart icon, comment icon — NOT the full bottom sheet with
-// long description + reviews list (that stays as-is for grid/list views
-// via DishDetailSheet). Opens/closes as a scale+fade card in the center of
-// the screen instead of sliding up from the bottom.
-export default function DishQuickViewModal({ dish, restaurant, open, onClose, onCommentClick }) {
+// Change: small CENTERED quick-view card.
+// - `detailed = false` (used by the text-only / 3rd view): stays exactly
+//   as before — small image, name, price, add-to-cart, comment. Nothing
+//   extra, kept intentionally minimal.
+// - `detailed = true` (used by grid + list views): same small centered
+//   card, PLUS short description, a favorite heart button, and the like
+//   count — since those views previously showed this info in the big
+//   bottom sheet, which is now replaced by this same compact popup.
+export default function DishQuickViewModal({ dish, restaurant, open, onClose, onCommentClick, detailed = false }) {
+  const store = useMenuStore();
+  const [optimisticLike, setOptimisticLike] = useState(null);
+
   if (!dish) return null;
   const curr = restaurant?.currency_symbol || '₹';
   const hasDiscount = dish.sale_price && dish.sale_price < dish.regular_price;
@@ -19,6 +26,21 @@ export default function DishQuickViewModal({ dish, restaurant, open, onClose, on
     : 0;
   const icons = restaurant?.icon_settings || {};
   const isHidden = (key) => icons[key]?.hidden === true;
+  const isFav = store.favorites.includes(dish.id);
+  const isLiked = store.likedDishes[dish.id] || false;
+  const likeCount = optimisticLike !== null && optimisticLike !== (dish.like_count || 0)
+    ? optimisticLike
+    : (dish.like_count || 0);
+
+  const handleLike = (e) => {
+    e.stopPropagation();
+    const wasLiked = isLiked;
+    menuStore.toggleLike(dish.id);
+    const baseCount = optimisticLike !== null ? optimisticLike : (dish.like_count || 0);
+    const newCount = wasLiked ? Math.max(0, baseCount - 1) : baseCount + 1;
+    setOptimisticLike(newCount);
+    entities.Dish.update(dish.id, { like_count: newCount }).catch(() => {});
+  };
 
   return (
     <AnimatePresence>
@@ -65,14 +87,30 @@ export default function DishQuickViewModal({ dish, restaurant, open, onClose, on
                 <span className={`w-4 h-4 rounded-full flex items-center justify-center ${dish.is_veg ? 'bg-green-600' : 'bg-red-600'}`}>
                   {dish.is_veg ? <Leaf className="w-2.5 h-2.5 text-white" /> : <Drumstick className="w-2.5 h-2.5 text-white" />}
                 </span>
+                {/* Favorite heart — detailed mode only (grid/list quick-view) */}
+                {detailed && !isHidden('favorite') && (
+                  <motion.button
+                    whileTap={{ scale: 0.8 }}
+                    onClick={(e) => { e.stopPropagation(); menuStore.toggleFavorite(dish.id); }}
+                    className="w-6 h-6 rounded-full glass border-2 border-neutral-900/80 flex items-center justify-center"
+                    title="Favorite"
+                  >
+                    <Heart className={`w-3 h-3 transition-colors ${isFav ? 'text-rose-500 fill-rose-500' : 'text-white/90'}`} />
+                  </motion.button>
+                )}
               </div>
             </div>
 
-            {/* Name + price */}
+            {/* Name + description + price */}
             <div className="p-3 text-center">
               <h3 className="font-display text-sm font-semibold text-foreground leading-tight line-clamp-1">
                 {dish.name}
               </h3>
+
+              {detailed && dish.short_description && (
+                <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{dish.short_description}</p>
+              )}
+
               <div className="flex items-center justify-center gap-2 mt-1">
                 <span className="text-primary font-bold text-sm">
                   {curr}{(dish.sale_price || dish.regular_price)?.toLocaleString()}
@@ -83,6 +121,13 @@ export default function DishQuickViewModal({ dish, restaurant, open, onClose, on
                   </span>
                 )}
               </div>
+
+              {detailed && !isHidden('like') && (
+                <button onClick={handleLike} className="flex items-center justify-center gap-1.5 mt-2">
+                  <ThumbsUp className={`w-3.5 h-3.5 transition-colors ${isLiked ? 'text-primary fill-primary' : 'text-muted-foreground'}`} />
+                  <span className="text-xs text-muted-foreground">{formatCount(likeCount)} likes</span>
+                </button>
+              )}
 
               {/* Add to cart + comment icons */}
               <div className="flex items-center justify-center gap-3 mt-3 pt-3 border-t border-border/50">
