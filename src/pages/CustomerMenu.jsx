@@ -537,7 +537,7 @@ export default function CustomerMenu() {
             // Change 9: text-only view — no images, just name/price/likes
             <div className="space-y-2">
               {visibleDishes.map(dish => (
-                <DishTextRow key={dish.id} dish={dish} restaurant={restaurant} />
+                <DishTextRow key={dish.id} dish={dish} restaurant={restaurant} onReviewOpen={setReviewDish} />
               ))}
             </div>
           )}
