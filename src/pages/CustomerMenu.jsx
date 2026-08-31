@@ -530,7 +530,7 @@ export default function CustomerMenu() {
           ) : viewMode === 'list' ? (
             <div className="space-y-2">
               {visibleDishes.map((dish, index) => (
-                <DishListRow key={dish.id} dish={dish} restaurant={restaurant} eager={index < 4} />
+               <DishListRow key={dish.id} dish={dish} restaurant={restaurant} onReviewOpen={setReviewDish} eager={index < 4} />
               ))}
             </div>
           ) : (
