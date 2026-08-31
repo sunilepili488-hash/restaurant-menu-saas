@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ShoppingBag, MessageCircle, Leaf, Drumstick, Heart, ThumbsUp } from 'lucide-react';
 import { menuStore, useMenuStore } from '@/lib/menuStore';
@@ -6,14 +7,6 @@ import { entities } from '@/api/entities';
 import { formatCount } from '@/lib/formatUtils';
 import LazyImage from './LazyImage';
 
-// Change: small CENTERED quick-view card.
-// - `detailed = false` (used by the text-only / 3rd view): stays exactly
-//   as before — small image, name, price, add-to-cart, comment. Nothing
-//   extra, kept intentionally minimal.
-// - `detailed = true` (used by grid + list views): same small centered
-//   card, PLUS short description, a favorite heart button, and the like
-//   count — since those views previously showed this info in the big
-//   bottom sheet, which is now replaced by this same compact popup.
 export default function DishQuickViewModal({ dish, restaurant, open, onClose, onCommentClick, detailed = false }) {
   const store = useMenuStore();
   const [optimisticLike, setOptimisticLike] = useState(null);
@@ -42,7 +35,7 @@ export default function DishQuickViewModal({ dish, restaurant, open, onClose, on
     entities.Dish.update(dish.id, { like_count: newCount }).catch(() => {});
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
@@ -69,7 +62,7 @@ export default function DishQuickViewModal({ dish, restaurant, open, onClose, on
               <X className="w-3.5 h-3.5" />
             </button>
 
-            {/* Small image */}
+            {/* Image */}
             <div className="relative w-full aspect-[4/3]">
               <LazyImage
                 src={dish.image_url}
@@ -87,12 +80,11 @@ export default function DishQuickViewModal({ dish, restaurant, open, onClose, on
                 <span className={`w-4 h-4 rounded-full flex items-center justify-center ${dish.is_veg ? 'bg-green-600' : 'bg-red-600'}`}>
                   {dish.is_veg ? <Leaf className="w-2.5 h-2.5 text-white" /> : <Drumstick className="w-2.5 h-2.5 text-white" />}
                 </span>
-                {/* Favorite heart — detailed mode only (grid/list quick-view) */}
                 {detailed && !isHidden('favorite') && (
                   <motion.button
                     whileTap={{ scale: 0.8 }}
                     onClick={(e) => { e.stopPropagation(); menuStore.toggleFavorite(dish.id); }}
-                    className="w-6 h-6 rounded-full glass border-2 border-neutral-900/80 flex items-center justify-center"
+                    className="w-6 h-6 rounded-full bg-black/50 backdrop-blur-sm border-2 border-black flex items-center justify-center"
                     title="Favorite"
                   >
                     <Heart className={`w-3 h-3 transition-colors ${isFav ? 'text-rose-500 fill-rose-500' : 'text-white/90'}`} />
@@ -101,7 +93,7 @@ export default function DishQuickViewModal({ dish, restaurant, open, onClose, on
               </div>
             </div>
 
-            {/* Name + description + price */}
+            {/* Content */}
             <div className="p-3 text-center">
               <h3 className="font-display text-sm font-semibold text-foreground leading-tight line-clamp-1">
                 {dish.name}
@@ -129,7 +121,7 @@ export default function DishQuickViewModal({ dish, restaurant, open, onClose, on
                 </button>
               )}
 
-              {/* Add to cart + comment icons */}
+              {/* Actions */}
               <div className="flex items-center justify-center gap-3 mt-3 pt-3 border-t border-border/50">
                 {!isHidden('cart') && (
                   <motion.button
@@ -156,6 +148,7 @@ export default function DishQuickViewModal({ dish, restaurant, open, onClose, on
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
