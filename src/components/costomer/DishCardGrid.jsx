@@ -6,36 +6,22 @@ import { entities } from '@/api/entities';
 import { formatCount, getOrderedToday } from '@/lib/formatUtils';
 import { User } from 'lucide-react';
 import LazyImage from './LazyImage';
-import DishQuickViewModal from './DishQuickViewModal';
 
-function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
+function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
   const store = useMenuStore();
   const [expanded, setExpanded] = useState(false);
-  const [detailOpen, setDetailOpen] = useState(false);
 
-  // Optimistic local override for like count — used only briefly after the
-  // user taps Like, so the UI updates instantly without waiting for the
-  // next 7s poll. Once the next poll brings a dish.like_count >= our
-  // optimistic value, we drop the override and trust the live prop again.
   const [optimisticLike, setOptimisticLike] = useState(null);
   const likeCount = optimisticLike !== null && optimisticLike !== (dish.like_count || 0)
     ? optimisticLike
     : (dish.like_count || 0);
 
-  // Once the server (via poll/realtime) confirms a count that has caught
-  // up with our optimistic value, drop the override and trust the fresh
-  // prop again — keeps us from drifting away from the real Supabase value
-  // over a long session.
   useEffect(() => {
     if (optimisticLike !== null && (dish.like_count || 0) >= optimisticLike) {
       setOptimisticLike(null);
     }
   }, [dish.like_count]);
 
-  // Change 14 fix: prevents a fast double-tap (or a duplicate event fire)
-  // from calling handleLike twice, which was causing dislike to subtract
-  // 2 instead of 1. While locked, taps are ignored until the previous
-  // like/unlike request has actually finished.
   const likeLockRef = useRef(false);
 
   const [payModalOpen, setPayModalOpen] = useState(false);
@@ -61,20 +47,12 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
   const cardRadius = themeVars['--radius'] || '0.75rem';
   const cardShadow = themeVars['--card-shadow'] || 'none';
 
-  // Change 14 — REAL fix: previously `baseCount` was read from the `dish`
-  // prop, which only refreshes every ~7s (poll interval). If you liked and
-  // then quickly disliked before the next poll, the calculation used a
-  // STALE count and the final number came out wrong (this is what was
-  // causing the reported "-2 instead of -1" behaviour).
-  // Fix: always calculate from our own last-known value (optimisticLike),
-  // and only fall back to the dish prop the very first time. Once the
-  // server/poll catches up and confirms our value, we drop the override.
   const handleLike = async (e) => {
     e.stopPropagation();
     if (likeLockRef.current) return;
     likeLockRef.current = true;
 
-    const wasLiked = isLiked; // snapshot state BEFORE toggling
+    const wasLiked = isLiked;
     const nowLiked = menuStore.toggleLike(dish.id);
     const baseCount = optimisticLike !== null ? optimisticLike : (dish.like_count || 0);
     const newCount = wasLiked
@@ -88,18 +66,10 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
     } catch (err) {
       console.error('Failed to update like count:', err);
     } finally {
-      // Small cooldown so a genuine second tap is still allowed, but an
-      // accidental double-fire from the same tap is swallowed.
       setTimeout(() => { likeLockRef.current = false; }, 500);
     }
   };
 
-  // Change: removed the scroll-triggered "whileInView" reveal — that was
-  // the real cause of dishes staying invisible until the user manually
-  // scrolled (the observer sometimes never fired on first paint, e.g.
-  // right after the splash screen unmounts). Cards now animate in once,
-  // immediately on mount, and never re-trigger — no dependency on
-  // scrolling to "see" them.
   return (
     <motion.div
       className="glass overflow-hidden group"
@@ -110,8 +80,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
       transition={{ duration: 0.25, ease: 'easeOut' }}
     >
       {/* Image */}
-      <div className="relative aspect-[4/3] overflow-hidden cursor-pointer" onClick={() => setDetailOpen(true)}>
-        {/* NOTE: assumed prop name dish.image_url — rename if your data uses a different field */}
+      <div className="relative aspect-[4/3] overflow-hidden cursor-pointer" onClick={() => onImageClick?.(dish)}>
         <LazyImage
           src={dish.image_url}
           alt={dish.name}
@@ -130,14 +99,12 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
           </span>
         </div>
 
-        {/* Heart icon (Favorite) — top right corner overlay.
-            Change: border darkened further so it stays clearly visible on
-            bright/white dish photos (was too light to see). */}
+        {/* Heart icon — darker border */}
         {!isHidden('favorite') && (
           <motion.button
             whileTap={{ scale: 0.8 }}
             onClick={(e) => { e.stopPropagation(); menuStore.toggleFavorite(dish.id); }}
-            className="absolute top-2 right-2 w-8 h-8 rounded-full glass border-2 border-neutral-900/80 flex items-center justify-center shadow-sm"
+            className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm border-2 border-black flex items-center justify-center shadow-md"
             title="Favorite"
           >
             <Heart className={`w-4 h-4 transition-colors ${isFav ? 'text-rose-500 fill-rose-500' : 'text-white/90'}`} />
@@ -195,7 +162,6 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
 
         {/* 3-button action row */}
         <div className="grid grid-cols-3 gap-1 mt-2 pt-2 border-t border-border/50">
-          {/* 1. Bag — Add to cart */}
           {!isHidden('cart') && (
             <motion.button
               whileTap={{ scale: 0.9 }}
@@ -206,8 +172,6 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
               <ShoppingBag className="w-4 h-4 text-foreground/70" />
             </motion.button>
           )}
-
-          {/* 2. Comment icon */}
           {!isHidden('review') && (
             <motion.button
               whileTap={{ scale: 0.9 }}
@@ -218,8 +182,6 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
               <MessageCircle className="w-4 h-4 text-foreground/70" />
             </motion.button>
           )}
-
-          {/* 3. ChevronDown — More options */}
           {!isHidden('view_more') && (
             <motion.button
               whileTap={{ scale: 0.9 }}
@@ -249,7 +211,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
         </AnimatePresence>
       </div>
 
-      {/* Payment Modal (per-card quick pay) */}
+      {/* Payment Modal */}
       <AnimatePresence>
         {payModalOpen && (
           <motion.div
@@ -268,87 +230,34 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
             >
               <div className="flex items-center justify-between px-6 pt-6 pb-2">
                 <h3 className="font-display text-xl font-semibold">Pay via UPI</h3>
-                <button
-                  onClick={() => setPayModalOpen(false)}
-                  className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center"
-                >
+                <button onClick={() => setPayModalOpen(false)} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
                   <X className="w-4 h-4 text-foreground" />
                 </button>
               </div>
-
               <div className="px-6 pb-8 space-y-5">
                 <div className="space-y-1">
                   <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Enter Amount</label>
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-bold text-primary">₹</span>
-                    <input
-                      type="number"
-                      value={payAmount}
-                      onChange={e => setPayAmount(e.target.value)}
-                      className="w-full pl-10 pr-4 py-4 bg-secondary rounded-2xl text-2xl font-bold text-foreground text-center border-2 border-transparent focus:border-primary outline-none transition-colors"
-                    />
+                    <input type="number" value={payAmount} onChange={e => setPayAmount(e.target.value)} className="w-full pl-10 pr-4 py-4 bg-secondary rounded-2xl text-2xl font-bold text-foreground text-center border-2 border-transparent focus:border-primary outline-none transition-colors" />
                   </div>
                 </div>
-
                 <div>
                   <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 block">Choose Payment App</label>
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      {
-                        id: 'gpay',
-                        name: 'Google Pay',
-                        scheme: (upiId, name, amount) => `tez://upi/pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`,
-                        logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Google_Pay_Logo.svg/120px-Google_Pay_Logo.svg.png',
-                        bg: '#E8F0FE',
-                        color: '#4285F4',
-                      },
-                      {
-                        id: 'phonepe',
-                        name: 'PhonePe',
-                        scheme: (upiId, name, amount) => `phonepe://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`,
-                        logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/PhonePe_Logo.svg/120px-PhonePe_Logo.svg.png',
-                        bg: '#EDE7F6',
-                        color: '#5F259F',
-                      },
-                      {
-                        id: 'paytm',
-                        name: 'Paytm',
-                        scheme: (upiId, name, amount) => `paytmmp://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`,
-                        logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Paytm_logo.png/120px-Paytm_logo.png',
-                        bg: '#E3F2FD',
-                        color: '#00BAF2',
-                      },
-                      {
-                        id: 'bhim',
-                        name: 'BHIM Pay',
-                        scheme: (upiId, name, amount) => `upi://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`,
-                        logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/120px-UPI-Logo-vector.svg.png',
-                        bg: '#FFF3E0',
-                        color: '#FF6600',
-                      },
+                      { id:'gpay', name:'Google Pay', scheme:(u,n,a)=>`tez://upi/pay?pa=${u}&pn=${encodeURIComponent(n)}&am=${a}&cu=INR`, logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Google_Pay_Logo.svg/120px-Google_Pay_Logo.svg.png', bg:'#E8F0FE', color:'#4285F4' },
+                      { id:'phonepe', name:'PhonePe', scheme:(u,n,a)=>`phonepe://pay?pa=${u}&pn=${encodeURIComponent(n)}&am=${a}&cu=INR`, logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/PhonePe_Logo.svg/120px-PhonePe_Logo.svg.png', bg:'#EDE7F6', color:'#5F259F' },
+                      { id:'paytm', name:'Paytm', scheme:(u,n,a)=>`paytmmp://pay?pa=${u}&pn=${encodeURIComponent(n)}&am=${a}&cu=INR`, logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Paytm_logo.png/120px-Paytm_logo.png', bg:'#E3F2FD', color:'#00BAF2' },
+                      { id:'bhim', name:'BHIM Pay', scheme:(u,n,a)=>`upi://pay?pa=${u}&pn=${encodeURIComponent(n)}&am=${a}&cu=INR`, logo:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/120px-UPI-Logo-vector.svg.png', bg:'#FFF3E0', color:'#FF6600' },
                     ].map(app => (
-                      <button
-                        key={app.id}
-                        onClick={() => {
-                          const upiId = restaurant?.upi_id || '';
-                          const payeeName = restaurant?.upi_payee_name || restaurant?.name || 'Restaurant';
-                          if (!upiId) { alert('UPI ID not configured by restaurant.'); return; }
-                          const url = app.scheme(upiId, payeeName, payAmount);
-                          window.location.href = url;
-                          setTimeout(() => {
-                            alert('If the app did not open, please open your UPI app manually.');
-                          }, 2000);
-                        }}
-                        className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-border hover:border-primary transition-all active:scale-95"
-                        style={{ background: app.bg }}
-                      >
-                        <img src={app.logo} alt={app.name} className="h-8 w-auto object-contain" onError={e => { e.target.style.display='none'; }} />
-                        <span className="text-xs font-semibold" style={{ color: app.color }}>{app.name}</span>
+                      <button key={app.id} onClick={() => { const uid=restaurant?.upi_id||''; const pn=restaurant?.upi_payee_name||restaurant?.name||'Restaurant'; if(!uid){alert('UPI ID not configured.');return;} window.location.href=app.scheme(uid,pn,payAmount); setTimeout(()=>{alert('If the app did not open, please open your UPI app manually.');},2000); }} className="flex flex-col items-center gap-2 p-4 rounded-2xl border-2 border-border hover:border-primary transition-all active:scale-95" style={{background:app.bg}}>
+                        <img src={app.logo} alt={app.name} className="h-8 w-auto object-contain" onError={e=>{e.target.style.display='none';}} />
+                        <span className="text-xs font-semibold" style={{color:app.color}}>{app.name}</span>
                       </button>
                     ))}
                   </div>
                 </div>
-
                 <p className="text-xs text-center text-muted-foreground">
                   On desktop: if app does not open, please open your UPI app manually and pay to <strong>{restaurant?.upi_id || 'restaurant UPI ID'}</strong>
                 </p>
@@ -357,15 +266,6 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager }) {
           </motion.div>
         )}
       </AnimatePresence>
-
-      <DishQuickViewModal
-        dish={dish}
-        restaurant={restaurant}
-        open={detailOpen}
-        onClose={() => setDetailOpen(false)}
-        onCommentClick={(d) => onReviewOpen?.(d)}
-        detailed
-      />
     </motion.div>
   );
 }
