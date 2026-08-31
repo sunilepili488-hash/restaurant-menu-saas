@@ -61,6 +61,7 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.12 }}
             onClick={() => setWaiterOpen(false)}
           >
             <motion.div
@@ -68,7 +69,7 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
               initial={{ scale: 0.9, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 10 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 26 }}
+              transition={{ type: 'spring', stiffness: 550, damping: 34 }}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
@@ -167,13 +168,14 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.12 }}
           >
             <motion.div
               className="bg-background rounded-2xl shadow-2xl p-6 max-w-sm w-full text-center border border-border pointer-events-auto"
               initial={{ scale: 0.85, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.85, opacity: 0, y: 10 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              transition={{ type: 'spring', stiffness: 550, damping: 34 }}
             >
               <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
                 <Check className="w-7 h-7 text-primary" />
