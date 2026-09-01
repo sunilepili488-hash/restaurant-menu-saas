@@ -233,44 +233,35 @@ export default function PaymentSheet({ open, onClose, restaurant, onPay }) {
                     <div className="flex gap-1.5">
                       <button
                         onClick={() => selectTip('none')}
-                        className={`relative flex-1 py-2 rounded-full text-[11px] font-bold transition-colors ${
+                        className={`flex-1 py-2 rounded-full text-[11px] font-bold transition-colors duration-150 ${
                           tipMode === 'none'
-                            ? 'text-primary-foreground'
+                            ? 'bg-primary text-primary-foreground'
                             : 'text-foreground bg-card border border-border'
                         }`}
                       >
-                        {tipMode === 'none' && (
-                          <motion.div layoutId="tip-bg" className="absolute inset-0 bg-primary rounded-full -z-10" transition={{ type: 'spring', stiffness: 500, damping: 32 }} />
-                        )}
                         No Tip
                       </button>
                       {TIP_OPTIONS.map(amt => (
                         <button
                           key={amt}
                           onClick={() => selectTip(amt)}
-                          className={`relative flex-1 py-2 rounded-full text-[11px] font-bold transition-colors ${
+                          className={`flex-1 py-2 rounded-full text-[11px] font-bold transition-colors duration-150 ${
                             tipMode === amt
-                              ? 'text-primary-foreground'
+                              ? 'bg-primary text-primary-foreground'
                               : 'text-foreground bg-card border border-border'
                           }`}
                         >
-                          {tipMode === amt && (
-                            <motion.div layoutId="tip-bg" className="absolute inset-0 bg-primary rounded-full -z-10" transition={{ type: 'spring', stiffness: 500, damping: 32 }} />
-                          )}
                           {curr}{amt}
                         </button>
                       ))}
                       <button
                         onClick={selectOther}
-                        className={`relative flex-1 py-2 rounded-full text-[11px] font-bold transition-colors ${
+                        className={`flex-1 py-2 rounded-full text-[11px] font-bold transition-colors duration-150 ${
                           showCustomTip
-                            ? 'text-primary-foreground'
+                            ? 'bg-primary text-primary-foreground'
                             : 'text-foreground bg-card border border-border'
                         }`}
                       >
-                        {showCustomTip && (
-                          <motion.div layoutId="tip-bg" className="absolute inset-0 bg-primary rounded-full -z-10" transition={{ type: 'spring', stiffness: 500, damping: 32 }} />
-                        )}
                         Other
                       </button>
                     </div>
