@@ -49,22 +49,32 @@ export default function UpiPaymentSheet({ open, onClose, amount, restaurant, sho
   const curr = restaurant?.currency_symbol || '₹';
   const baseAmount = amount || 0;
   const [selectedApp, setSelectedApp] = useState('gpay');
-  const [selectedTip, setSelectedTip] = useState(null);
+  // Single source of truth for the tip pill row: 'none' | 20 | 50 | 100 | 'custom'
+  const [tipMode, setTipMode] = useState('none');
   const [customTip, setCustomTip] = useState('');
-  const [showCustomTip, setShowCustomTip] = useState(false);
   const [rating, setRating] = useState(0);
   const [imgErrors, setImgErrors] = useState({});
 
-  const tipAmount = customTip ? (parseFloat(customTip) || 0) : (selectedTip || 0);
+  const showCustomTip = tipMode === 'custom';
+  const tipAmount = tipMode === 'custom' ? (parseFloat(customTip) || 0) : (tipMode === 'none' ? 0 : tipMode);
   const totalAmount = baseAmount + tipAmount;
 
+  const blurActive = () => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  };
+
   const resetAndClose = () => {
-    setSelectedTip(null); setCustomTip('');
-    setShowCustomTip(false); setRating(0); onClose?.();
+    blurActive();
+    setTipMode('none'); setCustomTip('');
+    setRating(0); onClose?.();
   };
 
   const selectTip = (val) => {
-    setSelectedTip(val); setCustomTip(''); setShowCustomTip(false);
+    setTipMode(val); setCustomTip('');
+  };
+
+  const selectOther = () => {
+    setTipMode('custom');
   };
 
   const handlePaySecurely = () => {
@@ -151,9 +161,10 @@ export default function UpiPaymentSheet({ open, onClose, amount, restaurant, sho
                         {totalAmount.toLocaleString()}
                       </span>
                     </div>
+                    {/* Show tip added on top of the bill amount */}
                     {tipAmount > 0 && (
-                      <p className="text-center text-[10px] text-muted-foreground mt-1">
-                        incl. tip {curr}{tipAmount.toLocaleString()}
+                      <p className="text-center text-[11px] text-muted-foreground mt-1">
+                        bill {curr}{baseAmount.toLocaleString()} + tip {curr}{tipAmount.toLocaleString()}
                       </p>
                     )}
                   </div>
@@ -203,7 +214,7 @@ export default function UpiPaymentSheet({ open, onClose, amount, restaurant, sho
                     </div>
                   </div>
 
-                  {/* Tip — single row */}
+                  {/* Tip — single row, exactly one pill active at a time */}
                   {showTipAndRating && (
                     <div className="glass rounded-xl p-3">
                       <div className="flex items-center justify-center gap-1.5 mb-2.5">
@@ -212,14 +223,14 @@ export default function UpiPaymentSheet({ open, onClose, amount, restaurant, sho
                       </div>
                       <div className="flex gap-1.5">
                         <button
-                          onClick={() => selectTip(null)}
+                          onClick={() => selectTip('none')}
                           className={`relative flex-1 py-2 rounded-full text-[11px] font-bold transition-colors ${
-                            selectedTip === null && !customTip
+                            tipMode === 'none'
                               ? 'text-primary-foreground'
-                              : 'text-foreground border border-border'
+                              : 'text-foreground bg-card border border-border'
                           }`}
                         >
-                          {selectedTip === null && !customTip && (
+                          {tipMode === 'none' && (
                             <motion.div layoutId="upi-tip-bg" className="absolute inset-0 bg-primary rounded-full -z-10" transition={{ type: 'spring', stiffness: 500, damping: 32 }} />
                           )}
                           No Tip
@@ -229,23 +240,23 @@ export default function UpiPaymentSheet({ open, onClose, amount, restaurant, sho
                             key={amt}
                             onClick={() => selectTip(amt)}
                             className={`relative flex-1 py-2 rounded-full text-[11px] font-bold transition-colors ${
-                              selectedTip === amt && !customTip
+                              tipMode === amt
                                 ? 'text-primary-foreground'
-                                : 'text-foreground border border-border'
+                                : 'text-foreground bg-card border border-border'
                             }`}
                           >
-                            {selectedTip === amt && !customTip && (
+                            {tipMode === amt && (
                               <motion.div layoutId="upi-tip-bg" className="absolute inset-0 bg-primary rounded-full -z-10" transition={{ type: 'spring', stiffness: 500, damping: 32 }} />
                             )}
                             {curr}{amt}
                           </button>
                         ))}
                         <button
-                          onClick={() => { setShowCustomTip(true); setSelectedTip(null); }}
+                          onClick={selectOther}
                           className={`relative flex-1 py-2 rounded-full text-[11px] font-bold transition-colors ${
                             showCustomTip
                               ? 'text-primary-foreground'
-                              : 'text-foreground border border-border'
+                              : 'text-foreground bg-card border border-border'
                           }`}
                         >
                           {showCustomTip && (
@@ -257,7 +268,14 @@ export default function UpiPaymentSheet({ open, onClose, amount, restaurant, sho
                       <AnimatePresence>
                         {showCustomTip && (
                           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                            <input type="number" inputMode="numeric" value={customTip} onChange={e => setCustomTip(e.target.value)} placeholder={`Custom tip (${curr})`} className="w-full bg-secondary border border-border/50 rounded-lg p-2 text-xs mt-2 focus:outline-none focus:ring-1 focus:ring-primary" autoFocus />
+                            <input
+                              type="number"
+                              inputMode="numeric"
+                              value={customTip}
+                              onChange={e => setCustomTip(e.target.value)}
+                              placeholder={`Custom tip (${curr})`}
+                              className="w-full bg-card border border-border rounded-lg p-2.5 text-xs text-foreground mt-2 focus:outline-none focus:ring-1 focus:ring-primary"
+                            />
                           </motion.div>
                         )}
                       </AnimatePresence>
