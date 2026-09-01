@@ -14,12 +14,10 @@ export default React.memo(function TopDishesCarousel({ dishes, restaurant }) {
   const [detailDish, setDetailDish] = useState(null);
   const [msgIndex, setMsgIndex] = useState(0);
 
-  // Get messages: from admin panel or defaults
   const messages = (restaurant?.top_dishes_messages || []).filter(Boolean).length > 0
     ? restaurant.top_dishes_messages.filter(Boolean)
     : DEFAULT_MESSAGES;
 
-  // Rotate text every 4 seconds
   useEffect(() => {
     if (messages.length <= 1) return;
     const interval = setInterval(() => {
@@ -33,8 +31,7 @@ export default React.memo(function TopDishesCarousel({ dishes, restaurant }) {
   const cardRadius = restaurant?.theme_css_vars?.['--radius'] || '0.75rem';
 
   return (
-    <div className="px-4 max-w-7xl mx-auto mb-4">
-      {/* Animated centered title */}
+    <div className="px-4 max-w-7xl mx-auto pt-3 mb-2">
       <div className="flex items-center justify-center gap-2 mb-3 h-7 relative overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.h2
@@ -58,7 +55,7 @@ export default React.memo(function TopDishesCarousel({ dishes, restaurant }) {
               key={dish.id}
               whileTap={{ scale: 0.97 }}
               onClick={() => setDetailDish(dish)}
-              className="flex-shrink-0 w-36 glass overflow-hidden text-left"
+              className="flex-shrink-0 w-32 glass overflow-hidden text-left"
               style={{ borderRadius: cardRadius }}
             >
               <div className="relative aspect-[4/3] overflow-hidden">
@@ -74,7 +71,7 @@ export default React.memo(function TopDishesCarousel({ dishes, restaurant }) {
                 </span>
               </div>
               <div className="p-2">
-                <h3 className="font-display text-sm font-semibold text-foreground leading-tight line-clamp-1">{dish.name}</h3>
+                <h3 className="font-display text-xs font-semibold text-foreground leading-tight line-clamp-1">{dish.name}</h3>
                 <div className="flex items-center gap-1.5 mt-1">
                   <span className="text-primary font-bold text-xs">
                     {curr}{(dish.sale_price || dish.regular_price).toLocaleString()}
