@@ -1,156 +1,319 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Wallet } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, Receipt, Heart, Star, Sparkles, Lock, ArrowRight } from 'lucide-react';
 
 // Change 7: real official brand logos (Google Pay, PhonePe purple logo, Paytm)
 const UPI_APPS = [
-  { id: 'gpay', name: 'Google Pay', scheme: (uid, name, amt) => `tez://upi/pay?pa=${uid}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR`, color: '#4285F4', bg: 'linear-gradient(135deg,#EAF1FE,#F6FAFF)', letter: 'G', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Google_Pay_Logo.svg/240px-Google_Pay_Logo.svg.png' },
-  { id: 'phonepe', name: 'PhonePe', scheme: (uid, name, amt) => `phonepe://pay?pa=${uid}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR`, color: '#5F259F', bg: 'linear-gradient(135deg,#F1EAFA,#F9F5FE)', letter: 'P', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/PhonePe_Logo.svg/240px-PhonePe_Logo.svg.png' },
-  { id: 'paytm', name: 'Paytm', scheme: (uid, name, amt) => `paytmmp://pay?pa=${uid}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR`, color: '#00BAF2', bg: 'linear-gradient(135deg,#E4F8FE,#F3FCFF)', letter: '₹', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Paytm_logo.png/240px-Paytm_logo.png' },
-  { id: 'bhim', name: 'BHIM Pay', scheme: (uid, name, amt) => `upi://pay?pa=${uid}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR`, color: '#FF6F00', bg: 'linear-gradient(135deg,#FFF1E2,#FFF8F0)', letter: 'B', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/240px-UPI-Logo-vector.svg.png' },
+  { id: 'gpay', name: 'Google Pay', scheme: (uid, name, amt) => `tez://upi/pay?pa=${uid}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR`, color: '#4285F4', letter: 'G', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Google_Pay_Logo.svg/240px-Google_Pay_Logo.svg.png' },
+  { id: 'phonepe', name: 'PhonePe', scheme: (uid, name, amt) => `phonepe://pay?pa=${uid}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR`, color: '#5F259F', letter: 'P', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/PhonePe_Logo.svg/240px-PhonePe_Logo.svg.png' },
+  { id: 'paytm', name: 'Paytm', scheme: (uid, name, amt) => `paytmmp://pay?pa=${uid}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR`, color: '#00BAF2', letter: '₹', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Paytm_logo.png/240px-Paytm_logo.png' },
+  { id: 'bhim', name: 'BHIM Pay', scheme: (uid, name, amt) => `upi://pay?pa=${uid}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR`, color: '#FF6F00', letter: 'B', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/240px-UPI-Logo-vector.svg.png' },
 ];
 
-const QUICK_AMOUNTS = [100, 200, 500, 1000];
+const TIP_OPTIONS = [10, 30, 50, 100];
 
+const RATING_MESSAGES = {
+  1: "We're sorry to hear that",
+  2: "Thanks, we'll do better",
+  3: 'Good to know, thanks!',
+  4: 'Glad you enjoyed it!',
+  5: 'Awesome! Thanks for your feedback',
+};
+
+// Change: full redesign to match the reference layout — centered "Pay Bill"
+// title under a curved gradient header (uses the restaurant's OWN theme
+// color via hsl(var(--primary)), not a hardcoded purple), the flat quick-
+// amount chips removed, and a tip + star-rating section added above a
+// fixed "Pay Securely" CTA. Small spring/fade animations throughout.
 export default function PaymentSheet({ open, onClose, restaurant, onPay }) {
-  const [amount, setAmount] = useState('');
-  const [imgErrors, setImgErrors] = useState({});
   const curr = restaurant?.currency_symbol || '₹';
+  const [amount, setAmount] = useState('');
+  const [selectedApp, setSelectedApp] = useState(UPI_APPS[0].id);
+  const [selectedTip, setSelectedTip] = useState(null); // null = No Tip
+  const [customTip, setCustomTip] = useState('');
+  const [showCustomTip, setShowCustomTip] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [imgErrors, setImgErrors] = useState({});
 
-  const handleUpiTap = (app) => {
-    const num = parseFloat(amount);
-    if (!num || num <= 0) {
+  const baseAmount = parseFloat(amount) || 0;
+  const tipAmount = customTip ? (parseFloat(customTip) || 0) : (selectedTip || 0);
+  const totalAmount = baseAmount + tipAmount;
+
+  const resetAndClose = () => {
+    setAmount('');
+    setSelectedTip(null);
+    setCustomTip('');
+    setShowCustomTip(false);
+    setRating(0);
+    onClose?.();
+  };
+
+  const selectTip = (val) => {
+    setSelectedTip(val);
+    setCustomTip('');
+    setShowCustomTip(false);
+  };
+
+  const handlePaySecurely = () => {
+    if (baseAmount <= 0) {
       alert('Please enter an amount first.');
       return;
     }
+    const app = UPI_APPS.find(a => a.id === selectedApp) || UPI_APPS[0];
     const upiId = restaurant?.upi_id || '';
     const payeeName = restaurant?.upi_payee_name || restaurant?.name || 'Restaurant';
     if (!upiId) {
       alert('UPI payment not configured by restaurant');
       return;
     }
-    window.location.href = app.scheme(upiId, payeeName, num);
+    window.location.href = app.scheme(upiId, payeeName, totalAmount);
     setTimeout(() => {
-      onPay?.(num);
-      setAmount('');
-      onClose?.();
+      onPay?.(totalAmount);
+      resetAndClose();
     }, 800);
-  };
-
-  const handleClose = () => {
-    setAmount('');
-    onClose?.();
   };
 
   return (
     <AnimatePresence>
       {open && (
-        <>
-          <motion.div
-            className="fixed inset-0 z-[70] bg-black/50 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={handleClose}
-          />
-          <motion.div
-            className="fixed bottom-0 left-0 right-0 z-[71] bg-background rounded-t-3xl overflow-hidden max-h-[88vh] overflow-y-auto"
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          >
-            {/* Gradient header with amount card */}
+        <motion.div
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '100%' }}
+          transition={{ type: 'spring', stiffness: 300, damping: 32 }}
+          className="fixed inset-0 z-[70] bg-background flex flex-col"
+        >
+          <div className="flex-1 overflow-y-auto">
+            {/* Curved gradient header — uses the restaurant's theme color */}
             <div
-              className="px-6 pt-6 pb-8"
-              style={{ background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.7) 100%)' }}
+              className="relative pt-6 pb-14 px-6 overflow-hidden"
+              style={{ background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.72) 100%)' }}
             >
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
-                    <Wallet className="w-4 h-4 text-white" />
-                  </div>
-                  <h2 className="font-display text-lg font-semibold text-white">Pay Bill</h2>
-                </div>
+              {/* decorative floating sparkles */}
+              <motion.div
+                className="absolute top-9 left-12 text-white/40"
+                animate={{ y: [0, -6, 0], rotate: [0, 12, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <Sparkles className="w-4 h-4" />
+              </motion.div>
+              <motion.div
+                className="absolute top-16 right-16 text-white/30"
+                animate={{ y: [0, 6, 0], rotate: [0, -10, 0] }}
+                transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+              >
+                <Sparkles className="w-3 h-3" />
+              </motion.div>
+              <motion.div
+                className="absolute bottom-6 left-24 text-white/25"
+                animate={{ y: [0, -5, 0] }}
+                transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+              >
+                <Sparkles className="w-3 h-3" />
+              </motion.div>
+
+              <div className="flex items-center justify-between relative z-10">
                 <motion.button
                   whileTap={{ scale: 0.9 }}
-                  onClick={handleClose}
-                  className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center"
+                  onClick={resetAndClose}
+                  className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center"
+                  aria-label="Close"
                 >
-                  <X className="w-4 h-4 text-white" />
+                  <ArrowLeft className="w-4 h-4 text-white" />
                 </motion.button>
+                <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
+                  <ShieldCheck className="w-4 h-4 text-white" />
+                </div>
               </div>
 
-              <div
-                className="bg-white/95 rounded-2xl p-5 cursor-text shadow-lg"
-                onClick={() => document.getElementById('pay-amount-input')?.focus()}
+              <motion.div
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 18, delay: 0.1 }}
+                className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto mt-3 relative z-10"
               >
-                <p className="text-[11px] text-neutral-500 mb-1.5 uppercase tracking-wider font-semibold">Enter amount to pay</p>
-                <div className="flex items-baseline gap-1">
+                <Receipt className="w-7 h-7 text-white" />
+              </motion.div>
+
+              <h2 className="font-display text-2xl font-bold text-white text-center mt-3 relative z-10">
+                ✦ Pay Bill ✦
+              </h2>
+              <p className="text-white/80 text-sm text-center mt-1 relative z-10">Enter amount to pay</p>
+            </div>
+
+            {/* Body — pulled up over the header's curved bottom edge */}
+            <div className="px-6 -mt-8 relative z-10 pb-6 space-y-4">
+              {/* Amount card */}
+              <motion.div
+                initial={{ y: 16, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.12 }}
+                className="bg-white rounded-2xl p-5 shadow-lg cursor-text"
+                onClick={() => document.getElementById('pb-amount-input')?.focus()}
+              >
+                <p className="text-[11px] text-neutral-500 text-center mb-1.5 uppercase tracking-wider font-semibold">
+                  Enter amount to pay
+                </p>
+                <div className="flex items-baseline gap-1 justify-center">
                   <span className="text-2xl text-neutral-400 font-light">{curr}</span>
                   <input
-                    id="pay-amount-input"
+                    id="pb-amount-input"
                     type="number"
                     inputMode="numeric"
                     value={amount}
                     onChange={e => setAmount(e.target.value)}
                     placeholder="0"
-                    className="flex-1 bg-transparent text-4xl font-bold text-neutral-900 focus:outline-none placeholder:text-neutral-300 min-w-0 w-full"
+                    className="bg-transparent text-4xl font-bold text-neutral-900 text-center focus:outline-none placeholder:text-neutral-300 w-40"
                     autoFocus
                   />
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="flex gap-2 mt-3 flex-wrap">
-                {QUICK_AMOUNTS.map(amt => (
+              {/* Pay with — tap to select the app, actual pay happens via the CTA below */}
+              <motion.div initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.16 }}>
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 text-center">Pay with</p>
+                <div className="grid grid-cols-4 gap-2">
+                  {UPI_APPS.map(app => (
+                    <motion.button
+                      key={app.id}
+                      whileTap={{ scale: 0.92 }}
+                      onClick={() => setSelectedApp(app.id)}
+                      className={`flex flex-col items-center gap-1.5 p-2.5 rounded-2xl glass border-2 transition-colors ${
+                        selectedApp === app.id ? 'border-primary' : 'border-transparent'
+                      }`}
+                    >
+                      {imgErrors[app.id] ? (
+                        <div
+                          className="w-9 h-9 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm"
+                          style={{ backgroundColor: app.color }}
+                        >
+                          {app.letter}
+                        </div>
+                      ) : (
+                        <img
+                          src={app.logo}
+                          alt={app.name}
+                          className="w-9 h-9 object-contain"
+                          onError={() => setImgErrors(prev => ({ ...prev, [app.id]: true }))}
+                        />
+                      )}
+                      <span className="text-[10px] font-medium text-foreground text-center leading-tight">{app.name}</span>
+                    </motion.button>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Tip section */}
+              <motion.div initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.2 }} className="glass rounded-2xl p-4">
+                <div className="flex items-center gap-1.5 mb-3">
+                  <p className="text-sm font-semibold text-foreground">Tip your service partner</p>
+                  <Heart className="w-3.5 h-3.5 text-primary" />
+                </div>
+                <div className="flex gap-2 flex-wrap">
                   <button
-                    key={amt}
-                    onClick={() => setAmount(String(amt))}
-                    className="px-3 py-1.5 rounded-full bg-white/20 text-white text-xs font-semibold hover:bg-white/30 transition-colors"
+                    onClick={() => selectTip(null)}
+                    className={`relative px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                      selectedTip === null && !customTip ? 'text-primary-foreground' : 'text-muted-foreground border border-border'
+                    }`}
                   >
-                    {curr}{amt}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* UPI App Selection */}
-            <div className="px-6 pt-5 pb-8">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Pay with</p>
-              <div className="grid grid-cols-2 gap-3">
-                {UPI_APPS.map(app => (
-                  <motion.button
-                    key={app.id}
-                    whileTap={{ scale: 0.96 }}
-                    onClick={() => handleUpiTap(app)}
-                    className="flex items-center gap-3 p-4 rounded-2xl transition-all border border-border/60 hover:border-primary/40 hover:shadow-md"
-                    style={{ background: app.bg }}
-                  >
-                    {imgErrors[app.id] ? (
-                      <div
-                        className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-sm"
-                        style={{ backgroundColor: app.color }}
-                      >
-                        {app.letter}
-                      </div>
-                    ) : (
-                      <img
-                        src={app.logo}
-                        alt={app.name}
-                        className="w-11 h-11 object-contain flex-shrink-0"
-                        onError={() => setImgErrors(prev => ({ ...prev, [app.id]: true }))}
-                      />
+                    {selectedTip === null && !customTip && (
+                      <motion.div layoutId="tip-pill" className="absolute inset-0 bg-primary rounded-full -z-10" transition={{ type: 'spring', stiffness: 500, damping: 32 }} />
                     )}
-                    <span className="text-sm font-semibold text-left leading-tight" style={{ color: app.color }}>{app.name}</span>
-                  </motion.button>
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground text-center mt-4">
-                Tap a UPI app above to pay {curr}{parseFloat(amount) > 0 ? parseFloat(amount).toLocaleString() : '0'} instantly
-              </p>
+                    No Tip
+                  </button>
+                  {TIP_OPTIONS.map(amt => (
+                    <button
+                      key={amt}
+                      onClick={() => selectTip(amt)}
+                      className={`relative px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                        selectedTip === amt && !customTip ? 'text-primary-foreground' : 'text-muted-foreground border border-border'
+                      }`}
+                    >
+                      {selectedTip === amt && !customTip && (
+                        <motion.div layoutId="tip-pill" className="absolute inset-0 bg-primary rounded-full -z-10" transition={{ type: 'spring', stiffness: 500, damping: 32 }} />
+                      )}
+                      {curr}{amt}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => { setShowCustomTip(true); setSelectedTip(null); }}
+                    className={`relative px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+                      showCustomTip ? 'text-primary-foreground' : 'text-muted-foreground border border-border'
+                    }`}
+                  >
+                    {showCustomTip && (
+                      <motion.div layoutId="tip-pill" className="absolute inset-0 bg-primary rounded-full -z-10" transition={{ type: 'spring', stiffness: 500, damping: 32 }} />
+                    )}
+                    Other
+                  </button>
+                </div>
+                <AnimatePresence>
+                  {showCustomTip && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        value={customTip}
+                        onChange={e => setCustomTip(e.target.value)}
+                        placeholder={`Custom tip (${curr})`}
+                        className="w-full bg-secondary border border-border/50 rounded-xl p-2.5 text-sm mt-3 focus:outline-none focus:ring-1 focus:ring-primary"
+                        autoFocus
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+                <p className="text-[10px] text-muted-foreground mt-2.5 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-primary flex-shrink-0" /> 100% of tips go to your service partner
+                </p>
+              </motion.div>
+
+              {/* Rating section */}
+              <motion.div initial={{ y: 16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.24 }} className="glass rounded-2xl p-4">
+                <div className="flex items-center gap-1.5 mb-3">
+                  <p className="text-sm font-semibold text-foreground">Rate your experience</p>
+                  <Heart className="w-3.5 h-3.5 text-primary" />
+                </div>
+                <div className="flex gap-1.5 justify-center">
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <motion.button key={star} whileTap={{ scale: 0.8 }} onClick={() => setRating(star)} className="p-0.5">
+                      <Star className={`w-7 h-7 transition-colors ${star <= rating ? 'fill-primary text-primary' : 'text-muted-foreground/30'}`} />
+                    </motion.button>
+                  ))}
+                </div>
+                <AnimatePresence mode="wait">
+                  {rating > 0 && (
+                    <motion.p
+                      key={rating}
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      className="text-xs text-center text-primary font-medium mt-2"
+                    >
+                      {RATING_MESSAGES[rating]}
+                    </motion.p>
+                  )}
+                </AnimatePresence>
+              </motion.div>
             </div>
-          </motion.div>
-        </>
+          </div>
+
+          {/* Fixed bottom CTA */}
+          <div className="flex-shrink-0 bg-background border-t border-border px-6 pt-4 pb-6">
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              onClick={handlePaySecurely}
+              className="w-full py-4 rounded-2xl bg-primary text-primary-foreground font-semibold text-sm flex items-center justify-center gap-2 shadow-lg"
+            >
+              <Lock className="w-4 h-4" />
+              Pay Securely
+              <span className="mx-1">{curr}{totalAmount > 0 ? totalAmount.toLocaleString() : '0'}</span>
+              <ArrowRight className="w-4 h-4" />
+            </motion.button>
+            <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground mt-3">
+              <ShieldCheck className="w-3.5 h-3.5" /> Safe &amp; Secure Payments
+            </p>
+          </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );
