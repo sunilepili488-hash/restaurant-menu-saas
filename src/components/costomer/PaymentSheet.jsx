@@ -157,7 +157,6 @@ export default function PaymentSheet({ open, onClose, restaurant, onPay }) {
                         onChange={e => setAmount(e.target.value)}
                         placeholder="0"
                         className="bg-transparent text-3xl font-bold text-foreground focus:outline-none placeholder:text-muted-foreground/30 w-32 text-left"
-                        autoFocus
                       />
                     </div>
                   </div>
