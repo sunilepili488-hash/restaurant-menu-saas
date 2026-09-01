@@ -2,29 +2,36 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ShieldCheck, Receipt, Heart, Star, Sparkles, Lock, ArrowRight } from 'lucide-react';
 
+// Local UPI logo assets — replace the /assets/upi/*.png paths below with
+// wherever you keep these files in your project (e.g. src/assets/upi/...)
+import gpayLogo from './assets/upi/gpay.png';
+import phonepeLogo from './assets/upi/phonepe.png';
+import paytmLogo from './assets/upi/paytm.png';
+import bhimLogo from './assets/upi/bhim.png';
+
 const UPI_APPS = [
   {
     id: 'gpay', name: 'Google Pay',
     scheme: (uid, name, amt) => `tez://upi/pay?pa=${uid}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR`,
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Google_Pay_Logo.svg/512px-Google_Pay_Logo.svg.png',
+    logo: gpayLogo,
     letter: 'G', letterBg: '#4285F4',
   },
   {
     id: 'phonepe', name: 'PhonePe',
     scheme: (uid, name, amt) => `phonepe://pay?pa=${uid}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR`,
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/PhonePe_Logo.svg/512px-PhonePe_Logo.svg.png',
+    logo: phonepeLogo,
     letter: 'Pe', letterBg: '#5F259F',
   },
   {
     id: 'paytm', name: 'Paytm',
     scheme: (uid, name, amt) => `paytmmp://pay?pa=${uid}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR`,
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Paytm_logo.png/512px-Paytm_logo.png',
+    logo: paytmLogo,
     letter: '₹', letterBg: '#00BAF2',
   },
   {
     id: 'bhim', name: 'BHIM UPI',
     scheme: (uid, name, amt) => `upi://pay?pa=${uid}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR`,
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/UPI-Logo-vector.svg/512px-UPI-Logo-vector.svg.png',
+    logo: bhimLogo,
     letter: 'B', letterBg: '#FF6F00',
   },
 ];
