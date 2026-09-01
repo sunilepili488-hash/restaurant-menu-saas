@@ -50,23 +50,35 @@ export default function PaymentSheet({ open, onClose, restaurant, onPay }) {
   const curr = restaurant?.currency_symbol || '₹';
   const [amount, setAmount] = useState('');
   const [selectedApp, setSelectedApp] = useState('gpay');
-  const [selectedTip, setSelectedTip] = useState(null);
+  // Single source of truth for the tip pill row: 'none' | 20 | 50 | 100 | 'custom'
+  // (previously selectedTip + customTip could both be "active" at once, which
+  // confused the shared layout highlight and made buttons render wrong/stuck)
+  const [tipMode, setTipMode] = useState('none');
   const [customTip, setCustomTip] = useState('');
-  const [showCustomTip, setShowCustomTip] = useState(false);
   const [rating, setRating] = useState(0);
   const [imgErrors, setImgErrors] = useState({});
 
+  const showCustomTip = tipMode === 'custom';
   const baseAmount = parseFloat(amount) || 0;
-  const tipAmount = customTip ? (parseFloat(customTip) || 0) : (selectedTip || 0);
+  const tipAmount = tipMode === 'custom' ? (parseFloat(customTip) || 0) : (tipMode === 'none' ? 0 : tipMode);
   const totalAmount = baseAmount + tipAmount;
 
+  const blurActive = () => {
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+  };
+
   const resetAndClose = () => {
-    setAmount(''); setSelectedTip(null); setCustomTip('');
-    setShowCustomTip(false); setRating(0); onClose?.();
+    blurActive();
+    setAmount(''); setTipMode('none'); setCustomTip('');
+    setRating(0); onClose?.();
   };
 
   const selectTip = (val) => {
-    setSelectedTip(val); setCustomTip(''); setShowCustomTip(false);
+    setTipMode(val); setCustomTip('');
+  };
+
+  const selectOther = () => {
+    setTipMode('custom');
   };
 
   const handlePaySecurely = () => {
@@ -159,6 +171,12 @@ export default function PaymentSheet({ open, onClose, restaurant, onPay }) {
                         className="bg-transparent text-3xl font-bold text-foreground focus:outline-none placeholder:text-muted-foreground/30 w-32 text-left"
                       />
                     </div>
+                    {/* Show tip added on top of the bill amount */}
+                    {tipAmount > 0 && (
+                      <p className="text-center text-[11px] text-muted-foreground mt-1">
+                        + tip {curr}{tipAmount.toLocaleString()} = <span className="font-semibold text-foreground">{curr}{totalAmount.toLocaleString()}</span>
+                      </p>
+                    )}
                   </div>
 
                   {/* Select UPI — BIGGER cards, BIGGER logos, BRIGHTER text */}
@@ -206,7 +224,7 @@ export default function PaymentSheet({ open, onClose, restaurant, onPay }) {
                     </div>
                   </div>
 
-                  {/* Tip — single row, BRIGHTER numbers */}
+                  {/* Tip — single row, exactly one pill active at a time */}
                   <div className="glass rounded-xl p-3">
                     <div className="flex items-center justify-center gap-1.5 mb-2.5">
                       <p className="text-xs font-semibold text-foreground">Tip your service partner</p>
@@ -214,14 +232,14 @@ export default function PaymentSheet({ open, onClose, restaurant, onPay }) {
                     </div>
                     <div className="flex gap-1.5">
                       <button
-                        onClick={() => selectTip(null)}
+                        onClick={() => selectTip('none')}
                         className={`relative flex-1 py-2 rounded-full text-[11px] font-bold transition-colors ${
-                          selectedTip === null && !customTip
+                          tipMode === 'none'
                             ? 'text-primary-foreground'
-                            : 'text-foreground border border-border'
+                            : 'text-foreground bg-card border border-border'
                         }`}
                       >
-                        {selectedTip === null && !customTip && (
+                        {tipMode === 'none' && (
                           <motion.div layoutId="tip-bg" className="absolute inset-0 bg-primary rounded-full -z-10" transition={{ type: 'spring', stiffness: 500, damping: 32 }} />
                         )}
                         No Tip
@@ -231,23 +249,23 @@ export default function PaymentSheet({ open, onClose, restaurant, onPay }) {
                           key={amt}
                           onClick={() => selectTip(amt)}
                           className={`relative flex-1 py-2 rounded-full text-[11px] font-bold transition-colors ${
-                            selectedTip === amt && !customTip
+                            tipMode === amt
                               ? 'text-primary-foreground'
-                              : 'text-foreground border border-border'
+                              : 'text-foreground bg-card border border-border'
                           }`}
                         >
-                          {selectedTip === amt && !customTip && (
+                          {tipMode === amt && (
                             <motion.div layoutId="tip-bg" className="absolute inset-0 bg-primary rounded-full -z-10" transition={{ type: 'spring', stiffness: 500, damping: 32 }} />
                           )}
                           {curr}{amt}
                         </button>
                       ))}
                       <button
-                        onClick={() => { setShowCustomTip(true); setSelectedTip(null); }}
+                        onClick={selectOther}
                         className={`relative flex-1 py-2 rounded-full text-[11px] font-bold transition-colors ${
                           showCustomTip
                             ? 'text-primary-foreground'
-                            : 'text-foreground border border-border'
+                            : 'text-foreground bg-card border border-border'
                         }`}
                       >
                         {showCustomTip && (
@@ -259,7 +277,14 @@ export default function PaymentSheet({ open, onClose, restaurant, onPay }) {
                     <AnimatePresence>
                       {showCustomTip && (
                         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                          <input type="number" inputMode="numeric" value={customTip} onChange={e => setCustomTip(e.target.value)} placeholder={`Custom tip (${curr})`} className="w-full bg-secondary border border-border/50 rounded-lg p-2 text-xs mt-2 focus:outline-none focus:ring-1 focus:ring-primary" autoFocus />
+                          <input
+                            type="number"
+                            inputMode="numeric"
+                            value={customTip}
+                            onChange={e => setCustomTip(e.target.value)}
+                            placeholder={`Custom tip (${curr})`}
+                            className="w-full bg-card border border-border rounded-lg p-2.5 text-xs text-foreground mt-2 focus:outline-none focus:ring-1 focus:ring-primary"
+                          />
                         </motion.div>
                       )}
                     </AnimatePresence>
