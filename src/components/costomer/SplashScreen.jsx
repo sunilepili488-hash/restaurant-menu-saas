@@ -1,5 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+// ── Mobile check ──
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+  );
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+  return isMobile;
+}
 
 function CoverContent({ restaurant }) {
   return (
@@ -138,12 +151,55 @@ function BookSplash({ restaurant, opening }) {
   );
 }
 
+// ── MOBILE VIDEO SPLASH ──
+function VideoSplash({ onFinish }) {
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.addEventListener('ended', onFinish);
+    return () => video.removeEventListener('ended', onFinish);
+  }, [onFinish]);
+
+  return (
+    <div className="w-full h-full bg-black">
+      <video
+        ref={videoRef}
+        src="/intro.mp4"
+        className="w-full h-full object-cover"
+        autoPlay
+        muted
+        playsInline
+        preload="auto"
+      />
+      <motion.button
+        onClick={onFinish}
+        className="absolute bottom-8 right-6 text-white/70 text-sm border border-white/30 px-4 py-1.5 rounded-full backdrop-blur-sm hover:bg-white/10 transition-all"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.5 }}
+      >
+        Skip ›
+      </motion.button>
+    </div>
+  );
+}
+
 export default function SplashScreen({ restaurant, onComplete }) {
   const [visible, setVisible] = useState(true);
   const [opening, setOpening] = useState(false);
+  const isMobile = useIsMobile();
   const useBookAnimation = restaurant?.splash_book_animation === true;
 
+  const handleFinish = () => {
+    setVisible(false);
+    setTimeout(onComplete, 500);
+  };
+
+  // Desktop/Tablet timing — mobile pe nahi chalega
   useEffect(() => {
+    if (isMobile) return;
     const timer = setTimeout(() => {
       if (useBookAnimation) {
         setOpening(true);
@@ -153,7 +209,7 @@ export default function SplashScreen({ restaurant, onComplete }) {
       }
     }, 2800);
     return () => clearTimeout(timer);
-  }, [useBookAnimation]);
+  }, [isMobile, useBookAnimation]);
 
   useEffect(() => {
     if (!visible) {
@@ -167,12 +223,18 @@ export default function SplashScreen({ restaurant, onComplete }) {
       {visible && (
         <motion.div
           className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background overflow-hidden"
-          exit={{ opacity: useBookAnimation ? 1 : 0 }}
-          transition={{ duration: useBookAnimation ? 0 : 0.5 }}
+          exit={{ opacity: useBookAnimation && !isMobile ? 1 : 0 }}
+          transition={{ duration: useBookAnimation && !isMobile ? 0 : 0.5 }}
         >
-          {useBookAnimation
-            ? <BookSplash restaurant={restaurant} opening={opening} />
-            : <ClassicSplash restaurant={restaurant} />}
+          {/* MOBILE → VIDEO */}
+          {isMobile && <VideoSplash onFinish={handleFinish} />}
+
+          {/* DESKTOP/TABLET → Book ya Classic */}
+          {!isMobile && (
+            useBookAnimation
+              ? <BookSplash restaurant={restaurant} opening={opening} />
+              : <ClassicSplash restaurant={restaurant} />
+          )}
         </motion.div>
       )}
     </AnimatePresence>
