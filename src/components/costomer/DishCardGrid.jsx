@@ -90,11 +90,11 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
 
         <div className="absolute top-2 left-2 flex items-center gap-1.5">
           {hasDiscount && (
-            <span className="bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+            <span className="bg-primary text-primary-foreground text-[10px] font-bold px-2 py-0.5 rounded-xl">
               {discountPct}% OFF
             </span>
           )}
-          <span className={`w-5 h-5 rounded-full flex items-center justify-center ${dish.is_veg ? 'bg-green-600' : 'bg-red-600'}`}>
+          <span className={`w-5 h-5 rounded-xl flex items-center justify-center ${dish.is_veg ? 'bg-green-600' : 'bg-red-600'}`}>
             {dish.is_veg ? <Leaf className="w-3 h-3 text-white" /> : <Drumstick className="w-3 h-3 text-white" />}
           </span>
         </div>
@@ -104,7 +104,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
           <motion.button
             whileTap={{ scale: 0.8 }}
             onClick={(e) => { e.stopPropagation(); menuStore.toggleFavorite(dish.id); }}
-            className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm border-2 border-black flex items-center justify-center shadow-md"
+            className="absolute top-2 right-2 w-8 h-8 rounded-xl bg-black/50 backdrop-blur-sm border-2 border-black flex items-center justify-center shadow-md"
             title="Favorite"
           >
             <Heart className={`w-4 h-4 transition-colors ${isFav ? 'text-rose-500 fill-rose-500' : 'text-white/90'}`} />
@@ -112,7 +112,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
         )}
 
         {prepTimeStr && (
-          <span className="absolute bottom-2 left-2 flex items-center gap-1 bg-black/60 text-white text-[10px] font-medium px-2 py-0.5 rounded-full backdrop-blur-sm">
+          <span className="absolute bottom-2 left-2 flex items-center gap-1 bg-black/60 text-white text-[10px] font-medium px-2 py-0.5 rounded-xl backdrop-blur-sm">
             <Clock className="w-3 h-3" />
             {prepTimeStr}
           </span>
@@ -166,7 +166,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={(e) => { e.stopPropagation(); menuStore.addToCart(dish); }}
-              className="w-9 h-9 rounded-full glass flex items-center justify-center mx-auto"
+              className="w-9 h-9 rounded-xl glass flex items-center justify-center mx-auto"
               title="Add to cart"
             >
               <ShoppingBag className="w-4 h-4 text-foreground/70" />
@@ -176,7 +176,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={(e) => { e.stopPropagation(); onReviewOpen?.(dish); }}
-              className="w-9 h-9 rounded-full glass flex items-center justify-center mx-auto"
+              className="w-9 h-9 rounded-xl glass flex items-center justify-center mx-auto"
               title="Review"
             >
               <MessageCircle className="w-4 h-4 text-foreground/70" />
@@ -186,7 +186,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-              className="w-9 h-9 rounded-full glass flex items-center justify-center mx-auto"
+              className="w-9 h-9 rounded-xl glass flex items-center justify-center mx-auto"
               title="More"
             >
               <ChevronDown className={`w-4 h-4 text-foreground/70 transition-transform ${expanded ? 'rotate-180' : ''}`} />
@@ -230,7 +230,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
             >
               <div className="flex items-center justify-between px-6 pt-6 pb-2">
                 <h3 className="font-display text-xl font-semibold">Pay via UPI</h3>
-                <button onClick={() => setPayModalOpen(false)} className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+                <button onClick={() => setPayModalOpen(false)} className="w-8 h-8 rounded-xl bg-secondary flex items-center justify-center">
                   <X className="w-4 h-4 text-foreground" />
                 </button>
               </div>
