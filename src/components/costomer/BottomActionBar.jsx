@@ -77,7 +77,7 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
                 <motion.button
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setWaiterOpen(false)}
-                  className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center"
+                  className="w-8 h-8 rounded-xl bg-secondary flex items-center justify-center"
                 >
                   <X className="w-4 h-4 text-foreground" />
                 </motion.button>
