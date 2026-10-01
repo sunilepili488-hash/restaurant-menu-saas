@@ -298,7 +298,7 @@ export default function CustomerMenu() {
   className="sticky z-30 bg-background"
   style={{ top: 'calc(var(--header-h, 64px) + var(--cat-h, 60px) - 1px)' }}
 >
-  <div className="px-2 py-1 max-w-7xl mx-auto">
+  <div className="px-2 pt-1 pb-2 max-w-7xl mx-auto">
     <div className="flex items-center gap-2">
       {[
         { mode: 'grid', Icon: LayoutGrid, label: 'Grid view' },
@@ -310,7 +310,7 @@ export default function CustomerMenu() {
           onClick={() => setViewMode(mode)}
           title={label}
           aria-label={label}
-          className={`flex-1 h-8 rounded-xl flex items-center justify-center transition-colors ${viewMode === mode ? 'bg-primary text-primary-foreground' : 'glass text-muted-foreground'}`}
+          className={`flex-1 h-8 rounded-xl border border-black flex items-center justify-center transition-colors ${viewMode === mode ? 'bg-primary text-primary-foreground' : 'glass text-muted-foreground'}`}
         >
           <Icon className="w-4 h-4 flex-shrink-0" />
         </button>
