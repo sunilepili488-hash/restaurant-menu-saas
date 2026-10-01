@@ -28,7 +28,7 @@ export default React.memo(function TopDishesCarousel({ dishes, restaurant }) {
 
   if (!dishes || dishes.length === 0) return null;
   const curr = restaurant?.currency_symbol || '₹';
-  const cardRadius = restaurant?.theme_css_vars?.['--radius'] || '0.75rem';
+  const cardRadius = '0.5rem';
 
   return (
     <div className="px-2 max-w-7xl mx-auto pt-3 mb-2">
