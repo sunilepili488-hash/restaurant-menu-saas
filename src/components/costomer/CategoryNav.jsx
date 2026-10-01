@@ -22,7 +22,14 @@ export default function CategoryNav({ categories = [], activeCategory, onSelect 
   const allCategories = [{ id: 'all', name: 'All' }, ...categories];
 
   return (
-   <div id="category-nav" className="sticky z-40 glass border-y border-black dark:border-white/60" style={{ top: 'calc(var(--header-h, 64px) - 1px)' }}
+       <div
+      id="category-nav"
+      className="sticky z-40 glass border-y border-black dark:border-white/60"
+      style={{
+        top: 'calc(var(--header-h, 64px) + 1px)',
+        boxShadow: '0 -1px 0 hsl(var(--background))',
+      }}
+    >
       <div className="flex items-center gap-2 px-4 py-3 max-w-7xl mx-auto">
         <motion.button
           whileTap={{ scale: 0.9 }}
