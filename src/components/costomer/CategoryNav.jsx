@@ -30,7 +30,7 @@ export default function CategoryNav({ categories = [], activeCategory, onSelect 
         boxShadow: '0 -1px 0 hsl(var(--background))',
       }}
     >
-      <div className="flex items-center gap-2 px-4 py-3 max-w-7xl mx-auto">
+      <div className="flex items-center gap-2 px-2 py-3 max-w-7xl mx-auto">
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={() => setModalOpen(true)}
