@@ -105,7 +105,7 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
 
       {/* Full-width bottom bar — fixed at very bottom edge */}
       <div className="fixed bottom-0 left-0 right-0 z-50 px-2 pb-1.5">
-        <div className="glass rounded-2xl flex items-center justify-between px-5 py-2.5 shadow-lg">
+        <div className="glass rounded-2xl border border-black dark:border-white/60 flex items-center justify-between px-5 py-2.5 shadow-lg">
           {/* 1st: Bag icon + cart count */}
           <div className="flex items-center gap-2">
             <motion.button
