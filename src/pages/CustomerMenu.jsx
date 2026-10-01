@@ -310,7 +310,7 @@ export default function CustomerMenu() {
           onClick={() => setViewMode(mode)}
           title={label}
           aria-label={label}
-          className={`flex-1 h-8 rounded-xl border border-black flex items-center justify-center transition-colors ${viewMode === mode ? 'bg-primary text-primary-foreground' : 'glass text-muted-foreground'}`}
+          className={`flex-1 h-8 rounded-xl border border-black dark:border-white/60 flex items-center justify-center transition-colors ${viewMode === mode ? 'bg-primary text-primary-foreground' : 'glass text-muted-foreground'}`}
         >
           <Icon className="w-4 h-4 flex-shrink-0" />
         </button>
