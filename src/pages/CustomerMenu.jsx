@@ -288,7 +288,7 @@ export default function CustomerMenu() {
     <div className="min-h-screen bg-background pb-24">
       <MenuHeader restaurant={restaurant} onSearchOpen={() => setSearchOpen(true)} onFilterOpen={() => setFilterOpen(true)} onUserClick={() => setAdminOpen(true)} onHistoryClick={() => setHistoryOpen(true)} hideUserIcon={restaurant?.hide_user_icon} />
 
-      <div className="pt-[60px] md:pt-[64px]">
+      <div style={{ paddingTop: 'var(--header-h, 64px)' }}>
         <BannerCarousel banners={banners} liveOrderData={liveOrderData} />
         <CategoryNav categories={sortedCategories} activeCategory={activeCategory} onSelect={setActiveCategory} />
         <TopDishesCarousel dishes={topDishes} restaurant={restaurant} />
