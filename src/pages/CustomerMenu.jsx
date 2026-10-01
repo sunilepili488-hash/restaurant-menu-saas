@@ -294,19 +294,30 @@ export default function CustomerMenu() {
         <TopDishesCarousel dishes={topDishes} restaurant={restaurant} />
 
         {/* View Toggle — with proper spacing */}
-        <div className="px-4 max-w-7xl mx-auto z-30 sticky top-[124px] md:top-[132px] bg-background pt-4 pb-4">
-          <div className="flex items-center gap-2">
-            {[
-              { mode: 'grid', Icon: LayoutGrid, label: 'Grid view' },
-              { mode: 'list', Icon: List, label: 'List view' },
-              { mode: 'text', Icon: Type, label: 'Text-only view' },
-            ].map(({ mode, Icon, label }) => (
-              <button key={mode} onClick={() => setViewMode(mode)} title={label} aria-label={label} className={`flex-1 h-9 rounded-lg flex items-center justify-center transition-colors ${viewMode === mode ? 'bg-primary text-primary-foreground' : 'glass text-muted-foreground'}`}>
-                <Icon className="w-4 h-4 flex-shrink-0" />
-              </button>
-            ))}
-          </div>
-        </div>
+        <div
+  className="sticky z-30 bg-background"
+  style={{ top: 'calc(var(--header-h, 64px) + var(--cat-h, 60px) - 1px)' }}
+>
+  <div className="px-2 py-1 max-w-7xl mx-auto">
+    <div className="flex items-center gap-2">
+      {[
+        { mode: 'grid', Icon: LayoutGrid, label: 'Grid view' },
+        { mode: 'list', Icon: List, label: 'List view' },
+        { mode: 'text', Icon: Type, label: 'Text-only view' },
+      ].map(({ mode, Icon, label }) => (
+        <button
+          key={mode}
+          onClick={() => setViewMode(mode)}
+          title={label}
+          aria-label={label}
+          className={`flex-1 h-8 rounded-xl flex items-center justify-center transition-colors ${viewMode === mode ? 'bg-primary text-primary-foreground' : 'glass text-muted-foreground'}`}
+        >
+          <Icon className="w-4 h-4 flex-shrink-0" />
+        </button>
+      ))}
+    </div>
+  </div>
+</div>
 
         {/* Dishes */}
         <div className="px-4 max-w-7xl mx-auto">
