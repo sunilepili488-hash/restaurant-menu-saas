@@ -166,7 +166,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={(e) => { e.stopPropagation(); menuStore.addToCart(dish); }}
-              className="w-9 h-9 rounded-xl glass flex items-center justify-center mx-auto"
+             className="w-9 h-9 rounded-xl glass border border-black flex items-center justify-center mx-auto"
               title="Add to cart"
             >
               <ShoppingBag className="w-4 h-4 text-foreground/70" />
@@ -176,7 +176,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={(e) => { e.stopPropagation(); onReviewOpen?.(dish); }}
-              className="w-9 h-9 rounded-xl glass flex items-center justify-center mx-auto"
+              className="w-9 h-9 rounded-xl glass border border-black flex items-center justify-center mx-auto"
               title="Review"
             >
               <MessageCircle className="w-4 h-4 text-foreground/70" />
@@ -186,7 +186,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-              className="w-9 h-9 rounded-xl glass flex items-center justify-center mx-auto"
+              className="w-9 h-9 rounded-xl glass border border-black flex items-center justify-center mx-auto"
               title="More"
             >
               <ChevronDown className={`w-4 h-4 text-foreground/70 transition-transform ${expanded ? 'rotate-180' : ''}`} />
