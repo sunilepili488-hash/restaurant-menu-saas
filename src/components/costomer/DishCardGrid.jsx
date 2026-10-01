@@ -76,7 +76,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
       layout={false}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-     style={{ willChange: 'transform, opacity', borderRadius: '0.5rem', boxShadow: cardShadow }}
+     style={{ willChange: 'transform, opacity', borderRadius: '0.25rem', boxShadow: cardShadow }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
     >
       {/* Image */}
