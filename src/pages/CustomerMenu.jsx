@@ -320,7 +320,7 @@ export default function CustomerMenu() {
 </div>
 
         {/* Dishes */}
-<div className="px-4 pt-3 max-w-7xl mx-auto">
+<div className="px-2 pt-3 max-w-7xl mx-auto">
           {viewMode === 'grid' ? (
             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
               {visibleDishes.map((dish, index) => (
