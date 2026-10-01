@@ -94,7 +94,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
               {discountPct}% OFF
             </span>
           )}
-          <span className={`w-5 h-5 rounded-xl flex items-center justify-center ${dish.is_veg ? 'bg-green-600' : 'bg-red-600'}`}>
+          <span className={`w-5 h-5 rounded-md flex items-center justify-center ${dish.is_veg ? 'bg-green-600' : 'bg-red-600'}`}>
             {dish.is_veg ? <Leaf className="w-3 h-3 text-white" /> : <Drumstick className="w-3 h-3 text-white" />}
           </span>
         </div>
