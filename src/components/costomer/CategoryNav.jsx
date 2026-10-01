@@ -27,7 +27,7 @@ export default function CategoryNav({ categories = [], activeCategory, onSelect 
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={() => setModalOpen(true)}
-          className="flex-shrink-0 w-7 h-7 rounded-full glass flex items-center justify-center"
+          className="flex-shrink-0 w-8 h-8 rounded-xl glass flex items-center justify-center"
           title="Show all categories"
           aria-label="Show all categories"
         >
