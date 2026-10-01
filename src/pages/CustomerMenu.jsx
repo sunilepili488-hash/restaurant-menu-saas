@@ -296,7 +296,7 @@ export default function CustomerMenu() {
         {/* View Toggle — with proper spacing */}
         <div
   className="sticky z-30 bg-background"
-  style={{ top: 'calc(var(--header-h, 64px) + var(--cat-h, 60px) - 1px)' }}
+  style={{ top: 'calc(var(--header-h, 64px) + var(--cat-h, 60px) - 2px)' }}
 >
   <div className="px-2 py-2 max-w-7xl mx-auto">
     <div className="flex items-center gap-2">
