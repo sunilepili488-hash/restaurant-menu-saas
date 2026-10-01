@@ -111,7 +111,7 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={onCartClick}
-              className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0"
+              className="w-9 h-9 rounded-xl bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0"
             >
               <ShoppingBag className="w-4 h-4" />
             </motion.button>
@@ -132,7 +132,7 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={onFavoritesClick}
-              className="w-9 h-9 rounded-full bg-rose-500 text-white flex items-center justify-center flex-shrink-0"
+              className="w-9 h-9 rounded-xl bg-rose-500 text-white flex items-center justify-center flex-shrink-0"
             >
               <Heart className="w-4 h-4 fill-white" />
             </motion.button>
@@ -142,7 +142,7 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={onPaymentClick}
-            className="w-9 h-9 rounded-full bg-green-500 text-white flex items-center justify-center flex-shrink-0"
+            className="w-9 h-9 rounded-xl bg-green-500 text-white flex items-center justify-center flex-shrink-0"
           >
             <CreditCard className="w-4 h-4" />
           </motion.button>
@@ -151,7 +151,7 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => setWaiterOpen(true)}
-            className="w-9 h-9 rounded-full bg-yellow-400 text-white flex items-center justify-center flex-shrink-0"
+            className="w-9 h-9 rounded-xl bg-yellow-400 text-white flex items-center justify-center flex-shrink-0"
           >
             <Bell className="w-4 h-4" />
           </motion.button>
@@ -177,7 +177,7 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
               exit={{ scale: 0.85, opacity: 0, y: 10 }}
               transition={{ type: 'spring', stiffness: 550, damping: 34 }}
             >
-              <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-3">
+              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
                 <Check className="w-7 h-7 text-primary" />
               </div>
               <p className="text-sm font-medium text-foreground leading-relaxed">{toast}</p>
