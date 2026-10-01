@@ -41,7 +41,7 @@ export default function MenuHeader({ restaurant, onSearchOpen, onFilterOpen, onU
       whileTap={{ scale: 0.9 }}
       onClick={onClick}
       aria-label={label}
-      className="w-10 h-10 rounded-xl glass flex items-center justify-center text-primary/80 hover:text-primary transition-colors"
+     className="w-10 h-10 rounded-xl glass border border-black flex items-center justify-center text-primary/80 hover:text-primary transition-colors"
     >
       {children}
     </motion.button>
