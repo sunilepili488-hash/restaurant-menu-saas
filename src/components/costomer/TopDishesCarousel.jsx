@@ -31,7 +31,7 @@ export default React.memo(function TopDishesCarousel({ dishes, restaurant }) {
   const cardRadius = restaurant?.theme_css_vars?.['--radius'] || '0.75rem';
 
   return (
-    <div className="px-4 max-w-7xl mx-auto pt-3 mb-2">
+    <div className="px-2 max-w-7xl mx-auto pt-3 mb-2">
       <div className="flex items-center justify-center gap-2 mb-3 h-7 relative overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.h2
