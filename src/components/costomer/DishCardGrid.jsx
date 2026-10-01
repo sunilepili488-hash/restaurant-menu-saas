@@ -104,7 +104,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
           <motion.button
             whileTap={{ scale: 0.8 }}
             onClick={(e) => { e.stopPropagation(); menuStore.toggleFavorite(dish.id); }}
-            className="absolute top-2 right-2 w-8 h-8 rounded-xl bg-black/50 backdrop-blur-sm border-2 border-black flex items-center justify-center shadow-md"
+           className="absolute top-2 right-2 w-8 h-8 rounded-xl bg-black/50 backdrop-blur-sm border border-black flex items-center justify-center shadow-md"
             title="Favorite"
           >
             <Heart className={`w-4 h-4 transition-colors ${isFav ? 'text-rose-500 fill-rose-500' : 'text-white/90'}`} />
