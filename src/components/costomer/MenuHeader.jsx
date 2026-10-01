@@ -49,7 +49,7 @@ export default function MenuHeader({ restaurant, onSearchOpen, onFilterOpen, onU
 
   // Change 4: header border removed — only dish cards keep a border now
   return (
-   <header id="menu-header" className="fixed top-0 left-0 right-0 z-50 glass">
+   <header id="menu-header" className="fixed top-0 left-0 right-0 z-50 glass border-b border-black dark:border-white/60">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         {/* Left: Logo + Name + Hours (animated or static) */}
         <div className="flex items-center gap-3 min-w-0 flex-1">
