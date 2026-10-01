@@ -139,6 +139,24 @@ export default function CustomerMenu() {
   }, [restaurant]);
 
   useEffect(() => {
+  const root = document.documentElement;
+  const update = () => {
+    const h = document.getElementById('menu-header')?.offsetHeight;
+    const c = document.getElementById('category-nav')?.offsetHeight;
+    if (h) root.style.setProperty('--header-h', `${h}px`);
+    if (c) root.style.setProperty('--cat-h', `${c}px`);
+  };
+  update();
+  const ro = new ResizeObserver(update);
+  ['menu-header', 'category-nav'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) ro.observe(el);
+  });
+  window.addEventListener('resize', update);
+  return () => { ro.disconnect(); window.removeEventListener('resize', update); };
+}, [showSplash, !!restaurant, restaurant?.is_open]);
+
+  useEffect(() => {
     const lockedOrders = menuStore.getState().lockedOrders || [];
     if (!lockedOrders.length) return;
     const ids = lockedOrders.map(lo => lo.groupId).filter(Boolean);
