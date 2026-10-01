@@ -52,7 +52,7 @@ function DishListRow({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
               {curr}{dish.regular_price.toLocaleString()}
             </span>
           )}
-          <span className={`w-4 h-4 rounded-full flex items-center justify-center ${dish.is_veg ? 'bg-green-600' : 'bg-red-600'}`}>
+          <span className={`w-4 h-4 rounded-xl flex items-center justify-center ${dish.is_veg ? 'bg-green-600' : 'bg-red-600'}`}>
             {dish.is_veg ? <Leaf className="w-2.5 h-2.5 text-white" /> : <Drumstick className="w-2.5 h-2.5 text-white" />}
           </span>
         </div>
@@ -64,7 +64,7 @@ function DishListRow({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
             <motion.button
               whileTap={{ scale: 0.8 }}
               onClick={() => menuStore.toggleFavorite(dish.id)}
-              className="w-8 h-8 rounded-full glass flex items-center justify-center"
+              className="w-8 h-8 rounded-xl glass flex items-center justify-center"
             >
               <Bookmark className={`w-3.5 h-3.5 ${isFav ? 'text-primary fill-primary' : 'text-muted-foreground'}`} />
             </motion.button>
@@ -73,7 +73,7 @@ function DishListRow({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
             <motion.button
               whileTap={{ scale: 0.8 }}
               onClick={() => menuStore.addToCart(dish)}
-              className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center"
+              className="w-8 h-8 rounded-xl bg-primary text-primary-foreground flex items-center justify-center"
             >
               <ShoppingBag className="w-3.5 h-3.5" />
             </motion.button>
