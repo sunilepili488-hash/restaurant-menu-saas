@@ -156,7 +156,7 @@ export default function CustomerMenu() {
   return () => { ro.disconnect(); window.removeEventListener('resize', update); };
 }, [showSplash, !!restaurant, restaurant?.is_open]);
 
-    const missCountRef = React.useRef({});
+    
 
   useEffect(() => {
     const SIX_HOURS = 6 * 60 * 60 * 1000;
@@ -177,7 +177,7 @@ export default function CustomerMenu() {
         results.forEach((order, i) => {
           const id = ids[i];
           if (order) {
-            missCountRef.current[id] = 0;
+            
             map[id] = {
               timer_started_at: order.timer_started_at,
               prep_time_override: order.prep_time_override,
