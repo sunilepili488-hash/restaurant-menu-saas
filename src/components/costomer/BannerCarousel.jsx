@@ -155,217 +155,79 @@ const slideVariants = {
   exit: (d) => ({ x: d > 0 ? '100%' : '-100%' }),
 };
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-
-// Keep your existing import path for these:
 import { useMenuStore } from '@/store/useMenuStore';
 import TimerBanner from './TimerBanner';
 
-/* =========================================================
-   ANIMATION CONFIG
-   ========================================================= */
-
 const slideVariants = {
-  enter: (direction) => ({
-    x: direction > 0 ? '100%' : '-100%',
+  enter: {
+    x: '100%',
     opacity: 0,
-    scale: 0.96,
-    rotateY: direction > 0 ? 2 : -2,
-  }),
-
+    scale: 0.98,
+  },
   center: {
     x: 0,
     opacity: 1,
     scale: 1,
-    rotateY: 0,
     transition: {
-      x: {
-        type: 'spring',
-        stiffness: 280,
-        damping: 30,
-        mass: 0.8,
-      },
-      opacity: {
-        duration: 0.3,
-        ease: 'easeOut',
-      },
-      scale: {
-        duration: 0.55,
-        ease: [0.22, 1, 0.36, 1],
-      },
-      rotateY: {
-        duration: 0.55,
-        ease: 'easeOut',
-      },
-    },
-  },
-
-  exit: (direction) => ({
-    x: direction > 0 ? '-100%' : '100%',
-    opacity: 0,
-    scale: 0.96,
-    rotateY: direction > 0 ? -2 : 2,
-    transition: {
-      x: {
-        duration: 0.5,
-        ease: [0.4, 0, 0.2, 1],
-      },
-      opacity: {
-        duration: 0.3,
-        ease: 'easeIn',
-      },
-      scale: {
-        duration: 0.45,
-        ease: 'easeInOut',
-      },
-      rotateY: {
-        duration: 0.45,
-        ease: 'easeInOut',
-      },
-    },
-  }),
-};
-
-/* =========================================================
-   BANNER CONTENT ANIMATIONS
-   ========================================================= */
-
-const contentContainerVariants = {
-  hidden: {
-    opacity: 0,
-    y: 14,
-  },
-
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      delayChildren: 0.18,
-      staggerChildren: 0.08,
-    },
-  },
-};
-
-const titleVariants = {
-  hidden: {
-    opacity: 0,
-    y: 12,
-  },
-
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.45,
+      duration: 0.55,
       ease: [0.22, 1, 0.36, 1],
     },
   },
-};
-
-const subtitleVariants = {
-  hidden: {
+  exit: {
+    x: '-100%',
     opacity: 0,
-    y: 8,
-  },
-
-  visible: {
-    opacity: 0.9,
-    y: 0,
+    scale: 0.98,
     transition: {
-      duration: 0.4,
-      ease: 'easeOut',
+      duration: 0.45,
+      ease: [0.4, 0, 0.2, 1],
     },
   },
 };
-
-/* =========================================================
-   MAIN COMPONENT
-   ========================================================= */
 
 export default function BannerCarousel({
   banners = [],
   liveOrderData = {},
 }) {
   const [current, setCurrent] = useState(0);
-  const [dir, setDir] = useState(1);
-
   const store = useMenuStore();
 
-  /* -------------------------------------------------------
-     ACTIVE BANNERS
-     ------------------------------------------------------- */
+  const active = useMemo(
+    () => banners.filter(b => b.is_active !== false),
+    [banners]
+  );
 
-  const active = useMemo(() => {
-    return Array.isArray(banners)
-      ? banners.filter((b) => b?.is_active !== false)
-      : [];
-  }, [banners]);
-
-  /* -------------------------------------------------------
-     ACTIVE ORDER TIMERS
-     ------------------------------------------------------- */
-
-  const lockedOrders = store?.lockedOrders || [];
+  const lockedOrders = store.lockedOrders || [];
 
   const activeTimers = useMemo(() => {
     return lockedOrders
-      .filter((lo) => {
-        const live = liveOrderData?.[lo.groupId];
+      .filter(lo => {
+        const live = liveOrderData[lo.groupId];
 
-        // Completed / cancelled orders
         if (
           live?.status === 'completed' ||
-          live?.status === 'cancelled'
+          live?.status === 'cancelled' ||
+          live?.status === 'ready' ||
+          live?.is_ready
         ) {
-          return false;
-        }
-
-        // Ready orders
-        if (live?.status === 'ready') {
-          return false;
-        }
-
-        if (live?.is_ready) {
           return false;
         }
 
         return true;
       })
-      .map((lo) => {
-        const live = liveOrderData?.[lo.groupId];
-
+      .map(lo => {
+        const live = liveOrderData[lo.groupId];
         let estimatedReady;
 
-        /*
-         * TIMER PRIORITY
-         *
-         * 1. Live prep timer
-         * 2. Home delivery timer
-         * 3. Original estimatedReady
-         */
-
-        if (
-          live?.timer_started_at &&
-          live?.prep_time_override
-        ) {
+        if (live?.timer_started_at && live?.prep_time_override) {
           estimatedReady = new Date(
             new Date(live.timer_started_at).getTime() +
               live.prep_time_override * 60 * 1000
           ).toISOString();
-        } else if (
-          lo.is_home_delivery &&
-          live?.delivery_time_minutes
-        ) {
+        } else if (lo.is_home_delivery && live?.delivery_time_minutes) {
           estimatedReady = new Date(
-            new Date(
-              lo.placedAt || lo.createdAt
-            ).getTime() +
+            new Date(lo.placedAt || lo.createdAt).getTime() +
               live.delivery_time_minutes * 60 * 1000
           ).toISOString();
         } else {
@@ -375,453 +237,150 @@ export default function BannerCarousel({
         return {
           ...lo,
           estimatedReady,
-
           timer_started_at:
-            live?.timer_started_at ||
-            lo.timer_started_at,
-
+            live?.timer_started_at || lo.timer_started_at,
           tableLabel: lo.is_home_delivery
             ? '🚚 Delivery'
             : `Table ${lo.tableNumber || ''}`,
         };
       })
-      .filter((lo) => {
-        if (!lo?.estimatedReady) return false;
-
-        const readyTime = new Date(
-          lo.estimatedReady
-        ).getTime();
-
-        return (
-          Number.isFinite(readyTime) &&
-          readyTime > Date.now()
-        );
-      });
+      .filter(
+        lo =>
+          lo.estimatedReady &&
+          new Date(lo.estimatedReady) > new Date()
+      );
   }, [lockedOrders, liveOrderData]);
 
-  /* -------------------------------------------------------
-     DISPLAY ITEMS
-     
-     IMPORTANT:
-     Banner → Timer → Banner → Timer
-     ------------------------------------------------------- */
-
+  // Banner → Timer → Banner → Timer
   const displayItems = useMemo(() => {
     const items = [];
 
-    active.forEach((banner, index) => {
-      // Banner
+    active.forEach((b, i) => {
       items.push({
         type: 'banner',
-        data: banner,
-        key: `banner-${banner?.id || index}`,
+        data: b,
+        key: `banner-${b.id || i}`,
       });
 
-      // Timer after every banner
       if (activeTimers.length > 0) {
         items.push({
           type: 'timer',
           data: activeTimers,
-          key: `timer-${banner?.id || index}`,
+          key: `timer-${b.id || i}`,
         });
       }
     });
 
-    /*
-     * If there are no banners but timers exist,
-     * show timer independently.
-     */
-    if (
-      active.length === 0 &&
-      activeTimers.length > 0
-    ) {
+    if (active.length === 0 && activeTimers.length > 0) {
       items.push({
         type: 'timer',
         data: activeTimers,
-        key: 'timer-only',
+        key: 'timer-0',
       });
     }
 
     return items;
   }, [active, activeTimers]);
 
-  /* -------------------------------------------------------
-     NEXT SLIDE
-     ------------------------------------------------------- */
-
   const next = useCallback(() => {
     if (displayItems.length <= 1) return;
 
-    setDir(1);
-
-    setCurrent((prev) => {
-      return (prev + 1) % displayItems.length;
-    });
+    setCurrent(prev => (prev + 1) % displayItems.length);
   }, [displayItems.length]);
-
-  /* -------------------------------------------------------
-     AUTOPLAY
-     
-     Banner → Timer → Banner → Timer
-     Every 3 seconds
-     ------------------------------------------------------- */
 
   useEffect(() => {
     if (displayItems.length <= 1) return;
 
-    const interval = window.setInterval(() => {
-      next();
-    }, 3000);
+    const interval = setInterval(next, 3000);
 
-    return () => {
-      window.clearInterval(interval);
-    };
+    return () => clearInterval(interval);
   }, [next, displayItems.length]);
 
-  /* -------------------------------------------------------
-     KEEP INDEX SAFE
-     ------------------------------------------------------- */
-
   useEffect(() => {
-    if (displayItems.length === 0) {
-      setCurrent(0);
-      return;
-    }
-
     if (current >= displayItems.length) {
       setCurrent(0);
     }
-  }, [displayItems.length, current]);
+  }, [current, displayItems.length]);
 
-  /* -------------------------------------------------------
-     NOTHING TO SHOW
-     ------------------------------------------------------- */
+  if (displayItems.length === 0) return null;
 
-  if (displayItems.length === 0) {
-    return null;
-  }
-
-  const item =
-    displayItems[current] || displayItems[0];
-
-  /* =======================================================
-     RENDER
-     ======================================================= */
+  const item = displayItems[current] || displayItems[0];
 
   return (
     <div className="mx-2 mt-1 mb-1">
       <div
-        className="
-          relative
-          h-32
-          md:h-40
-          rounded-2xl
-          overflow-hidden
-          isolate
-          bg-black/5
-        "
-        style={{
-          perspective: '1000px',
-          pointerEvents: 'none',
-        }}
+        className="relative h-32 md:h-40 rounded-2xl overflow-hidden"
+        style={{ pointerEvents: 'none' }}
       >
-        <AnimatePresence
-          initial={false}
-          custom={dir}
-          mode="popLayout"
-        >
-          {/* =================================================
-              TIMER SLIDE
-             ================================================= */}
-
-          {item.type === 'timer' ? (
-            <motion.div
-              key={item.key}
-              className="absolute inset-0"
-              custom={dir}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-            >
-              {/* Subtle timer glow layer */}
-              <motion.div
-                className="absolute inset-0 pointer-events-none"
-                initial={{
-                  opacity: 0,
-                  scale: 1.08,
-                }}
-                animate={{
-                  opacity: 0.12,
-                  scale: 1,
-                }}
-                exit={{
-                  opacity: 0,
-                  scale: 1.04,
-                }}
-                transition={{
-                  duration: 0.7,
-                  ease: 'easeOut',
-                }}
-              />
-
-              <TimerBanner
-                activeTimers={item.data}
-              />
-            </motion.div>
-          ) : (
-            /* =================================================
-               NORMAL BANNER
-               ================================================= */
-
-            <motion.div
-              key={item.key}
-              className="
-                absolute
-                inset-0
-                flex
-                flex-col
-                items-center
-                justify-center
-                p-6
-                text-center
-                overflow-hidden
-              "
-              custom={dir}
-              variants={slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              style={{
-                background: item.data?.image_url
-                  ? `
-                    linear-gradient(
-                      135deg,
-                      rgba(0,0,0,0.48) 0%,
-                      rgba(0,0,0,0.20) 55%,
-                      rgba(0,0,0,0.42) 100%
-                    ),
-                    url(${item.data.image_url})
-                    center/cover
-                  `
-                  : `
-                    linear-gradient(
-                      135deg,
-                      ${item.data?.bg_color ||
-                        'hsl(38,45%,61%)'},
-                      ${item.data?.bg_color ||
-                        'hsl(38,45%,61%)'}88
-                    )
-                  `,
-              }}
-            >
-              {/* =============================================
-                  BACKGROUND IMAGE ZOOM
-                 ============================================= */}
-
-              {item.data?.image_url && (
-                <motion.div
-                  className="absolute inset-0 pointer-events-none"
-                  initial={{
-                    scale: 1.12,
-                  }}
-                  animate={{
-                    scale: 1,
-                  }}
-                  exit={{
-                    scale: 1.08,
-                  }}
-                  transition={{
-                    duration: 3,
-                    ease: 'easeOut',
-                  }}
-                  style={{
-                    backgroundImage: `url(${item.data.image_url})`,
-                    backgroundPosition: 'center',
-                    backgroundSize: 'cover',
-                    zIndex: -2,
-                  }}
-                />
-              )}
-
-              {/* =============================================
-                  DARK OVERLAY
-                 ============================================= */}
-
-              <motion.div
-                className="absolute inset-0 pointer-events-none"
-                initial={{
-                  opacity: 0,
-                }}
-                animate={{
-                  opacity: 1,
-                }}
-                exit={{
-                  opacity: 0,
-                }}
-                transition={{
-                  duration: 0.45,
-                }}
+        <AnimatePresence initial={false}>
+          <motion.div
+            key={item.key}
+            className="absolute inset-0"
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+          >
+            {item.type === 'timer' ? (
+              <TimerBanner activeTimers={item.data} />
+            ) : (
+              <div
+                className="h-full flex flex-col items-center justify-center p-6 text-center"
                 style={{
-                  background:
-                    'linear-gradient(135deg, rgba(0,0,0,0.42), rgba(0,0,0,0.16), rgba(0,0,0,0.38))',
+                  background: item.data.image_url
+                    ? `linear-gradient(135deg,rgba(0,0,0,.4),rgba(0,0,0,.2)),url(${item.data.image_url}) center/cover`
+                    : `linear-gradient(135deg,${
+                        item.data.bg_color || 'hsl(38,45%,61%)'
+                      },${
+                        item.data.bg_color || 'hsl(38,45%,61%)'
+                      }88)`,
                 }}
-              />
-
-              {/* =============================================
-                  CONTENT
-                 ============================================= */}
-
-              <motion.div
-                className="
-                  relative
-                  z-10
-                  flex
-                  flex-col
-                  items-center
-                  justify-center
-                  max-w-full
-                "
-                variants={contentContainerVariants}
-                initial="hidden"
-                animate="visible"
               >
-                {/* TITLE */}
+                <motion.h3
+                  className="font-display text-xl md:text-2xl font-bold"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2, duration: 0.35 }}
+                  style={{
+                    color: item.data.text_color || '#fff',
+                  }}
+                >
+                  {item.data.title}
+                </motion.h3>
 
-                {item.data?.title && (
-                  <motion.h3
-                    className="
-                      font-display
-                      text-xl
-                      md:text-2xl
-                      font-bold
-                      leading-tight
-                      drop-shadow-lg
-                    "
-                    variants={titleVariants}
-                    style={{
-                      color:
-                        item.data?.text_color ||
-                        '#fff',
-                    }}
-                  >
-                    {item.data.title}
-                  </motion.h3>
-                )}
-
-                {/* SUBTITLE */}
-
-                {item.data?.subtitle && (
+                {item.data.subtitle && (
                   <motion.p
-                    className="
-                      text-sm
-                      md:text-base
-                      mt-1
-                      max-w-[90%]
-                      leading-snug
-                      drop-shadow-md
-                    "
-                    variants={subtitleVariants}
+                    className="text-sm mt-1 opacity-90"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 0.9, y: 0 }}
+                    transition={{ delay: 0.28, duration: 0.35 }}
                     style={{
-                      color:
-                        item.data?.text_color ||
-                        '#fff',
+                      color: item.data.text_color || '#fff',
                     }}
                   >
                     {item.data.subtitle}
                   </motion.p>
                 )}
-              </motion.div>
-
-              {/* =============================================
-                  SUBTLE SHINE EFFECT
-                 ============================================= */}
-
-              <motion.div
-                className="
-                  absolute
-                  inset-y-0
-                  -left-[40%]
-                  w-[25%]
-                  pointer-events-none
-                  skew-x-[-20deg]
-                "
-                initial={{
-                  x: '-100%',
-                  opacity: 0,
-                }}
-                animate={{
-                  x: '500%',
-                  opacity: [0, 0.18, 0],
-                }}
-                transition={{
-                  duration: 2.2,
-                  delay: 0.45,
-                  ease: 'easeInOut',
-                }}
-                style={{
-                  background:
-                    'linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent)',
-                }}
-              />
-            </motion.div>
-          )}
+              </div>
+            )}
+          </motion.div>
         </AnimatePresence>
 
-        {/* =================================================
-            PAGINATION DOTS
-           ================================================= */}
-
         {displayItems.length > 1 && (
-          <div
-            className="
-              absolute
-              bottom-2.5
-              left-1/2
-              -translate-x-1/2
-              z-30
-              flex
-              items-center
-              gap-1.5
-            "
-          >
-            {displayItems.map((displayItem, index) => {
-              const isActive = index === current;
-
-              return (
-                <motion.div
-                  key={displayItem.key}
-                  className="h-1.5 rounded-full bg-white"
-                  initial={false}
-                  animate={{
-                    width: isActive ? 18 : 6,
-                    opacity: isActive ? 1 : 0.38,
-                    scaleY: isActive ? 1.1 : 1,
-                  }}
-                  transition={{
-                    duration: 0.3,
-                    ease: [0.22, 1, 0.36, 1],
-                  }}
-                />
-              );
-            })}
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+            {displayItems.map((_, i) => (
+              <motion.div
+                key={i}
+                className="h-1.5 rounded-full bg-white"
+                animate={{
+                  width: i === current ? 16 : 6,
+                  opacity: i === current ? 1 : 0.4,
+                }}
+                transition={{ duration: 0.25 }}
+              />
+            ))}
           </div>
         )}
-
-        {/* =================================================
-            EDGE SHADOW / PREMIUM DEPTH
-           ================================================= */}
-
-        <div
-          className="
-            absolute
-            inset-0
-            rounded-2xl
-            pointer-events-none
-            ring-1
-            ring-black/5
-          "
-        />
       </div>
     </div>
   );
