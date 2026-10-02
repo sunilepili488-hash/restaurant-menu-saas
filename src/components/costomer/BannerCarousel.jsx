@@ -155,33 +155,31 @@ const slideVariants = {
   exit: (d) => ({ x: d > 0 ? '100%' : '-100%' }),
 };
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { useMenuStore } from '@/store/useMenuStore';
-import TimerBanner from './TimerBanner';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
-const slideVariants = {
+const variants = {
   enter: {
-    x: '100%',
+    x: "100%",
     opacity: 0,
-    scale: 0.98,
+    scale: 1.02,
   },
   center: {
     x: 0,
     opacity: 1,
     scale: 1,
     transition: {
-      duration: 0.55,
+      duration: 0.6,
       ease: [0.22, 1, 0.36, 1],
     },
   },
   exit: {
-    x: '-100%',
+    x: "-100%",
     opacity: 0,
     scale: 0.98,
     transition: {
-      duration: 0.45,
-      ease: [0.4, 0, 0.2, 1],
+      duration: 0.5,
+      ease: [0.4, 0, 1, 1],
     },
   },
 };
@@ -194,44 +192,38 @@ export default function BannerCarousel({
   const store = useMenuStore();
 
   const active = useMemo(
-    () => banners.filter(b => b.is_active !== false),
+    () => banners.filter((b) => b.is_active !== false),
     [banners]
   );
 
-  const lockedOrders = store.lockedOrders || [];
-
   const activeTimers = useMemo(() => {
-    return lockedOrders
-      .filter(lo => {
+    return (store.lockedOrders || [])
+      .filter((lo) => {
         const live = liveOrderData[lo.groupId];
-
-        if (
-          live?.status === 'completed' ||
-          live?.status === 'cancelled' ||
-          live?.status === 'ready' ||
+        return !(
+          live?.status === "completed" ||
+          live?.status === "cancelled" ||
+          live?.status === "ready" ||
           live?.is_ready
-        ) {
-          return false;
-        }
-
-        return true;
+        );
       })
-      .map(lo => {
+      .map((lo) => {
         const live = liveOrderData[lo.groupId];
-        let estimatedReady;
+        let estimatedReady = lo.estimatedReady;
 
         if (live?.timer_started_at && live?.prep_time_override) {
           estimatedReady = new Date(
             new Date(live.timer_started_at).getTime() +
-              live.prep_time_override * 60 * 1000
+              live.prep_time_override * 60000
           ).toISOString();
-        } else if (lo.is_home_delivery && live?.delivery_time_minutes) {
+        } else if (
+          lo.is_home_delivery &&
+          live?.delivery_time_minutes
+        ) {
           estimatedReady = new Date(
             new Date(lo.placedAt || lo.createdAt).getTime() +
-              live.delivery_time_minutes * 60 * 1000
+              live.delivery_time_minutes * 60000
           ).toISOString();
-        } else {
-          estimatedReady = lo.estimatedReady;
         }
 
         return {
@@ -240,140 +232,134 @@ export default function BannerCarousel({
           timer_started_at:
             live?.timer_started_at || lo.timer_started_at,
           tableLabel: lo.is_home_delivery
-            ? '🚚 Delivery'
-            : `Table ${lo.tableNumber || ''}`,
+            ? "🚚 Delivery"
+            : `Table ${lo.tableNumber || ""}`,
         };
       })
       .filter(
-        lo =>
+        (lo) =>
           lo.estimatedReady &&
           new Date(lo.estimatedReady) > new Date()
       );
-  }, [lockedOrders, liveOrderData]);
+  }, [store.lockedOrders, liveOrderData]);
 
   // Banner → Timer → Banner → Timer
-  const displayItems = useMemo(() => {
-    const items = [];
+  const items = useMemo(() => {
+    const result = [];
 
-    active.forEach((b, i) => {
-      items.push({
-        type: 'banner',
-        data: b,
-        key: `banner-${b.id || i}`,
+    active.forEach((banner, i) => {
+      result.push({
+        type: "banner",
+        data: banner,
+        key: `banner-${i}`,
       });
 
-      if (activeTimers.length > 0) {
-        items.push({
-          type: 'timer',
+      if (activeTimers.length) {
+        result.push({
+          type: "timer",
           data: activeTimers,
-          key: `timer-${b.id || i}`,
+          key: `timer-${i}`,
         });
       }
     });
 
-    if (active.length === 0 && activeTimers.length > 0) {
-      items.push({
-        type: 'timer',
+    if (!active.length && activeTimers.length) {
+      result.push({
+        type: "timer",
         data: activeTimers,
-        key: 'timer-0',
+        key: "timer-0",
       });
     }
 
-    return items;
+    return result;
   }, [active, activeTimers]);
 
   const next = useCallback(() => {
-    if (displayItems.length <= 1) return;
-
-    setCurrent(prev => (prev + 1) % displayItems.length);
-  }, [displayItems.length]);
+    setCurrent((prev) => (prev + 1) % items.length);
+  }, [items.length]);
 
   useEffect(() => {
-    if (displayItems.length <= 1) return;
+    if (items.length <= 1) return;
 
-    const interval = setInterval(next, 3000);
-
-    return () => clearInterval(interval);
-  }, [next, displayItems.length]);
+    const timer = setInterval(next, 3000);
+    return () => clearInterval(timer);
+  }, [next, items.length]);
 
   useEffect(() => {
-    if (current >= displayItems.length) {
-      setCurrent(0);
-    }
-  }, [current, displayItems.length]);
+    if (current >= items.length) setCurrent(0);
+  }, [current, items.length]);
 
-  if (displayItems.length === 0) return null;
+  if (!items.length) return null;
 
-  const item = displayItems[current] || displayItems[0];
+  const item = items[current];
 
   return (
     <div className="mx-2 mt-1 mb-1">
-      <div
-        className="relative h-32 md:h-40 rounded-2xl overflow-hidden"
-        style={{ pointerEvents: 'none' }}
-      >
+      <div className="relative h-32 md:h-40 rounded-2xl overflow-hidden">
+
         <AnimatePresence initial={false}>
-          <motion.div
-            key={item.key}
-            className="absolute inset-0"
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-          >
-            {item.type === 'timer' ? (
+          {item.type === "timer" ? (
+            <motion.div
+              key={item.key}
+              className="absolute inset-0"
+              variants={variants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+            >
               <TimerBanner activeTimers={item.data} />
-            ) : (
-              <div
-                className="h-full flex flex-col items-center justify-center p-6 text-center"
-                style={{
-                  background: item.data.image_url
-                    ? `linear-gradient(135deg,rgba(0,0,0,.4),rgba(0,0,0,.2)),url(${item.data.image_url}) center/cover`
-                    : `linear-gradient(135deg,${
-                        item.data.bg_color || 'hsl(38,45%,61%)'
-                      },${
-                        item.data.bg_color || 'hsl(38,45%,61%)'
-                      }88)`,
-                }}
+            </motion.div>
+          ) : (
+            <motion.div
+              key={item.key}
+              className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center"
+              variants={variants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              style={{
+                background: item.data.image_url
+                  ? `linear-gradient(135deg,rgba(0,0,0,.45),rgba(0,0,0,.2)),url(${item.data.image_url}) center/cover`
+                  : `linear-gradient(135deg,${item.data.bg_color || "hsl(38,45%,61%)"},${item.data.bg_color || "hsl(38,45%,61%)"}88)`,
+              }}
+            >
+              <motion.div
+                initial={{ opacity: 0, x: 25 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.25, duration: 0.4 }}
               >
-                <motion.h3
+                <h3
                   className="font-display text-xl md:text-2xl font-bold"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2, duration: 0.35 }}
                   style={{
-                    color: item.data.text_color || '#fff',
+                    color: item.data.text_color || "#fff",
                   }}
                 >
                   {item.data.title}
-                </motion.h3>
+                </h3>
 
                 {item.data.subtitle && (
-                  <motion.p
+                  <p
                     className="text-sm mt-1 opacity-90"
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 0.9, y: 0 }}
-                    transition={{ delay: 0.28, duration: 0.35 }}
                     style={{
-                      color: item.data.text_color || '#fff',
+                      color: item.data.text_color || "#fff",
                     }}
                   >
                     {item.data.subtitle}
-                  </motion.p>
+                  </p>
                 )}
-              </div>
-            )}
-          </motion.div>
+              </motion.div>
+            </motion.div>
+          )}
         </AnimatePresence>
 
-        {displayItems.length > 1 && (
+        {items.length > 1 && (
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
-            {displayItems.map((_, i) => (
+            {items.map((_, i) => (
               <motion.div
                 key={i}
                 className="h-1.5 rounded-full bg-white"
                 animate={{
-                  width: i === current ? 16 : 6,
+                  width: i === current ? 18 : 6,
                   opacity: i === current ? 1 : 0.4,
                 }}
                 transition={{ duration: 0.25 }}
@@ -381,6 +367,7 @@ export default function BannerCarousel({
             ))}
           </div>
         )}
+
       </div>
     </div>
   );
