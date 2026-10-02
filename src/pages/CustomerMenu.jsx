@@ -285,6 +285,11 @@ export default function CustomerMenu() {
         return <SplashScreen restaurant={restaurant} onComplete={() => { try { sessionStorage.setItem('splash_seen', 'true'); } catch {} setShowSplash(false); }} />;
   }
 
+    // Refresh par splash skip hota hai, isliye data aane tak khali screen dikhao
+  if (!restaurant || dishesLoading) {
+    return <div className="fixed inset-0 z-[100] bg-background" />;
+  }
+
   if (restaurant && restaurant.is_open === false) {
     const handleSecretOpen = async () => {
       const correctPw = restaurant.open_password || '000';
