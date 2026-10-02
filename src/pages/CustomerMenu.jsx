@@ -28,7 +28,9 @@ import ConnectSupabase from '@/components/ConnectSupabase';
 
 export default function CustomerMenu() {
   const navigate = useNavigate();
-  const [showSplash, setShowSplash] = useState(true);
+    const [showSplash, setShowSplash] = useState(() => {
+    try { return sessionStorage.getItem('splash_seen') !== 'true'; } catch { return true; }
+  });
   const [showUnlockAlert, setShowUnlockAlert] = useState(false);
   const [orderToast, setOrderToast] = useState(false);
   const [activeCategory, setActiveCategory] = useState('all');
