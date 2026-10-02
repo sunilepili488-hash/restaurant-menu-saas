@@ -145,15 +145,37 @@ function TimerBanner({ activeTimers }) {
   );
 }
 
-// Hamesha ek hi direction: naya banner right se aata hai, purana left me jata hai
-const slideVariants = {
-  enter: { x: '100%' },
-  center: { x: 0 },
-  exit: { x: '-100%' },
-};
+function BannerSlide({ item }) {
+  if (item.type === 'timer') {
+    return <TimerBanner activeTimers={item.data} />;
+  }
+  return (
+    <div
+      className="w-full h-full flex flex-col items-center justify-center p-6 text-center"
+      style={{
+        background: item.data.image_url
+          ? `linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 100%), url(${item.data.image_url}) center/cover`
+          : `linear-gradient(135deg, ${item.data.bg_color || 'hsl(38,45%,61%)'}, ${item.data.bg_color || 'hsl(38,45%,61%)'}88)`,
+      }}
+    >
+      <h3
+        className="font-display text-xl md:text-2xl font-bold"
+        style={{ color: item.data.text_color || '#fff' }}
+      >
+        {item.data.title}
+      </h3>
+      {item.data.subtitle && (
+        <p className="text-sm mt-1 opacity-90" style={{ color: item.data.text_color || '#fff' }}>
+          {item.data.subtitle}
+        </p>
+      )}
+    </div>
+  );
+}
 
 export default function BannerCarousel({ banners = [], liveOrderData = {} }) {
-  const [current, setCurrent] = useState(0);
+  // pos hamesha badhta rehta hai (0,1,2,3...), isliye slide hamesha ek hi direction me jaati hai
+  const [pos, setPos] = useState(0);
   const store = useMenuStore();
   const active = banners.filter(b => b.is_active !== false);
 
@@ -206,32 +228,24 @@ export default function BannerCarousel({ banners = [], liveOrderData = {} }) {
     return items;
   }, [active, activeTimers]);
 
+  const count = displayItems.length;
+
   const next = useCallback(() => {
-    if (displayItems.length <= 1) return;
-    setCurrent(prev => (prev + 1) % displayItems.length);
-  }, [displayItems.length]);
+    if (count <= 1) return;
+    setPos(p => p + 1);
+  }, [count]);
 
   useEffect(() => {
-    if (displayItems.length <= 1) return;
+    if (count <= 1) return;
     const interval = setInterval(next, SLIDE_INTERVAL);
     return () => clearInterval(interval);
-  }, [next, displayItems.length]);
+  }, [next, count]);
 
-  useEffect(() => {
-    if (current >= displayItems.length) setCurrent(0);
-  }, [displayItems.length, current]);
+  if (count === 0) return null;
 
-  if (displayItems.length === 0) return null;
-
-  const item = displayItems[current] || displayItems[0];
-
-  const slideProps = {
-    variants: slideVariants,
-    initial: 'enter',
-    animate: 'center',
-    exit: 'exit',
-    transition: { duration: SLIDE_DURATION, ease: 'easeInOut' },
-  };
+  const currentIndex = pos % count;
+  // Sirf pichla aur current slide render hota hai
+  const visible = count > 1 ? [pos - 1, pos].filter(p => p >= 0) : [0];
 
   return (
     <div className="mx-2 mt-1 mb-1">
@@ -239,47 +253,35 @@ export default function BannerCarousel({ banners = [], liveOrderData = {} }) {
         className="relative h-32 md:h-40 rounded-lg overflow-hidden"
         style={{ pointerEvents: 'none' }}
       >
-        <AnimatePresence initial={false}>
-          {item.type === 'timer' ? (
-            <motion.div key={item.key} className="absolute inset-0" {...slideProps}>
-              <TimerBanner activeTimers={item.data} />
-            </motion.div>
-          ) : (
-            <motion.div
-              key={item.key}
-              className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center"
-              style={{
-                background: item.data.image_url
-                  ? `linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 100%), url(${item.data.image_url}) center/cover`
-                  : `linear-gradient(135deg, ${item.data.bg_color || 'hsl(38,45%,61%)'}, ${item.data.bg_color || 'hsl(38,45%,61%)'}88)`,
-              }}
-              {...slideProps}
-            >
-              <h3
-                className="font-display text-xl md:text-2xl font-bold"
-                style={{ color: item.data.text_color || '#fff' }}
+        {/* Ek hi track: dono slides saath move karti hain, isliye beech me gap nahi aata */}
+        <motion.div
+          className="absolute inset-0"
+          initial={false}
+          animate={{ x: `-${(count > 1 ? pos : 0) * 100}%` }}
+          transition={{ duration: SLIDE_DURATION, ease: 'easeInOut' }}
+          style={{ willChange: 'transform' }}
+        >
+          {visible.map(p => {
+            const it = displayItems[p % count];
+            return (
+              <div
+                key={p}
+                className="absolute top-0 h-full w-full"
+                style={{ left: `${p * 100}%` }}
               >
-                {item.data.title}
-              </h3>
-              {item.data.subtitle && (
-                <p
-                  className="text-sm mt-1 opacity-90"
-                  style={{ color: item.data.text_color || '#fff' }}
-                >
-                  {item.data.subtitle}
-                </p>
-              )}
-            </motion.div>
-          )}
-        </AnimatePresence>
+                <BannerSlide item={it} />
+              </div>
+            );
+          })}
+        </motion.div>
 
-        {displayItems.length > 1 && (
+        {count > 1 && (
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
             {displayItems.map((_, i) => (
               <div
                 key={i}
                 className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                  i === current ? 'bg-white w-4' : 'bg-white/40'
+                  i === currentIndex ? 'bg-white w-4' : 'bg-white/40'
                 }`}
               />
             ))}
