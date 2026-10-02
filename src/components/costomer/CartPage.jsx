@@ -264,10 +264,10 @@ export default function CartPage({ open, onClose, dishes = [], restaurant, onPay
                         </div>
                       ))}
 
-                      {/* Locked orders section */}
+                      {/* Served Dishes section */}
                       {lockedOrders.length > 0 && (
                         <div className="mt-3 pt-3 border-t border-border">
-                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Locked Orders</p>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Served Dishes</p>
                           {lockedOrders.map((lo, idx) => (
                             <div key={lo.groupId || idx} className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 mb-2">
                               <div className="flex items-center justify-between mb-1">
@@ -366,7 +366,7 @@ export default function CartPage({ open, onClose, dishes = [], restaurant, onPay
                     {lockedOrders.length > 0 && (
                       <div className="mt-4 pt-4 border-t border-border space-y-3">
                         <div className="flex justify-between items-baseline">
-                          <span className="text-sm text-muted-foreground">Pay for {lockedOrders.length} locked order(s)</span>
+                          <span className="text-sm text-muted-foreground">Pay for {lockedOrders.length} Served Dishe(s)</span>
                           <span className="font-heading text-2xl font-bold text-primary tracking-wider tabular-nums">
                             {curr}{lockedOrdersTotal.toLocaleString()}
                           </span>
@@ -440,7 +440,7 @@ export default function CartPage({ open, onClose, dishes = [], restaurant, onPay
         restaurant={restaurant}
       />
 
-      {/* UPI Payment Sheet — Pay Now for locked orders */}
+      {/* UPI Payment Sheet — Pay Now for Served Dishes */}
       <UpiPaymentSheet
         open={upiPayOpen}
         onClose={() => setUpiPayOpen(false)}
