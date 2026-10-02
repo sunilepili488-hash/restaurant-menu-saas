@@ -155,32 +155,46 @@ const slideVariants = {
   exit: (d) => ({ x: d > 0 ? '100%' : '-100%' }),
 };
 
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+
 export default function BannerCarousel({ banners = [], liveOrderData = {} }) {
   const [current, setCurrent] = useState(0);
   const [dir, setDir] = useState(1);
+
   const store = useMenuStore();
+
   const active = banners.filter(b => b.is_active !== false);
 
   const lockedOrders = store.lockedOrders || [];
+
   const activeTimers = lockedOrders
     .filter(lo => {
       const live = liveOrderData[lo.groupId];
-      if (live?.status === 'completed' || live?.status === 'cancelled') return false;
+
+      if (live?.status === 'completed' || live?.status === 'cancelled') {
+        return false;
+      }
+
       if (live?.status === 'ready') return false;
       if (live?.is_ready) return false;
+
       return true;
     })
     .map(lo => {
       const live = liveOrderData[lo.groupId];
 
       let estimatedReady;
+
       if (live?.timer_started_at && live?.prep_time_override) {
         estimatedReady = new Date(
-          new Date(live.timer_started_at).getTime() + live.prep_time_override * 60 * 1000
+          new Date(live.timer_started_at).getTime() +
+            live.prep_time_override * 60 * 1000
         ).toISOString();
       } else if (lo.is_home_delivery && live?.delivery_time_minutes) {
         estimatedReady = new Date(
-          new Date(lo.placedAt || lo.createdAt).getTime() + live.delivery_time_minutes * 60 * 1000
+          new Date(lo.placedAt || lo.createdAt).getTime() +
+            live.delivery_time_minutes * 60 * 1000
         ).toISOString();
       } else {
         estimatedReady = lo.estimatedReady;
@@ -190,99 +204,374 @@ export default function BannerCarousel({ banners = [], liveOrderData = {} }) {
         ...lo,
         estimatedReady,
         timer_started_at: live?.timer_started_at || lo.timer_started_at,
-        tableLabel: lo.is_home_delivery ? '🚚 Delivery' : `Table ${lo.tableNumber || ''}`,
+        tableLabel: lo.is_home_delivery
+          ? '🚚 Delivery'
+          : `Table ${lo.tableNumber || ''}`,
       };
     })
-    .filter(lo => lo.estimatedReady && new Date(lo.estimatedReady) > new Date());
+    .filter(
+      lo =>
+        lo.estimatedReady &&
+        new Date(lo.estimatedReady) > new Date()
+    );
 
-  // Banner, Timer, Banner, Timer... (timer har banner ke baad)
+  // --------------------------------------------------
+  // BANNER + TIMER SEQUENCE
+  // Banner → Timer → Banner → Timer...
+  // --------------------------------------------------
+
   const displayItems = useMemo(() => {
     const items = [];
+
     active.forEach((b, i) => {
-      items.push({ type: 'banner', data: b, key: `banner-${i}` });
+      items.push({
+        type: 'banner',
+        data: b,
+        key: `banner-${i}`,
+      });
+
       if (activeTimers.length > 0) {
-        items.push({ type: 'timer', data: activeTimers, key: `timer-${i}` });
+        items.push({
+          type: 'timer',
+          data: activeTimers,
+          key: `timer-${i}`,
+        });
       }
     });
+
     if (active.length === 0 && activeTimers.length > 0) {
-      items.push({ type: 'timer', data: activeTimers, key: 'timer-0' });
+      items.push({
+        type: 'timer',
+        data: activeTimers,
+        key: 'timer-0',
+      });
     }
+
     return items;
   }, [active, activeTimers]);
 
+  // --------------------------------------------------
+  // NEXT SLIDE
+  // Direction alternates:
+  // 1  = left -> right
+  // -1 = right -> left
+  // --------------------------------------------------
+
   const next = useCallback(() => {
     if (displayItems.length <= 1) return;
-    setDir(d => -d);
+
+    setDir(prev => -prev);
+
     setCurrent(prev => (prev + 1) % displayItems.length);
   }, [displayItems.length]);
 
+  // --------------------------------------------------
+  // AUTO PLAY
+  // --------------------------------------------------
+
   useEffect(() => {
     if (displayItems.length <= 1) return;
-    const interval = setInterval(next, 3000); // 3 sec
+
+    const interval = setInterval(() => {
+      next();
+    }, 3000);
+
     return () => clearInterval(interval);
   }, [next, displayItems.length]);
 
+  // --------------------------------------------------
+  // KEEP CURRENT INDEX VALID
+  // --------------------------------------------------
+
   useEffect(() => {
-    if (current >= displayItems.length) setCurrent(0);
+    if (current >= displayItems.length) {
+      setCurrent(0);
+    }
   }, [displayItems.length, current]);
 
   if (displayItems.length === 0) return null;
 
   const item = displayItems[current] || displayItems[0];
-  const slideProps = {
-    custom: dir,
-    variants: slideVariants,
-    initial: 'enter',
-    animate: 'center',
-    exit: 'exit',
-    transition: { duration: 0.6, ease: 'easeInOut' },
+
+  // --------------------------------------------------
+  // PROFESSIONAL SLIDE ANIMATION
+  // --------------------------------------------------
+
+  const slideVariants = {
+    enter: direction => ({
+      x: direction > 0 ? '-100%' : '100%',
+      scale: 1.035,
+      opacity: 0.92,
+      filter: 'brightness(0.82)',
+    }),
+
+    center: {
+      x: '0%',
+      scale: 1,
+      opacity: 1,
+      filter: 'brightness(1)',
+    },
+
+    exit: direction => ({
+      x: direction > 0 ? '100%' : '-100%',
+      scale: 0.985,
+      opacity: 0.94,
+      filter: 'brightness(0.72)',
+    }),
+  };
+
+  const slideTransition = {
+    x: {
+      type: 'tween',
+      duration: 0.75,
+      ease: [0.22, 1, 0.36, 1],
+    },
+
+    scale: {
+      type: 'tween',
+      duration: 0.75,
+      ease: [0.22, 1, 0.36, 1],
+    },
+
+    opacity: {
+      duration: 0.45,
+      ease: 'easeOut',
+    },
+
+    filter: {
+      duration: 0.6,
+      ease: 'easeOut',
+    },
+  };
+
+  // --------------------------------------------------
+  // RENDER BANNER
+  // --------------------------------------------------
+
+  const renderItem = item => {
+    if (item.type === 'timer') {
+      return (
+        <div className="absolute inset-0 w-full h-full">
+          <TimerBanner activeTimers={item.data} />
+        </div>
+      );
+    }
+
+    return (
+      <div
+        className="
+          absolute inset-0
+          w-full
+          h-full
+          flex
+          flex-col
+          items-center
+          justify-center
+          p-6
+          text-center
+        "
+        style={{
+          background: item.data.image_url
+            ? `
+              linear-gradient(
+                135deg,
+                rgba(0,0,0,0.42) 0%,
+                rgba(0,0,0,0.18) 55%,
+                rgba(0,0,0,0.35) 100%
+              ),
+              url(${item.data.image_url}) center/cover no-repeat
+            `
+            : `
+              linear-gradient(
+                135deg,
+                ${item.data.bg_color || 'hsl(38,45%,61%)'},
+                ${item.data.bg_color || 'hsl(38,45%,61%)'}88
+              )
+            `,
+        }}
+      >
+        {/* Soft cinematic light */}
+        <motion.div
+          className="
+            absolute
+            inset-0
+            pointer-events-none
+          "
+          initial={{
+            x: '-120%',
+            opacity: 0,
+          }}
+          animate={{
+            x: '120%',
+            opacity: [0, 0.12, 0],
+          }}
+          transition={{
+            duration: 1.1,
+            ease: 'easeInOut',
+          }}
+          style={{
+            background:
+              'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.35) 50%, transparent 100%)',
+            transform: 'skewX(-18deg)',
+          }}
+        />
+
+        {/* Content */}
+        <motion.div
+          className="relative z-10"
+          initial={{
+            opacity: 0,
+            y: 8,
+          }}
+          animate={{
+            opacity: 1,
+            y: 0,
+          }}
+          transition={{
+            duration: 0.45,
+            delay: 0.12,
+            ease: 'easeOut',
+          }}
+        >
+          <h3
+            className="font-display text-xl md:text-2xl font-bold"
+            style={{
+              color: item.data.text_color || '#fff',
+              textShadow: '0 2px 12px rgba(0,0,0,0.22)',
+            }}
+          >
+            {item.data.title}
+          </h3>
+
+          {item.data.subtitle && (
+            <p
+              className="text-sm mt-1 opacity-90"
+              style={{
+                color: item.data.text_color || '#fff',
+                textShadow: '0 1px 8px rgba(0,0,0,0.18)',
+              }}
+            >
+              {item.data.subtitle}
+            </p>
+          )}
+        </motion.div>
+      </div>
+    );
   };
 
   return (
     <div className="mx-2 mt-1 mb-1">
-      <div className="relative h-32 md:h-40 rounded-2xl overflow-hidden" style={{ pointerEvents: 'none' }}>
-        <AnimatePresence initial={false} custom={dir}>
-          {item.type === 'timer' ? (
-            <motion.div key={item.key} className="absolute inset-0" {...slideProps}>
-              <TimerBanner activeTimers={item.data} />
-            </motion.div>
-          ) : (
-            <motion.div
-              key={item.key}
-              className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center"
-              style={{
-                background: item.data.image_url
-                  ? `linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 100%), url(${item.data.image_url}) center/cover`
-                  : `linear-gradient(135deg, ${item.data.bg_color || 'hsl(38,45%,61%)'}, ${item.data.bg_color || 'hsl(38,45%,61%)'}88)`,
-              }}
-              {...slideProps}
-            >
-              <h3
-                className="font-display text-xl md:text-2xl font-bold"
-                style={{ color: item.data.text_color || '#fff' }}
-              >
-                {item.data.title}
-              </h3>
-              {item.data.subtitle && (
-                <p
-                  className="text-sm mt-1 opacity-90"
-                  style={{ color: item.data.text_color || '#fff' }}
-                >
-                  {item.data.subtitle}
-                </p>
-              )}
-            </motion.div>
-          )}
+      {/* 
+        IMPORTANT:
+        overflow-hidden + relative viewport means
+        incoming/outgoing slides stay inside the banner.
+        Both slides occupy 100% width, so there is NO GAP.
+      */}
+
+      <div
+        className="
+          relative
+          h-32
+          md:h-40
+          rounded-[0.75rem]
+          overflow-hidden
+          isolate
+          bg-black
+        "
+        style={{
+          pointerEvents: 'none',
+        }}
+      >
+        <AnimatePresence
+          initial={false}
+          custom={dir}
+          mode="sync"
+        >
+          <motion.div
+            key={item.key}
+            custom={dir}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={slideTransition}
+            className="
+              absolute
+              inset-0
+              w-full
+              h-full
+              will-change-transform
+            "
+          >
+            {renderItem(item)}
+          </motion.div>
         </AnimatePresence>
 
+        {/* --------------------------------------------------
+            SUBTLE EDGE LIGHT DURING SLIDE
+        -------------------------------------------------- */}
+
+        <motion.div
+          key={`light-${current}`}
+          className="
+            absolute
+            inset-y-0
+            w-24
+            pointer-events-none
+            z-20
+          "
+          initial={{
+            x: dir > 0 ? '-120%' : '120%',
+            opacity: 0,
+          }}
+          animate={{
+            x: dir > 0 ? '520%' : '-520%',
+            opacity: [0, 0.22, 0],
+          }}
+          transition={{
+            duration: 0.7,
+            ease: 'easeInOut',
+          }}
+          style={{
+            background:
+              'linear-gradient(90deg, transparent, rgba(255,255,255,0.22), transparent)',
+            filter: 'blur(8px)',
+          }}
+        />
+
+        {/* --------------------------------------------------
+            BOTTOM INDICATORS
+        -------------------------------------------------- */}
+
         {displayItems.length > 1 && (
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+          <div
+            className="
+              absolute
+              bottom-2.5
+              left-1/2
+              -translate-x-1/2
+              flex
+              items-center
+              gap-1.5
+              z-30
+            "
+          >
             {displayItems.map((_, i) => (
-              <div
+              <motion.div
                 key={i}
-                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                  i === current ? 'bg-white w-4' : 'bg-white/40'
-                }`}
+                animate={{
+                  width: i === current ? 18 : 6,
+                  opacity: i === current ? 1 : 0.4,
+                }}
+                transition={{
+                  duration: 0.3,
+                  ease: 'easeOut',
+                }}
+                className="
+                  h-1.5
+                  rounded-full
+                  bg-white
+                "
               />
             ))}
           </div>
