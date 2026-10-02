@@ -142,6 +142,17 @@ export const menuStore = {
     state = { ...state, lockedOrders: state.lockedOrders.filter(lo => lo.groupId !== groupId) };
     notify();
   },
+    removeExpiredLockedOrders: (maxAgeMs) => {
+    const now = Date.now();
+    const kept = state.lockedOrders.filter(lo => {
+      const t = new Date(lo.placedAt || lo.createdAt || 0).getTime();
+      return !t || now - t < maxAgeMs;
+    });
+    if (kept.length !== state.lockedOrders.length) {
+      state = { ...state, lockedOrders: kept };
+      notify();
+    }
+  },
   setLockedOrderPayment: (groupId, paymentMethod) => {
     state = {
       ...state,
