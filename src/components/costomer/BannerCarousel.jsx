@@ -149,8 +149,15 @@ function TimerBanner({ activeTimers }) {
   );
 }
 
+const slideVariants = {
+  enter: (d) => ({ x: d > 0 ? '-100%' : '100%' }),
+  center: { x: 0 },
+  exit: (d) => ({ x: d > 0 ? '100%' : '-100%' }),
+};
+
 export default function BannerCarousel({ banners = [], liveOrderData = {} }) {
   const [current, setCurrent] = useState(0);
+  const [dir, setDir] = useState(1);
   const store = useMenuStore();
   const active = banners.filter(b => b.is_active !== false);
 
@@ -188,25 +195,30 @@ export default function BannerCarousel({ banners = [], liveOrderData = {} }) {
     })
     .filter(lo => lo.estimatedReady && new Date(lo.estimatedReady) > new Date());
 
+  // Banner, Timer, Banner, Timer... (timer har banner ke baad)
   const displayItems = useMemo(() => {
-    const items = active.map((b, i) => ({ type: 'banner', data: b, key: `banner-${i}` }));
-
-    if (activeTimers.length > 0) {
-      items.push({ type: 'timer', data: activeTimers, key: 'timer-slot' });
+    const items = [];
+    active.forEach((b, i) => {
+      items.push({ type: 'banner', data: b, key: `banner-${i}` });
+      if (activeTimers.length > 0) {
+        items.push({ type: 'timer', data: activeTimers, key: `timer-${i}` });
+      }
+    });
+    if (active.length === 0 && activeTimers.length > 0) {
+      items.push({ type: 'timer', data: activeTimers, key: 'timer-0' });
     }
-
     return items;
   }, [active, activeTimers]);
 
   const next = useCallback(() => {
     if (displayItems.length <= 1) return;
+    setDir(d => -d);
     setCurrent(prev => (prev + 1) % displayItems.length);
   }, [displayItems.length]);
 
   useEffect(() => {
-    // Change 5: faster auto-slide (was 4000ms)
     if (displayItems.length <= 1) return;
-    const interval = setInterval(next, 2000);
+    const interval = setInterval(next, 5000); // speed kam (5 sec)
     return () => clearInterval(interval);
   }, [next, displayItems.length]);
 
@@ -216,22 +228,22 @@ export default function BannerCarousel({ banners = [], liveOrderData = {} }) {
 
   if (displayItems.length === 0) return null;
 
-  const item = displayItems[current];
+  const item = displayItems[current] || displayItems[0];
+  const slideProps = {
+    custom: dir,
+    variants: slideVariants,
+    initial: 'enter',
+    animate: 'center',
+    exit: 'exit',
+    transition: { duration: 0.6, ease: 'easeInOut' },
+  };
 
   return (
-    <div className="mx-4 mt-4 mb-2">
+    <div className="mx-2 mt-1 mb-1">
       <div className="relative h-32 md:h-40 rounded-2xl overflow-hidden" style={{ pointerEvents: 'none' }}>
-        <AnimatePresence mode="wait">
+        <AnimatePresence initial={false} custom={dir}>
           {item.type === 'timer' ? (
-            <motion.div
-              key={item.key}
-              className="absolute inset-0"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
-              style={{ willChange: 'transform' }}
-            >
+            <motion.div key={item.key} className="absolute inset-0" {...slideProps}>
               <TimerBanner activeTimers={item.data} />
             </motion.div>
           ) : (
@@ -243,10 +255,7 @@ export default function BannerCarousel({ banners = [], liveOrderData = {} }) {
                   ? `linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 100%), url(${item.data.image_url}) center/cover`
                   : `linear-gradient(135deg, ${item.data.bg_color || 'hsl(38,45%,61%)'}, ${item.data.bg_color || 'hsl(38,45%,61%)'}88)`,
               }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
+              {...slideProps}
             >
               <h3
                 className="font-display text-xl md:text-2xl font-bold"
