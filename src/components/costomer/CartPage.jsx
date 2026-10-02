@@ -290,7 +290,7 @@ export default function CartPage({ open, onClose, dishes = [], restaurant, onPay
                       {/* Served Dishes section */}
                       {lockedOrders.length > 0 && (
                         <div className="mt-3 pt-3 border-t border-border">
-                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Served Dishes</p>
+                           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 text-center">Served Dishes</p>
                           {lockedOrders.map((lo, idx) => (
                             <div key={lo.groupId || idx} className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 mb-2">
                               <div className="flex items-center justify-between mb-1">
