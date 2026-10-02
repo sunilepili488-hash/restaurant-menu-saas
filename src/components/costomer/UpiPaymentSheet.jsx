@@ -12,25 +12,25 @@ import bhimLogo from './assets/upi/bhim.png';
 const UPI_APPS = [
   {
     id: 'gpay', name: 'Google Pay',
-    scheme: (uid, name, amt, note) => `tez://upi/pay?pa=${uid}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR`,
+    scheme: (uid, name, amt, note) => `tez://upi/pay?pa=${uid}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR&tn=${encodeURIComponent(note)}`,
     logo: gpayLogo,
     letter: 'G', letterBg: '#4285F4',
   },
   {
     id: 'phonepe', name: 'PhonePe',
-    scheme: (uid, name, amt, note) => `phonepe://pay?pa=${uid}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR`,
+    scheme: (uid, name, amt, note) => `phonepe://pay?pa=${uid}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR&tn=${encodeURIComponent(note)}`,
     logo: phonepeLogo,
     letter: 'Pe', letterBg: '#5F259F',
   },
   {
     id: 'paytm', name: 'Paytm',
-    scheme: (uid, name, amt, note) => `paytmmp://pay?pa=${uid}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR`,
+    scheme: (uid, name, amt, note) => `paytmmp://pay?pa=${uid}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR&tn=${encodeURIComponent(note)}`,
     logo: paytmLogo,
     letter: '₹', letterBg: '#00BAF2',
   },
   {
     id: 'bhim', name: 'BHIM UPI',
-    scheme: (uid, name, amt, note) => `upi://pay?pa=${uid}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR`,
+    scheme: (uid, name, amt, note) => `upi://pay?pa=${uid}&pn=${encodeURIComponent(name)}&am=${amt}&cu=INR&tn=${encodeURIComponent(note)}`,
     logo: bhimLogo,
     letter: 'B', letterBg: '#FF6F00',
   },
