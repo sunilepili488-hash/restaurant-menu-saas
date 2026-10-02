@@ -218,7 +218,7 @@ export default function BannerCarousel({ banners = [], liveOrderData = {} }) {
 
   useEffect(() => {
     if (displayItems.length <= 1) return;
-    const interval = setInterval(next, 5000); // speed kam (5 sec)
+    const interval = setInterval(next, 3000); // 3 sec
     return () => clearInterval(interval);
   }, [next, displayItems.length]);
 
