@@ -389,7 +389,7 @@ export default function CustomerMenu() {
 
       <BottomActionBar restaurant={restaurant} favoritesCount={store.favorites.length} cartCount={store.cart.length} onFavoritesClick={() => { setCartTab('favorites'); setCartOpen(true); }} onCartClick={() => { setCartTab('orders'); setCartOpen(true); }} onPaymentClick={() => setPayOpen(true)} />
 
-      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} dishes={dishes} onUnlock={handleUnlock} onIconUnlock={() => window.location.reload()} />
+      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} dishes={dishes} categories={categories} onSelect={setQuickViewDish} onUnlock={handleUnlock} onIconUnlock={() => window.location.reload()} />
 
       {showUnlockAlert && (
         <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[90] glass rounded-full px-5 py-2.5 shadow-lg flex items-center gap-2">
