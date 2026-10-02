@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useMenuStore, menuStore } from '@/lib/menuStore';
+import { useMenuStore } from '@/lib/menuStore';
 import { Clock } from 'lucide-react';
+
+const SLIDE_INTERVAL = 3500; // ms: banner kitni der rukega
+const SLIDE_DURATION = 0.6;  // sec: slide animation ki speed
 
 function formatCountdown(seconds) {
   if (seconds <= 0) return 'Ready!';
@@ -24,48 +27,54 @@ function getSplitTimerMessage(remaining) {
   return 'Preparing... \u2728';
 }
 
+const BLUE_BG = 'linear-gradient(135deg, rgba(59,130,246,0.8) 0%, rgba(37,99,235,0.9) 100%)';
+const GREEN_BG = 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)';
+
+function useCountdown(estimatedReady) {
+  const calc = () =>
+    Math.max(0, Math.floor((new Date(estimatedReady).getTime() - Date.now()) / 1000));
+  const [remaining, setRemaining] = useState(calc);
+
+  useEffect(() => {
+    const interval = setInterval(() => setRemaining(calc()), 1000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [estimatedReady]);
+
+  return remaining;
+}
+
 function SingleTimerDisplay({ timer }) {
-  if (!timer.timer_started_at && !timer.is_home_delivery) {
+  const remaining = useCountdown(timer.estimatedReady);
+  const waiting = !timer.timer_started_at && !timer.is_home_delivery;
+
+  if (waiting) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-1 text-white"
-        style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.8) 0%, rgba(37,99,235,0.9) 100%)' }}>
-        <span className="text-sm font-semibold opacity-80">Order received ✓</span>
-        <span className="text-xs opacity-60">Waiting for kitchen confirmation...</span>
+      <div
+        className="flex flex-col items-center justify-center h-full gap-1 text-white"
+        style={{ background: BLUE_BG }}
+      >
+        <span className="text-xl font-bold">Order received ✓</span>
+        <span className="text-sm opacity-80">Waiting for kitchen confirmation...</span>
       </div>
     );
   }
-
-  const [remaining, setRemaining] = useState(() =>
-    Math.max(0, Math.floor((new Date(timer.estimatedReady).getTime() - Date.now()) / 1000))
-  );
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const secs = Math.max(0, Math.floor((new Date(timer.estimatedReady).getTime() - Date.now()) / 1000));
-      setRemaining(secs);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [timer.estimatedReady]);
 
   const isDone = remaining <= 0;
 
   return (
     <div
-      className="flex flex-col items-center justify-center p-4 text-center w-full h-full"
-      style={{
-        background: isDone
-          ? 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)'
-          : 'linear-gradient(135deg, rgba(59,130,246,0.8) 0%, rgba(37,99,235,0.9) 100%)',
-      }}
+      className="flex flex-col items-center justify-center p-3 text-center w-full h-full"
+      style={{ background: isDone ? GREEN_BG : BLUE_BG }}
     >
-      <Clock className={`w-4 h-4 mb-0.5 ${isDone ? 'animate-pulse' : ''}`} style={{ color: '#fff' }} />
-      <h3 className="font-display text-lg md:text-xl font-bold" style={{ color: '#fff' }}>
+      <Clock className={`w-5 h-5 mb-1 ${isDone ? 'animate-pulse' : ''}`} style={{ color: '#fff' }} />
+      <h3 className="font-display text-3xl md:text-4xl font-bold leading-none" style={{ color: '#fff' }}>
         {isDone ? 'Order Ready!' : formatCountdown(remaining)}
       </h3>
-      <p className="text-xs mt-0.5 opacity-90" style={{ color: '#fff' }}>
+      <p className="text-base md:text-lg mt-1.5 font-semibold" style={{ color: '#fff' }}>
         {timer.tableLabel || 'Estimated wait time'}
       </p>
-      <p className="text-[10px] mt-1 opacity-70 font-medium" style={{ color: '#fff' }}>
+      <p className="text-sm md:text-base mt-1 opacity-90 font-medium" style={{ color: '#fff' }}>
         {getTimerMessage(remaining)}
       </p>
     </div>
@@ -73,54 +82,38 @@ function SingleTimerDisplay({ timer }) {
 }
 
 function SplitTimerDisplay({ timer, side }) {
-  if (!timer.timer_started_at && !timer.is_home_delivery) {
+  const remaining = useCountdown(timer.estimatedReady);
+  const waiting = !timer.timer_started_at && !timer.is_home_delivery;
+  const radius = side === 'left' ? 'rounded-l-lg' : 'rounded-r-lg';
+
+  if (waiting) {
     return (
       <div
-        className={`flex flex-col items-center justify-center p-3 text-center ${side === 'left' ? 'rounded-l-2xl' : 'rounded-r-2xl'}`}
-        style={{
-          background: 'linear-gradient(135deg, rgba(59,130,246,0.8) 0%, rgba(37,99,235,0.9) 100%)',
-          width: '50%',
-        }}
+        className={`flex flex-col items-center justify-center p-3 text-center ${radius}`}
+        style={{ background: BLUE_BG, width: '50%' }}
       >
-        <p className="text-[10px] opacity-80" style={{ color: '#fff' }}>
-          {timer.tableLabel || `Table`}
+        <p className="text-sm font-semibold" style={{ color: '#fff' }}>
+          {timer.tableLabel || 'Table'}
         </p>
-        <p className="text-xs font-semibold opacity-80" style={{ color: '#fff' }}>Waiting...</p>
+        <p className="text-base font-bold mt-1" style={{ color: '#fff' }}>Waiting...</p>
       </div>
     );
   }
-
-  const [remaining, setRemaining] = useState(() =>
-    Math.max(0, Math.floor((new Date(timer.estimatedReady).getTime() - Date.now()) / 1000))
-  );
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const secs = Math.max(0, Math.floor((new Date(timer.estimatedReady).getTime() - Date.now()) / 1000));
-      setRemaining(secs);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [timer.estimatedReady]);
 
   const isDone = remaining <= 0;
 
   return (
     <div
-      className={`flex flex-col items-center justify-center p-3 text-center ${side === 'left' ? 'rounded-l-2xl' : 'rounded-r-2xl'}`}
-      style={{
-        background: isDone
-          ? 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)'
-          : 'linear-gradient(135deg, rgba(59,130,246,0.8) 0%, rgba(37,99,235,0.9) 100%)',
-        width: '50%',
-      }}
+      className={`flex flex-col items-center justify-center p-3 text-center ${radius}`}
+      style={{ background: isDone ? GREEN_BG : BLUE_BG, width: '50%' }}
     >
-      <p className="text-[10px] opacity-80" style={{ color: '#fff' }}>
-        {timer.tableLabel || `Table`}
+      <p className="text-sm font-semibold" style={{ color: '#fff' }}>
+        {timer.tableLabel || 'Table'}
       </p>
-      <h3 className="font-display text-base md:text-lg font-bold" style={{ color: '#fff' }}>
+      <h3 className="font-display text-2xl md:text-3xl font-bold leading-none mt-1" style={{ color: '#fff' }}>
         {isDone ? 'Ready!' : formatCountdown(remaining)}
       </h3>
-      <p className="text-[9px] mt-0.5 opacity-70 font-medium" style={{ color: '#fff' }}>
+      <p className="text-xs md:text-sm mt-1.5 opacity-90 font-medium" style={{ color: '#fff' }}>
         {getSplitTimerMessage(remaining)}
       </p>
     </div>
@@ -134,9 +127,12 @@ function TimerBanner({ activeTimers }) {
     return <SingleTimerDisplay timer={activeTimers[0]} />;
   }
 
-  const shown = [...activeTimers].sort((a, b) =>
-    new Date(b.placedAt || b.createdAt || 0) - new Date(a.placedAt || a.createdAt || 0)
-  ).slice(0, 2);
+  const shown = [...activeTimers]
+    .sort(
+      (a, b) =>
+        new Date(b.placedAt || b.createdAt || 0) - new Date(a.placedAt || a.createdAt || 0)
+    )
+    .slice(0, 2);
 
   if (shown.length === 1) return <SingleTimerDisplay timer={shown[0]} />;
 
@@ -149,225 +145,146 @@ function TimerBanner({ activeTimers }) {
   );
 }
 
+// Hamesha ek hi direction: naya banner right se aata hai, purana left me jata hai
 const slideVariants = {
-  enter: (d) => ({ x: d > 0 ? '-100%' : '100%' }),
+  enter: { x: '100%' },
   center: { x: 0 },
-  exit: (d) => ({ x: d > 0 ? '100%' : '-100%' }),
+  exit: { x: '-100%' },
 };
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-
-const variants = {
-  enter: {
-    x: "100%",
-    opacity: 0,
-    scale: 1.02,
-  },
-  center: {
-    x: 0,
-    opacity: 1,
-    scale: 1,
-    transition: {
-      duration: 0.6,
-      ease: [0.22, 1, 0.36, 1],
-    },
-  },
-  exit: {
-    x: "-100%",
-    opacity: 0,
-    scale: 0.98,
-    transition: {
-      duration: 0.5,
-      ease: [0.4, 0, 1, 1],
-    },
-  },
-};
-
-export default function BannerCarousel({
-  banners = [],
-  liveOrderData = {},
-}) {
+export default function BannerCarousel({ banners = [], liveOrderData = {} }) {
   const [current, setCurrent] = useState(0);
   const store = useMenuStore();
+  const active = banners.filter(b => b.is_active !== false);
 
-  const active = useMemo(
-    () => banners.filter((b) => b.is_active !== false),
-    [banners]
-  );
+  const lockedOrders = store.lockedOrders || [];
+  const activeTimers = lockedOrders
+    .filter(lo => {
+      const live = liveOrderData[lo.groupId];
+      if (live?.status === 'completed' || live?.status === 'cancelled') return false;
+      if (live?.status === 'ready') return false;
+      if (live?.is_ready) return false;
+      return true;
+    })
+    .map(lo => {
+      const live = liveOrderData[lo.groupId];
 
-  const activeTimers = useMemo(() => {
-    return (store.lockedOrders || [])
-      .filter((lo) => {
-        const live = liveOrderData[lo.groupId];
-        return !(
-          live?.status === "completed" ||
-          live?.status === "cancelled" ||
-          live?.status === "ready" ||
-          live?.is_ready
-        );
-      })
-      .map((lo) => {
-        const live = liveOrderData[lo.groupId];
-        let estimatedReady = lo.estimatedReady;
+      let estimatedReady;
+      if (live?.timer_started_at && live?.prep_time_override) {
+        estimatedReady = new Date(
+          new Date(live.timer_started_at).getTime() + live.prep_time_override * 60 * 1000
+        ).toISOString();
+      } else if (lo.is_home_delivery && live?.delivery_time_minutes) {
+        estimatedReady = new Date(
+          new Date(lo.placedAt || lo.createdAt).getTime() + live.delivery_time_minutes * 60 * 1000
+        ).toISOString();
+      } else {
+        estimatedReady = lo.estimatedReady;
+      }
 
-        if (live?.timer_started_at && live?.prep_time_override) {
-          estimatedReady = new Date(
-            new Date(live.timer_started_at).getTime() +
-              live.prep_time_override * 60000
-          ).toISOString();
-        } else if (
-          lo.is_home_delivery &&
-          live?.delivery_time_minutes
-        ) {
-          estimatedReady = new Date(
-            new Date(lo.placedAt || lo.createdAt).getTime() +
-              live.delivery_time_minutes * 60000
-          ).toISOString();
-        }
+      return {
+        ...lo,
+        estimatedReady,
+        timer_started_at: live?.timer_started_at || lo.timer_started_at,
+        tableLabel: lo.is_home_delivery ? '🚚 Delivery' : `Table ${lo.tableNumber || ''}`,
+      };
+    })
+    .filter(lo => lo.estimatedReady && new Date(lo.estimatedReady) > new Date());
 
-        return {
-          ...lo,
-          estimatedReady,
-          timer_started_at:
-            live?.timer_started_at || lo.timer_started_at,
-          tableLabel: lo.is_home_delivery
-            ? "🚚 Delivery"
-            : `Table ${lo.tableNumber || ""}`,
-        };
-      })
-      .filter(
-        (lo) =>
-          lo.estimatedReady &&
-          new Date(lo.estimatedReady) > new Date()
-      );
-  }, [store.lockedOrders, liveOrderData]);
-
-  // Banner → Timer → Banner → Timer
-  const items = useMemo(() => {
-    const result = [];
-
-    active.forEach((banner, i) => {
-      result.push({
-        type: "banner",
-        data: banner,
-        key: `banner-${i}`,
-      });
-
-      if (activeTimers.length) {
-        result.push({
-          type: "timer",
-          data: activeTimers,
-          key: `timer-${i}`,
-        });
+  // Order: Banner, Timer, Banner, Timer...
+  const displayItems = useMemo(() => {
+    const items = [];
+    active.forEach((b, i) => {
+      items.push({ type: 'banner', data: b, key: `banner-${i}` });
+      if (activeTimers.length > 0) {
+        items.push({ type: 'timer', data: activeTimers, key: `timer-${i}` });
       }
     });
-
-    if (!active.length && activeTimers.length) {
-      result.push({
-        type: "timer",
-        data: activeTimers,
-        key: "timer-0",
-      });
+    if (active.length === 0 && activeTimers.length > 0) {
+      items.push({ type: 'timer', data: activeTimers, key: 'timer-0' });
     }
-
-    return result;
+    return items;
   }, [active, activeTimers]);
 
   const next = useCallback(() => {
-    setCurrent((prev) => (prev + 1) % items.length);
-  }, [items.length]);
+    if (displayItems.length <= 1) return;
+    setCurrent(prev => (prev + 1) % displayItems.length);
+  }, [displayItems.length]);
 
   useEffect(() => {
-    if (items.length <= 1) return;
-
-    const timer = setInterval(next, 3000);
-    return () => clearInterval(timer);
-  }, [next, items.length]);
+    if (displayItems.length <= 1) return;
+    const interval = setInterval(next, SLIDE_INTERVAL);
+    return () => clearInterval(interval);
+  }, [next, displayItems.length]);
 
   useEffect(() => {
-    if (current >= items.length) setCurrent(0);
-  }, [current, items.length]);
+    if (current >= displayItems.length) setCurrent(0);
+  }, [displayItems.length, current]);
 
-  if (!items.length) return null;
+  if (displayItems.length === 0) return null;
 
-  const item = items[current];
+  const item = displayItems[current] || displayItems[0];
+
+  const slideProps = {
+    variants: slideVariants,
+    initial: 'enter',
+    animate: 'center',
+    exit: 'exit',
+    transition: { duration: SLIDE_DURATION, ease: 'easeInOut' },
+  };
 
   return (
     <div className="mx-2 mt-1 mb-1">
-      <div className="relative h-32 md:h-40 rounded-2xl overflow-hidden">
-
+      <div
+        className="relative h-32 md:h-40 rounded-lg overflow-hidden"
+        style={{ pointerEvents: 'none' }}
+      >
         <AnimatePresence initial={false}>
-          {item.type === "timer" ? (
-            <motion.div
-              key={item.key}
-              className="absolute inset-0"
-              variants={variants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-            >
+          {item.type === 'timer' ? (
+            <motion.div key={item.key} className="absolute inset-0" {...slideProps}>
               <TimerBanner activeTimers={item.data} />
             </motion.div>
           ) : (
             <motion.div
               key={item.key}
               className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center"
-              variants={variants}
-              initial="enter"
-              animate="center"
-              exit="exit"
               style={{
                 background: item.data.image_url
-                  ? `linear-gradient(135deg,rgba(0,0,0,.45),rgba(0,0,0,.2)),url(${item.data.image_url}) center/cover`
-                  : `linear-gradient(135deg,${item.data.bg_color || "hsl(38,45%,61%)"},${item.data.bg_color || "hsl(38,45%,61%)"}88)`,
+                  ? `linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 100%), url(${item.data.image_url}) center/cover`
+                  : `linear-gradient(135deg, ${item.data.bg_color || 'hsl(38,45%,61%)'}, ${item.data.bg_color || 'hsl(38,45%,61%)'}88)`,
               }}
+              {...slideProps}
             >
-              <motion.div
-                initial={{ opacity: 0, x: 25 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.25, duration: 0.4 }}
+              <h3
+                className="font-display text-xl md:text-2xl font-bold"
+                style={{ color: item.data.text_color || '#fff' }}
               >
-                <h3
-                  className="font-display text-xl md:text-2xl font-bold"
-                  style={{
-                    color: item.data.text_color || "#fff",
-                  }}
+                {item.data.title}
+              </h3>
+              {item.data.subtitle && (
+                <p
+                  className="text-sm mt-1 opacity-90"
+                  style={{ color: item.data.text_color || '#fff' }}
                 >
-                  {item.data.title}
-                </h3>
-
-                {item.data.subtitle && (
-                  <p
-                    className="text-sm mt-1 opacity-90"
-                    style={{
-                      color: item.data.text_color || "#fff",
-                    }}
-                  >
-                    {item.data.subtitle}
-                  </p>
-                )}
-              </motion.div>
+                  {item.data.subtitle}
+                </p>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
 
-        {items.length > 1 && (
+        {displayItems.length > 1 && (
           <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
-            {items.map((_, i) => (
-              <motion.div
+            {displayItems.map((_, i) => (
+              <div
                 key={i}
-                className="h-1.5 rounded-full bg-white"
-                animate={{
-                  width: i === current ? 18 : 6,
-                  opacity: i === current ? 1 : 0.4,
-                }}
-                transition={{ duration: 0.25 }}
+                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                  i === current ? 'bg-white w-4' : 'bg-white/40'
+                }`}
               />
             ))}
           </div>
         )}
-
       </div>
     </div>
   );
