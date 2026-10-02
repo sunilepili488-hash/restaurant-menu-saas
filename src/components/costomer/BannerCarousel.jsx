@@ -183,7 +183,7 @@ export default function BannerCarousel({ banners = [], liveOrderData = {} }) {
   const activeTimers = lockedOrders
        .filter(lo => {
       const live = liveOrderData[lo.groupId];
-      const DONE = ['completed', 'cancelled', 'ready', 'served', 'delivered', 'paid', 'done', 'rejected', 'closed'];
+     const DONE = ['completed', 'cancelled', 'ready', 'served', 'delivered', 'paid', 'done', 'rejected', 'closed', 'deleted'];
       if (live && DONE.includes(String(live.status || '').toLowerCase())) return false;
       if (live?.is_ready) return false;
       return true;
