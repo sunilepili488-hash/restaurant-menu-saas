@@ -339,7 +339,7 @@ export default function CartPage({ open, onClose, dishes = [], restaurant, onPay
                     {cartItems.length > 0 && (
                       <div className="mt-4 pt-4 border-t border-border space-y-3">
                         <div>
-                          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">
+                                                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1 block text-center">
                             <MessageSquare className="w-3 h-3 inline mr-1" />
                             Special Instructions
                           </label>
