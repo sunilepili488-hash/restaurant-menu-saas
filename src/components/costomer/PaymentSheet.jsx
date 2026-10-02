@@ -87,7 +87,9 @@ export default function PaymentSheet({ open, onClose, restaurant, onPay }) {
     const upiId = restaurant?.upi_id || '';
     const payeeName = restaurant?.upi_payee_name || restaurant?.name || 'Restaurant';
     if (!upiId) { alert('UPI payment not configured by restaurant'); return; }
-    window.location.href = app.scheme(upiId, payeeName, totalAmount);
+       const table = menuStore.getState().tableNumber;
+    const note = table ? `Payment from T${String(table).replace(/^t/i, '')}` : 'Payment';
+    window.location.href = app.scheme(upiId, payeeName, totalAmount, note);
     setTimeout(() => { onPay?.(totalAmount); resetAndClose(); }, 800);
   };
 
