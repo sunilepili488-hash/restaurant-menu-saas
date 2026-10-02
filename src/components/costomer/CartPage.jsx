@@ -155,7 +155,7 @@ export default function CartPage({ open, onClose, dishes = [], restaurant, onPay
               exit={{ y: '100%' }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             >
-              <div className="p-6">
+                            <div className="px-2 py-6">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="font-display text-xl font-semibold">Your Selection</h2>
                   <motion.button whileTap={{ scale: 0.9 }} onClick={onClose}>
