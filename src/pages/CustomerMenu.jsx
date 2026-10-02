@@ -161,28 +161,34 @@ export default function CustomerMenu() {
     if (!lockedOrders.length) return;
     const ids = lockedOrders.map(lo => lo.groupId).filter(Boolean);
     if (!ids.length) return;
-        const fetchTimers = async () => {
+             const fetchTimers = async () => {
       try {
-        const sid = localStorage.getItem('customer_session_id');
-        const orders = await entities.Order.filter({ customer_session_id: sid }, '-created_at', 50);
+        const results = await Promise.all(
+          ids.map(id => entities.Order.get(id).catch(() => null))
+        );
         const map = {};
-        (orders || []).forEach(order => {
-          const data = {
-            timer_started_at: order.timer_started_at,
-            prep_time_override: order.prep_time_override,
-            delivery_time_minutes: order.delivery_time_minutes,
-            status: order.status,
-            is_ready: order.is_ready,
-          };
-          if (order.id) map[order.id] = data;
-          if (order.group_id) map[order.group_id] = data;
+        results.forEach((order, i) => {
+          if (order) {
+            // ids[i] (groupId) ko key banao, taaki banner se seedha match ho
+            map[ids[i]] = {
+              timer_started_at: order.timer_started_at,
+              prep_time_override: order.prep_time_override,
+              delivery_time_minutes: order.delivery_time_minutes,
+              status: order.status,
+              is_ready: order.is_ready,
+            };
+          }
         });
-        console.log('LIVE ORDERS', ids, map);
+        console.log('LIVE ORDERS', ids, results, map);
         setLiveOrderData(map);
       } catch (e) {
         console.log('fetchTimers error', e);
       }
     };
+
+
+
+    
     fetchTimers();
     const interval = setInterval(fetchTimers, 5000);
     return () => clearInterval(interval);
