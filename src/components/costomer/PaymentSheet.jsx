@@ -4,6 +4,7 @@ import { ArrowLeft, ShieldCheck, Receipt, Heart, Star, Sparkles, Lock, ArrowRigh
 
 // Local UPI logo assets — replace the /assets/upi/*.png paths below with
 // wherever you keep these files in your project (e.g. src/assets/upi/...)
+import { menuStore } from '@/lib/menuStore';
 import gpayLogo from './assets/upi/gpay.png';
 import phonepeLogo from './assets/upi/phonepe.png';
 import paytmLogo from './assets/upi/paytm.png';
