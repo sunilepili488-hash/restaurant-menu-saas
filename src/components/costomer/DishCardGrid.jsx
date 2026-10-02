@@ -72,7 +72,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
 
   return (
     <motion.div
-      className="glass overflow-hidden group"
+      className="glass overflow-hidden group border border-black dark:border-white/60"
       layout={false}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
