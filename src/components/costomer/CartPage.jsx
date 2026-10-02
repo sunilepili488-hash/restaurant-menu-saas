@@ -31,9 +31,9 @@ export default function CartPage({ open, onClose, dishes = [], restaurant, onPay
   // Database ka latest data lo: waiter ne edit kiya to wahi dikhega,
   // delete/cancel kiya to order list aur payment dono se hat jayega
   const lockedOrders = rawLockedOrders
-    .filter(lo => {
+        .filter(lo => {
       const st = String(liveOrderData[lo.groupId]?.status || '').toLowerCase();
-      return st !== 'deleted' && st !== 'cancelled';
+      return st !== 'cancelled';
     })
     .map(lo => {
       const live = liveOrderData[lo.groupId];
