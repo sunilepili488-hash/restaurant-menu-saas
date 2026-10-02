@@ -1,15 +1,106 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, KeyRound } from 'lucide-react';
+import { Search, X, KeyRound, Heart } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { menuStore, useMenuStore } from '@/lib/menuStore';
 
 const UNLOCK_PHRASE = 'hide user';
 const ORDER_RECEIVER_PHRASE = '098';
 const ICON_UNLOCK_PHRASE = 'cr';
 
-export default function SearchOverlay({ open, onClose, dishes = [], onSelect, onUnlock, onIconUnlock }) {
+const norm = (s) =>
+  String(s || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\u0900-\u097f\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+// Chhoti spelling galti pakadne ke liye (jaise "chiken" -> "chicken")
+function withinTypo(a, b) {
+  const max = a.length >= 7 ? 2 : a.length >= 4 ? 1 : 0;
+  if (!max || Math.abs(a.length - b.length) > max) return false;
+  const dp = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) dp[0][j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      dp[i][j] = Math.min(
+        dp[i - 1][j] + 1,
+        dp[i][j - 1] + 1,
+        dp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+      );
+    }
+  }
+  return dp[a.length][b.length] <= max;
+}
+
+function searchDishes(dishes, categories, rawQuery) {
+  let q = norm(rawQuery);
+  if (!q) return [];
+
+  // veg / non veg samajhna
+  let diet = null;
+  if (/\bnon ?veg(etarian)?\b/.test(q)) {
+    diet = 'nonveg';
+    q = q.replace(/\bnon ?veg(etarian)?\b/g, ' ');
+  } else if (/\bveg(etarian)?\b/.test(q)) {
+    diet = 'veg';
+    q = q.replace(/\bveg(etarian)?\b/g, ' ');
+  }
+  const tokens = q.split(' ').filter(Boolean);
+
+  const catName = {};
+  categories.forEach(c => { catName[c.id] = norm(c.name); });
+
+  const results = [];
+  dishes.forEach(d => {
+    if (diet === 'veg' && !d.is_veg) return;
+    if (diet === 'nonveg' && d.is_veg) return;
+
+    // sirf "veg" / "non veg" likha ho to us diet ki saari dishes dikhao
+    if (tokens.length === 0) {
+      results.push({ d, score: 1 });
+      return;
+    }
+
+    const name = norm(d.name);
+    const nameWords = name.split(' ');
+    const cat = catName[d.category_id] || '';
+    const tags = norm(Array.isArray(d.dietary_tags) ? d.dietary_tags.join(' ') : d.dietary_tags);
+    const desc = norm(`${d.short_description || ''} ${d.long_description || ''}`);
+
+    let score = 0;
+    for (const t of tokens) {
+      let s = 0;
+      if (nameWords.some(w => w.startsWith(t))) s = 100;
+      else if (name.includes(t)) s = 80;
+      else if (cat.includes(t)) s = 60;
+      else if (tags.includes(t)) s = 50;
+      else if (desc.includes(t)) s = 30;
+      else if (
+        nameWords.some(w => withinTypo(t, w)) ||
+        cat.split(' ').some(w => withinTypo(t, w))
+      ) s = 20;
+      if (!s) return; // har word kisi na kisi jagah milna chahiye
+      score += s;
+    }
+    results.push({ d, score });
+  });
+
+  return results.sort((a, b) => b.score - a.score).map(r => r.d);
+}
+
+export default function SearchOverlay({
+  open,
+  onClose,
+  dishes = [],
+  categories = [],
+  onSelect,
+  onUnlock,
+  onIconUnlock,
+}) {
+  const store = useMenuStore();
   const [query, setQuery] = useState('');
   const [iconDialogOpen, setIconDialogOpen] = useState(false);
   const [iconPassword, setIconPassword] = useState('');
@@ -38,12 +129,10 @@ export default function SearchOverlay({ open, onClose, dishes = [], onSelect, on
   const isOrderReceiverQuery = query.trim() === ORDER_RECEIVER_PHRASE;
   const isIconUnlockQuery = query.trim().toLowerCase() === ICON_UNLOCK_PHRASE;
 
-  const filtered = (query.length > 0 && !isUnlockQuery && !isOrderReceiverQuery && !isIconUnlockQuery)
-    ? dishes.filter(d =>
-        d.name.toLowerCase().includes(query.toLowerCase()) ||
-        (d.short_description || '').toLowerCase().includes(query.toLowerCase())
-      )
-    : [];
+  const filtered =
+    query.length > 0 && !isUnlockQuery && !isOrderReceiverQuery && !isIconUnlockQuery
+      ? searchDishes(dishes, categories, query)
+      : [];
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter') {
@@ -115,7 +204,7 @@ export default function SearchOverlay({ open, onClose, dishes = [], onSelect, on
                   value={query}
                   onChange={e => setQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Search dishes..."
+                  placeholder="Search dishes, veg, non veg, category..."
                   className="pl-10 bg-secondary border-border/50 font-body"
                 />
               </div>
@@ -129,23 +218,45 @@ export default function SearchOverlay({ open, onClose, dishes = [], onSelect, on
             </div>
 
             <div className="space-y-2 max-h-[70vh] overflow-y-auto">
-              {filtered.map(dish => (
-                <motion.button
-                  key={dish.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  onClick={() => { onSelect?.(dish); onClose(); }}
-                  className="w-full glass rounded-xl p-3 flex items-center gap-3 text-left hover:bg-secondary/50 transition-colors"
-                >
-                  {dish.image_url && (
-                    <img src={dish.image_url} alt="" className="w-12 h-12 rounded-lg object-cover" loading="lazy" />
-                  )}
-                  <div className="min-w-0">
-                    <p className="font-display text-sm font-semibold truncate">{dish.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{dish.short_description}</p>
-                  </div>
-                </motion.button>
-              ))}
+              {filtered.map(dish => {
+                const isFav = store.favorites.includes(dish.id);
+                return (
+                  <motion.div
+                    key={dish.id}
+                    role="button"
+                    tabIndex={0}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    onClick={() => { onSelect?.(dish); onClose(); }}
+                    className="w-full glass rounded-xl p-3 flex items-center gap-3 text-left hover:bg-secondary/50 transition-colors cursor-pointer"
+                  >
+                    {dish.image_url && (
+                      <img
+                        src={dish.image_url}
+                        alt=""
+                        className="w-12 h-12 rounded-lg object-cover"
+                        loading="lazy"
+                      />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="font-display text-sm font-semibold truncate">{dish.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{dish.short_description}</p>
+                    </div>
+                    <motion.button
+                      whileTap={{ scale: 0.8 }}
+                      onClick={(e) => { e.stopPropagation(); menuStore.toggleFavorite(dish.id); }}
+                      className="w-9 h-9 rounded-xl glass border border-black dark:border-white/60 flex items-center justify-center flex-shrink-0"
+                      aria-label="Add to favorites"
+                    >
+                      <Heart
+                        className={`w-4 h-4 transition-colors ${
+                          isFav ? 'text-rose-500 fill-rose-500' : 'text-muted-foreground'
+                        }`}
+                      />
+                    </motion.button>
+                  </motion.div>
+                );
+              })}
               {query && !isUnlockQuery && !isIconUnlockQuery && filtered.length === 0 && (
                 <p className="text-center text-muted-foreground text-sm py-8">No dishes found</p>
               )}
