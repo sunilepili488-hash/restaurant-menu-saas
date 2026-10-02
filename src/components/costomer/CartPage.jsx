@@ -9,7 +9,7 @@ import { entities } from '@/api/entities';
 import HomeDeliveryFlow from './HomeDeliveryFlow';
 import UpiPaymentSheet from './UpiPaymentSheet';
 
-export default function CartPage({ open, onClose, dishes = [], restaurant, onPay, defaultTab = 'orders', onOrderPlaced }) {
+export default function CartPage({ open, onClose, dishes = [], restaurant, onPay, defaultTab = 'orders', onOrderPlaced, liveOrderData = {} }) {
   const store = useMenuStore();
   const curr = restaurant?.currency_symbol || '₹';
   const [specialInstructions, setSpecialInstructions] = useState('');
