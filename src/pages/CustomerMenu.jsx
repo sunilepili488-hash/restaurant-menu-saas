@@ -405,7 +405,7 @@ export default function CustomerMenu() {
       <FilterPanel open={filterOpen} onClose={() => setFilterOpen(false)} onApply={setFilters} restaurant={restaurant} />
       <ReviewSheet dish={reviewDish} open={!!reviewDish} onClose={() => setReviewDish(null)} />
             <CartPage open={cartOpen} onClose={() => setCartOpen(false)} dishes={dishes} restaurant={restaurant} onPay={handlePay} defaultTab={cartTab} onOrderPlaced={handleOrderPlaced} liveOrderData={liveOrderData} />
-      <PaymentSheet open={payOpen} onClose={() => setPayOpen(false)} restaurant={restaurant} onPay={(amount) => { const uid = restaurant?.upi_id || ''; const name = restaurant?.upi_payee_name || restaurant?.name || 'Restaurant'; if (!uid) { alert('UPI not configured.'); return; } window.location.href = `upi://pay?pa=${uid}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR`; }} />
+      <PaymentSheet open={payOpen} onClose={() => setPayOpen(false)} restaurant={restaurant} onPay={(amount) => { const uid = restaurant?.upi_id || ''; const name = restaurant?.upi_payee_name || restaurant?.name || 'Restaurant'; if (!uid) { alert('UPI not configured.'); return; } const table = menuStore.getState().tableNumber; const note = table ? `Payment from T${String(table).replace(/^t/i, '')}` : 'Payment'; window.location.href = `upi://pay?pa=${uid}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`; }} />
       <AdminLoginDialog open={adminOpen} onClose={() => setAdminOpen(false)} restaurant={restaurant} onLogin={() => navigate('/admin')} />
 
       {/* Single Quick View Popup — shared by grid + list */}
