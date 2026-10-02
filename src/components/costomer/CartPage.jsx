@@ -26,14 +26,26 @@ export default function CartPage({ open, onClose, dishes = [], restaurant, onPay
     return sum + price * item.quantity;
   }, 0);
 
-  const lockedOrders = store.lockedOrders || [];
+   const rawLockedOrders = store.lockedOrders || [];
+
+  // Database ka latest data lo: waiter ne edit kiya to wahi dikhega,
+  // delete/cancel kiya to order list aur payment dono se hat jayega
+  const lockedOrders = rawLockedOrders
+    .filter(lo => {
+      const st = String(liveOrderData[lo.groupId]?.status || '').toLowerCase();
+      return st !== 'deleted' && st !== 'cancelled';
+    })
+    .map(lo => {
+      const live = liveOrderData[lo.groupId];
+      if (!Array.isArray(live?.items)) return lo;
+      const items = live.items
+        .filter(i => (i.qty || 0) > 0)
+        .map(i => ({ name: i.name, quantity: i.qty, price: i.price }));
+      const total = items.reduce((s, i) => s + (i.price || 0) * i.quantity, 0);
+      return { ...lo, items, total };
+    });
 
   const lockedOrdersTotal = lockedOrders.reduce((sum, lo) => sum + (lo.total || 0), 0);
-
-  const handleDeleteLockedOrder = async (groupId) => {
-    menuStore.removeLockedOrder(groupId);
-    try { await entities.Order.delete(groupId); } catch {}
-  };
 
   const placeOrder = async () => {
     if (placing) return;
