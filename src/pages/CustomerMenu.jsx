@@ -161,17 +161,27 @@ export default function CustomerMenu() {
     if (!lockedOrders.length) return;
     const ids = lockedOrders.map(lo => lo.groupId).filter(Boolean);
     if (!ids.length) return;
-    const fetchTimers = async () => {
+        const fetchTimers = async () => {
       try {
-        const results = await Promise.all(ids.map(id => entities.Order.get(id).catch(() => null)));
+        const sid = localStorage.getItem('customer_session_id');
+        const orders = await entities.Order.filter({ customer_session_id: sid }, '-created_at', 50);
         const map = {};
-        results.forEach(order => {
-          if (order?.id) {
-            map[order.id] = { timer_started_at: order.timer_started_at, prep_time_override: order.prep_time_override, delivery_time_minutes: order.delivery_time_minutes, status: order.status, is_ready: order.is_ready };
-          }
+        (orders || []).forEach(order => {
+          const data = {
+            timer_started_at: order.timer_started_at,
+            prep_time_override: order.prep_time_override,
+            delivery_time_minutes: order.delivery_time_minutes,
+            status: order.status,
+            is_ready: order.is_ready,
+          };
+          if (order.id) map[order.id] = data;
+          if (order.group_id) map[order.group_id] = data;
         });
+        console.log('LIVE ORDERS', ids, map);
         setLiveOrderData(map);
-      } catch {}
+      } catch (e) {
+        console.log('fetchTimers error', e);
+      }
     };
     fetchTimers();
     const interval = setInterval(fetchTimers, 5000);
