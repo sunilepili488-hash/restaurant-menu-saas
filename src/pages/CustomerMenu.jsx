@@ -282,7 +282,7 @@ export default function CustomerMenu() {
 
   if (showSplash) {
     if (!restaurant) { return <div className="fixed inset-0 z-[100] bg-background" />; }
-    return <SplashScreen restaurant={restaurant} onComplete={() => setShowSplash(false)} />;
+        return <SplashScreen restaurant={restaurant} onComplete={() => { try { sessionStorage.setItem('splash_seen', 'true'); } catch {} setShowSplash(false); }} />;
   }
 
   if (restaurant && restaurant.is_open === false) {
