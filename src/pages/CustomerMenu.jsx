@@ -156,46 +156,60 @@ export default function CustomerMenu() {
   return () => { ro.disconnect(); window.removeEventListener('resize', update); };
 }, [showSplash, !!restaurant, restaurant?.is_open]);
 
+    const missCountRef = React.useRef({});
+
   useEffect(() => {
+    const SIX_HOURS = 6 * 60 * 60 * 1000;
     const lockedOrders = menuStore.getState().lockedOrders || [];
     if (!lockedOrders.length) return;
     const ids = lockedOrders.map(lo => lo.groupId).filter(Boolean);
     if (!ids.length) return;
-             const fetchTimers = async () => {
+
+    const fetchTimers = async () => {
       try {
+        // 6 ghante purane orders phone se hata do
+        menuStore.removeExpiredLockedOrders(SIX_HOURS);
+
         const results = await Promise.all(
           ids.map(id => entities.Order.get(id).catch(() => null))
         );
         const map = {};
-                results.forEach((order, i) => {
+        results.forEach((order, i) => {
+          const id = ids[i];
           if (order) {
-            // ids[i] (groupId) ko key banao, taaki banner se seedha match ho
-            map[ids[i]] = {
+            missCountRef.current[id] = 0;
+            map[id] = {
               timer_started_at: order.timer_started_at,
               prep_time_override: order.prep_time_override,
               delivery_time_minutes: order.delivery_time_minutes,
               status: order.status,
               is_ready: order.is_ready,
+              items: order.items,
+              total: order.total,
             };
           } else {
-            // order database se delete ho gaya, to banner hide karo
-            map[ids[i]] = { status: 'deleted' };
+            // order nahi mila (staff ne delete kiya)
+            map[id] = { status: 'deleted' };
+            missCountRef.current[id] = (missCountRef.current[id] || 0) + 1;
+            // lagatar 3 baar (15 sec) na mile, tab phone se hata do
+            if (missCountRef.current[id] >= 3) menuStore.removeLockedOrder(id);
           }
         });
-        console.log('LIVE ORDERS', ids, results, map);
         setLiveOrderData(map);
       } catch (e) {
         console.log('fetchTimers error', e);
       }
     };
 
-
-
-    
     fetchTimers();
     const interval = setInterval(fetchTimers, 5000);
     return () => clearInterval(interval);
   }, [store.lockedOrders?.length]);
+
+
+
+    
+
 
   const filteredDishes = useMemo(() => {
     let result = [...dishes];
