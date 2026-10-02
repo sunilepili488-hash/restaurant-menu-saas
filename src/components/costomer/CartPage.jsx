@@ -230,43 +230,62 @@ export default function CartPage({ open, onClose, dishes = [], restaurant, onPay
                       {cartItems.length === 0 && lockedOrders.length === 0 && (
                         <p className="text-center text-muted-foreground text-sm py-8">Your cart is empty</p>
                       )}
-                      {cartItems.map(item => (
-                        <div key={item.dish_id} className="glass rounded-xl p-3 flex items-center gap-3">
-                          {item.dish?.image_url && (
-                            <img src={item.dish.image_url} alt="" className="w-12 h-12 rounded-lg object-cover" />
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p className="font-display text-sm font-semibold truncate">{item.dish?.name}</p>
-                            <p className="text-xs text-primary">
-                              {curr}{((item.dish?.sale_price || item.dish?.regular_price || 0) * item.quantity).toLocaleString()}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
+                                           <AnimatePresence>
+                        {cartItems.map(item => (
+                          <motion.div
+                            key={item.dish_id}
+                            layout={false}
+                            drag="x"
+                            dragConstraints={{ left: 0, right: 0 }}
+                            dragElastic={{ left: 0, right: 0.6 }}
+                            onDragEnd={(e, info) => {
+                              if (info.offset.x > 120) menuStore.removeFromCart(item.dish_id);
+                            }}
+                            exit={{ x: 300, opacity: 0, transition: { duration: 0.25 } }}
+                            className="glass rounded-xl p-3 flex items-center gap-3"
+                          >
+                            {/* Image par delete icon: image dabane par item delete */}
                             <motion.button
-                              whileTap={{ scale: 0.8 }}
-                              onClick={() => menuStore.updateQuantity(item.dish_id, item.quantity - 1)}
-                              className="w-7 h-7 rounded-full glass flex items-center justify-center"
-                            >
-                              <Minus className="w-3 h-3" />
-                            </motion.button>
-                            <span className="text-sm font-medium w-5 text-center">{item.quantity}</span>
-                            <motion.button
-                              whileTap={{ scale: 0.8 }}
-                              onClick={() => menuStore.updateQuantity(item.dish_id, item.quantity + 1)}
-                              className="w-7 h-7 rounded-full glass flex items-center justify-center"
-                            >
-                              <Plus className="w-3 h-3" />
-                            </motion.button>
-                            <motion.button
-                              whileTap={{ scale: 0.8 }}
+                              whileTap={{ scale: 0.92 }}
                               onClick={() => menuStore.removeFromCart(item.dish_id)}
-                              className="text-destructive"
+                              className="relative w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-secondary"
+                              aria-label="Remove item"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              {item.dish?.image_url && (
+                                <img src={item.dish.image_url} alt="" className="w-full h-full object-cover" />
+                              )}
+                              <span className="absolute top-0.5 right-0.5 w-5 h-5 rounded-md bg-black/45 flex items-center justify-center">
+                                <Trash2 className="w-3 h-3 text-white/90" />
+                              </span>
                             </motion.button>
-                          </div>
-                        </div>
-                      ))}
+
+                            <div className="flex-1 min-w-0">
+                              <p className="font-display text-sm font-semibold truncate">{item.dish?.name}</p>
+                              <p className="text-xs text-primary">
+                                {curr}{((item.dish?.sale_price || item.dish?.regular_price || 0) * item.quantity).toLocaleString()}
+                              </p>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <motion.button
+                                whileTap={{ scale: 0.8 }}
+                                onClick={() => menuStore.updateQuantity(item.dish_id, item.quantity - 1)}
+                                className="w-7 h-7 rounded-lg glass border border-black dark:border-white/60 flex items-center justify-center"
+                              >
+                                <Minus className="w-3 h-3" />
+                              </motion.button>
+                              <span className="text-sm font-medium w-5 text-center">{item.quantity}</span>
+                              <motion.button
+                                whileTap={{ scale: 0.8 }}
+                                onClick={() => menuStore.updateQuantity(item.dish_id, item.quantity + 1)}
+                                className="w-7 h-7 rounded-lg glass border border-black dark:border-white/60 flex items-center justify-center"
+                              >
+                                <Plus className="w-3 h-3" />
+                              </motion.button>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
 
                       {/* Served Dishes section */}
                       {lockedOrders.length > 0 && (
