@@ -167,7 +167,7 @@ export default function CustomerMenu() {
         const map = {};
         results.forEach(order => {
           if (order?.id) {
-            map[order.id] = { timer_started_at: order.timer_started_at, prep_time_override: order.prep_time_override, delivery_time_minutes: order.delivery_time_minutes, status: order.status };
+            map[order.id] = { timer_started_at: order.timer_started_at, prep_time_override: order.prep_time_override, delivery_time_minutes: order.delivery_time_minutes, status: order.status, is_ready: order.is_ready };
           }
         });
         setLiveOrderData(map);
