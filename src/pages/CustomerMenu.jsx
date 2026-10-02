@@ -187,12 +187,10 @@ export default function CustomerMenu() {
               items: order.items,
               total: order.total,
             };
-          } else {
-            // order nahi mila (staff ne delete kiya)
+                    } else {
+            // order database se delete ho gaya: sirf banner hide hoga,
+            // phone me order 6 ghante tak rahega
             map[id] = { status: 'deleted' };
-            missCountRef.current[id] = (missCountRef.current[id] || 0) + 1;
-            // lagatar 3 baar (15 sec) na mile, tab phone se hata do
-            if (missCountRef.current[id] >= 3) menuStore.removeLockedOrder(id);
           }
         });
         setLiveOrderData(map);
