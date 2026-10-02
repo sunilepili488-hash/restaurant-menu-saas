@@ -281,13 +281,7 @@ export default function CartPage({ open, onClose, dishes = [], restaurant, onPay
                                   >
                                     <Eye className="w-4 h-4 text-foreground/70" />
                                   </motion.button>
-                                  <motion.button
-                                    whileTap={{ scale: 0.9 }}
-                                    onClick={() => handleDeleteLockedOrder(lo.groupId)}
-                                    className="w-8 h-8 glass rounded-full flex items-center justify-center"
-                                  >
-                                    <Trash2 className="w-4 h-4 text-destructive" />
-                                  </motion.button>
+                                 
                                 </div>
                               </div>
                               {lo.items?.slice(0, 3).map((item, i) => (
