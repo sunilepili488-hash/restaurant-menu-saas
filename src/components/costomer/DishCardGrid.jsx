@@ -32,7 +32,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
   const isLiked = store.likedDishes[dish.id] || false;
   const icons = restaurant?.icon_settings || {};
 
-  const hasDiscount = dish.sale_price && dish.sale_price < dish.regular_price;
+    const hasDiscount = !!(dish.sale_price && dish.sale_price < dish.regular_price);
   const discountPct = hasDiscount
     ? Math.round(((dish.regular_price - dish.sale_price) / dish.regular_price) * 100)
     : 0;
