@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useMenuStore } from '@/lib/menuStore';
 import { Clock } from 'lucide-react';
 
@@ -243,7 +243,6 @@ export default function BannerCarousel({ banners = [], liveOrderData = {} }) {
 
   if (count === 0) return null;
 
-  const currentIndex = pos % count;
   // Sirf pichla aur current slide render hota hai
   const visible = count > 1 ? [pos - 1, pos].filter(p => p >= 0) : [0];
 
@@ -275,18 +274,6 @@ export default function BannerCarousel({ banners = [], liveOrderData = {} }) {
           })}
         </motion.div>
 
-        {count > 1 && (
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
-            {displayItems.map((_, i) => (
-              <div
-                key={i}
-                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                  i === currentIndex ? 'bg-white w-4' : 'bg-white/40'
-                }`}
-              />
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
