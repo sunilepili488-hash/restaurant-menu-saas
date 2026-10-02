@@ -49,7 +49,7 @@ export default React.memo(function TopDishesCarousel({ dishes, restaurant }) {
 
       <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-1">
         {dishes.map(dish => {
-          const hasDiscount = dish.sale_price && dish.sale_price < dish.regular_price;
+                    const hasDiscount = !!(dish.sale_price && dish.sale_price < dish.regular_price);
           return (
             <motion.button
               key={dish.id}
