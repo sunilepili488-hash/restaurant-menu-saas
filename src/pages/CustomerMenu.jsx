@@ -85,7 +85,7 @@ export default function CustomerMenu() {
     refetchIntervalInBackground: true,
   });
 
-  const { data: dishes = [] } = useQuery({
+   const { data: dishes = [], isLoading: dishesLoading } = useQuery({
     queryKey: ['dishes'],
     queryFn: () => entities.Dish.filter({ is_active: true }, 'sort_order', 500),
     refetchInterval: 7000,
