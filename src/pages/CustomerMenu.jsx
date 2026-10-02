@@ -167,7 +167,7 @@ export default function CustomerMenu() {
           ids.map(id => entities.Order.get(id).catch(() => null))
         );
         const map = {};
-        results.forEach((order, i) => {
+                results.forEach((order, i) => {
           if (order) {
             // ids[i] (groupId) ko key banao, taaki banner se seedha match ho
             map[ids[i]] = {
@@ -177,6 +177,9 @@ export default function CustomerMenu() {
               status: order.status,
               is_ready: order.is_ready,
             };
+          } else {
+            // order database se delete ho gaya, to banner hide karo
+            map[ids[i]] = { status: 'deleted' };
           }
         });
         console.log('LIVE ORDERS', ids, results, map);
