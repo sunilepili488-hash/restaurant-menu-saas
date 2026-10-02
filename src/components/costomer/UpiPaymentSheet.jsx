@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ShieldCheck, Receipt, Heart, Star, Sparkles, Lock, ArrowRight } from 'lucide-react';
 
 // Local UPI logo assets — same folder used in PaymentSheet.jsx
+import { menuStore } from '@/lib/menuStore';
 import gpayLogo from './assets/upi/gpay.png';
 import phonepeLogo from './assets/upi/phonepe.png';
 import paytmLogo from './assets/upi/paytm.png';
