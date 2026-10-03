@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, CreditCard, Bell, X, Receipt, Droplets, HandHelping, Coffee, Heart, Check } from 'lucide-react';
+import { HandPlatter as ShoppingBag, CreditCard, Bell, X, Receipt, Droplets, HandHelping, Coffee, Heart, Check } from 'lucide-react';
 import { menuStore } from '@/lib/menuStore';
 import { entities } from '@/api/entities';
 
