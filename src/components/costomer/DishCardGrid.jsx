@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, ThumbsUp, ShoppingBag, Leaf, Drumstick, Heart, ChevronDown, MessageCircle, X } from 'lucide-react';
+import { Clock, ThumbsUp, HandPlatter as ShoppingBag, Leaf, Drumstick, Heart, ChevronDown, MessageCircle, X } from 'lucide-react';
 import { menuStore, useMenuStore } from '@/lib/menuStore';
 import { entities } from '@/api/entities';
 import { formatCount, getOrderedToday } from '@/lib/formatUtils';
