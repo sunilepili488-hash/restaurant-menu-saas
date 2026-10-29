@@ -328,7 +328,7 @@ export default function CustomerMenu() {
 
       <div style={{ paddingTop: 'var(--header-h, 64px)' }}>
         <BannerCarousel banners={banners} liveOrderData={liveOrderData} />
-        <CategoryNav categories={sortedCategories} activeCategory={activeCategory} onSelect={setActiveCategory} />
+       <CategoryNav categories={sortedCategories} activeCategory={activeCategory} onSelect={setActiveCategory} restaurant={restaurant} />
         <TopDishesCarousel dishes={topDishes} restaurant={restaurant} />
 
         {/* View Toggle — with proper spacing */}
