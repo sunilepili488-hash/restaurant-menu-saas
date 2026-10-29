@@ -512,3 +512,380 @@ html[data-theme="ruby-royale"] .dish-price {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+
+
+
+
+
+
+/* ==========================================
+   PREMIUM MULTICOLOR RESTAURANT UI
+   ========================================== */
+
+html[data-theme] body {
+  background-color: var(--theme-background, #faf5e9);
+  background-image:
+    radial-gradient(
+      ellipse at 5% 12%,
+      color-mix(in srgb, var(--theme-support, #a8c9a0) 17%, transparent),
+      transparent 34%
+    ),
+    radial-gradient(
+      ellipse at 96% 35%,
+      color-mix(in srgb, var(--theme-accent, #d8b779) 15%, transparent),
+      transparent 32%
+    ),
+    radial-gradient(
+      ellipse at 45% 95%,
+      color-mix(in srgb, var(--theme-highlight, #c87556) 9%, transparent),
+      transparent 38%
+    );
+  background-attachment: fixed;
+}
+
+/* Colourful section backgrounds */
+
+html[data-theme] .menu-header-surface {
+  background:
+    linear-gradient(
+      115deg,
+      color-mix(in srgb, var(--theme-header-bg) 95%, var(--theme-support)),
+      var(--theme-header-bg) 55%,
+      color-mix(in srgb, var(--theme-header-bg) 94%, var(--theme-accent))
+    );
+  border-bottom: 1px solid var(--theme-header-border);
+}
+
+html[data-theme] .menu-category-nav {
+  background:
+    linear-gradient(
+      110deg,
+      color-mix(in srgb, var(--theme-soft-surface) 35%, var(--theme-header-bg)),
+      var(--theme-header-bg) 60%,
+      color-mix(in srgb, var(--theme-accent) 8%, var(--theme-header-bg))
+    );
+}
+
+/* ==========================================
+   PREMIUM FOOD CARDS
+   ========================================== */
+
+html[data-theme] .dish-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-card-radius);
+  background:
+    linear-gradient(
+      150deg,
+      var(--theme-surface),
+      color-mix(in srgb, var(--theme-card-accent, var(--theme-soft-surface)) 14%, var(--theme-surface))
+    );
+  box-shadow: var(--theme-card-shadow);
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    border-color 220ms ease;
+}
+
+html[data-theme] .dish-card-image {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  background:
+    linear-gradient(
+      135deg,
+      var(--theme-soft-surface),
+      var(--theme-surface-alt, var(--theme-background))
+    );
+}
+
+html[data-theme] .dish-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 350ms ease;
+}
+
+html[data-theme] .dish-card-copy {
+  position: relative;
+  padding: 1rem;
+  background:
+    linear-gradient(
+      145deg,
+      var(--theme-surface),
+      color-mix(in srgb, var(--theme-card-accent, var(--theme-soft-surface)) 13%, var(--theme-surface))
+    );
+}
+
+html[data-theme] .dish-card-title {
+  color: var(--theme-text);
+  font-family: var(--theme-heading-font, Georgia, serif);
+  font-size: 1.08rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+html[data-theme] .dish-price {
+  color: var(--theme-action-color);
+  font-size: 1.05rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+html[data-theme] .dish-card-icon-button {
+  background:
+    linear-gradient(
+      145deg,
+      var(--theme-surface),
+      var(--theme-card-accent, var(--theme-soft-surface))
+    );
+  border: 1px solid var(--theme-border);
+  color: var(--theme-action-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.09);
+}
+
+/* ==========================================
+   DISCOUNT AND FOOD BADGES
+   ========================================== */
+
+html[data-theme] .dish-card [class*="discount"],
+html[data-theme] .dish-card [class*="badge"] {
+  border-radius: 999px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+html[data-theme] .dish-card [class*="discount"] {
+  background: var(--theme-highlight);
+  color: var(--theme-text);
+}
+
+/* ==========================================
+   BUTTONS AND CATEGORY CONTROLS
+   ========================================== */
+
+html[data-theme] .menu-icon-button {
+  border-radius: var(--theme-button-radius);
+  background:
+    linear-gradient(
+      145deg,
+      var(--theme-surface),
+      color-mix(in srgb, var(--theme-support) 13%, var(--theme-surface))
+    );
+  border-color: var(--theme-border);
+  color: var(--theme-action-color);
+  box-shadow: var(--theme-button-shadow);
+}
+
+html[data-theme] .category-pill {
+  background:
+    linear-gradient(
+      145deg,
+      var(--theme-surface),
+      color-mix(in srgb, var(--theme-soft-surface) 45%, var(--theme-surface))
+    );
+  border-color: var(--theme-border);
+  color: var(--theme-text);
+}
+
+html[data-theme] .category-pill.is-active {
+  background:
+    linear-gradient(
+      120deg,
+      var(--theme-action-color),
+      color-mix(in srgb, var(--theme-action-color) 76%, var(--theme-secondary))
+    );
+  border-color: var(--theme-action-color);
+  color: hsl(var(--primary-foreground));
+  box-shadow: var(--theme-button-shadow);
+}
+
+/* ==========================================
+   BOTTOM NAVIGATION
+   ========================================== */
+
+html[data-theme] .menu-bottom-bar {
+  background:
+    linear-gradient(
+      120deg,
+      color-mix(in srgb, var(--theme-surface) 97%, var(--theme-support)),
+      var(--theme-surface) 52%,
+      color-mix(in srgb, var(--theme-surface) 95%, var(--theme-accent))
+    );
+  border-color: var(--theme-border);
+  box-shadow: var(--theme-card-shadow);
+}
+
+html[data-theme] .bottom-dock-button {
+  background:
+    linear-gradient(
+      140deg,
+      var(--theme-action-color),
+      color-mix(in srgb, var(--theme-action-color) 78%, var(--theme-secondary))
+    );
+  color: hsl(var(--primary-foreground));
+  border-radius: var(--theme-button-radius);
+}
+
+html[data-theme] .bottom-dock-button.is-secondary {
+  background:
+    linear-gradient(
+      145deg,
+      var(--theme-soft-surface),
+      color-mix(in srgb, var(--theme-accent) 15%, var(--theme-soft-surface))
+    );
+  color: var(--theme-action-color);
+}
+
+/* ==========================================
+   EMERALD GARDEN
+   ========================================== */
+
+html[data-theme="emerald-luxe"] body {
+  background-image:
+    radial-gradient(ellipse at 8% 8%, rgba(168, 201, 160, 0.30), transparent 35%),
+    radial-gradient(ellipse at 95% 38%, rgba(216, 183, 121, 0.20), transparent 30%),
+    radial-gradient(ellipse at 35% 95%, rgba(200, 117, 86, 0.12), transparent 35%);
+}
+
+html[data-theme="emerald-luxe"] .dish-card {
+  border-bottom: 3px solid var(--theme-support);
+}
+
+html[data-theme="emerald-luxe"] .dish-price {
+  color: var(--theme-primary);
+}
+
+/* ==========================================
+   TERRACOTTA ARTISAN
+   ========================================== */
+
+html[data-theme="terracotta-artisan"] body {
+  background-image:
+    radial-gradient(ellipse at 0% 10%, rgba(229, 139, 69, 0.20), transparent 35%),
+    radial-gradient(ellipse at 100% 45%, rgba(119, 133, 75, 0.17), transparent 30%),
+    radial-gradient(ellipse at 40% 100%, rgba(245, 208, 181, 0.42), transparent 38%);
+}
+
+html[data-theme="terracotta-artisan"] .dish-card {
+  border-bottom: 3px solid var(--theme-highlight);
+}
+
+html[data-theme="terracotta-artisan"] .dish-price {
+  color: var(--theme-primary);
+}
+
+/* ==========================================
+   MIDNIGHT ROYALE
+   ========================================== */
+
+html[data-theme="midnight-noir"] body {
+  background-image:
+    radial-gradient(ellipse at 5% 5%, rgba(112, 72, 200, 0.24), transparent 35%),
+    radial-gradient(ellipse at 95% 38%, rgba(67, 185, 174, 0.14), transparent 30%),
+    radial-gradient(ellipse at 45% 100%, rgba(216, 91, 157, 0.13), transparent 36%);
+}
+
+html[data-theme="midnight-noir"] .dish-card {
+  border-top: 2px solid var(--theme-accent);
+}
+
+html[data-theme="midnight-noir"] .dish-card-copy {
+  background:
+    linear-gradient(
+      140deg,
+      var(--theme-surface),
+      color-mix(in srgb, var(--theme-support) 10%, var(--theme-surface))
+    );
+}
+
+html[data-theme="midnight-noir"] .dish-price {
+  color: var(--theme-accent);
+}
+
+/* ==========================================
+   OCEAN CARNIVAL
+   ========================================== */
+
+html[data-theme="ocean-sapphire"] body {
+  background-image:
+    radial-gradient(ellipse at 5% 10%, rgba(55, 207, 195, 0.22), transparent 35%),
+    radial-gradient(ellipse at 95% 35%, rgba(255, 120, 107, 0.17), transparent 32%),
+    radial-gradient(ellipse at 45% 100%, rgba(200, 183, 244, 0.24), transparent 36%);
+}
+
+html[data-theme="ocean-sapphire"] .dish-card {
+  border-bottom: 3px solid var(--theme-accent);
+}
+
+html[data-theme="ocean-sapphire"] .dish-price {
+  color: var(--theme-primary);
+}
+
+/* ==========================================
+   RUBY FESTIVAL
+   ========================================== */
+
+html[data-theme="ruby-royale"] body {
+  background-image:
+    radial-gradient(ellipse at 5% 8%, rgba(243, 181, 197, 0.35), transparent 35%),
+    radial-gradient(ellipse at 95% 35%, rgba(8, 127, 140, 0.15), transparent 32%),
+    radial-gradient(ellipse at 45% 100%, rgba(255, 200, 87, 0.20), transparent 36%);
+}
+
+html[data-theme="ruby-royale"] .dish-card {
+  border-bottom: 3px solid var(--theme-highlight);
+}
+
+html[data-theme="ruby-royale"] .dish-price {
+  color: var(--theme-primary);
+}
+
+/* ==========================================
+   INTERACTIONS AND RESPONSIVENESS
+   ========================================== */
+
+@media (hover: hover) and (pointer: fine) {
+  html[data-theme] .dish-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 42px
+      color-mix(in srgb, var(--theme-action-color) 18%, transparent);
+    border-color: var(--theme-accent);
+  }
+
+  html[data-theme] .dish-card:hover .dish-card-image img {
+    transform: scale(1.045);
+  }
+
+  html[data-theme] .menu-icon-button:hover,
+  html[data-theme] .bottom-dock-button:hover {
+    transform: translateY(-2px);
+  }
+}
+
+@media (max-width: 640px) {
+  html[data-theme] .dish-card-copy {
+    padding: 0.75rem;
+  }
+
+  html[data-theme] .dish-card-title {
+    font-size: 0.98rem;
+  }
+
+  html[data-theme] .dish-price {
+    font-size: 0.98rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme] .dish-card,
+  html[data-theme] .dish-card-image img,
+  html[data-theme] .menu-icon-button,
+  html[data-theme] .bottom-dock-button {
+    transition: none !important;
+  }
+}
