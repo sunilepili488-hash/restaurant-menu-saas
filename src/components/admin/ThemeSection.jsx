@@ -36,7 +36,9 @@ export default function ThemeSection({ restaurant, onRefresh }) {
   const [themeMode, setThemeMode] = useState('dark');
   const [previewTheme, setPreviewTheme] = useState(null);
   const [scrollStyle, setScrollStyle] = useState('fade-up');
+  const [borderEnabled, setBorderEnabled] = useState(false);
   const { saving: scrollSaving, saved: scrollSaved, error: scrollError, save: scrollSave } = useSafeSave();
+  const { saving: borderSaving, saved: borderSaved, error: borderError, save: borderSave } = useSafeSave();
 
   useEffect(() => {
     if (restaurant) {
@@ -45,6 +47,7 @@ export default function ThemeSection({ restaurant, onRefresh }) {
       setCurrency(restaurant.currency_symbol || '₹');
       setThemeMode(restaurant.theme_mode || 'dark');
       setScrollStyle(restaurant.scroll_animation_style || 'fade-up');
+      setBorderEnabled(restaurant.show_card_borders || false);
     }
   }, [restaurant]);
 
@@ -52,6 +55,12 @@ export default function ThemeSection({ restaurant, onRefresh }) {
     setScrollStyle(styleId);
     if (!restaurant?.id) return;
     scrollSave(entities.Restaurant.update(restaurant.id, { scroll_animation_style: styleId }), onRefresh);
+  };
+
+  const handleBorderSave = (value) => {
+    setBorderEnabled(value);
+    if (!restaurant?.id) return;
+    borderSave(entities.Restaurant.update(restaurant.id, { show_card_borders: value }), onRefresh);
   };
 
   const handlePreviewTheme = (theme) => {
@@ -102,7 +111,6 @@ export default function ThemeSection({ restaurant, onRefresh }) {
     );
   };
 
-  // Determine which theme is currently active (saved in DB)
   const activeThemeId = THEMES.find(t =>
     restaurant?.theme_css_vars && Object.keys(restaurant.theme_css_vars).length > 0 &&
     JSON.stringify(t.cssVars) === JSON.stringify(restaurant.theme_css_vars)
@@ -139,7 +147,6 @@ export default function ThemeSection({ restaurant, onRefresh }) {
                 activeThemeId === theme.id ? 'border-primary/50' : 'border-border'
               }`}
             >
-              {/* Mini preview */}
               <div className="h-20 relative" style={{ backgroundColor: theme.bg }}>
                 <div className="absolute inset-x-0 top-0 h-[65%]" style={{ backgroundColor: theme.bg }} />
                 <div className="absolute inset-x-0 bottom-0 h-[35%]" style={{ backgroundColor: theme.bg, filter: 'brightness(1.3)' }} />
@@ -152,11 +159,9 @@ export default function ThemeSection({ restaurant, onRefresh }) {
                   </span>
                 </div>
               </div>
-              {/* Theme name */}
               <div className="p-2 text-center bg-card">
                 <p className="text-xs font-medium">{theme.emoji} {theme.name}</p>
               </div>
-              {/* Badges */}
               {previewTheme?.id === theme.id && (
                 <span className="absolute top-1 right-1 text-[9px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full animate-pulse">
                   Previewing
@@ -251,6 +256,31 @@ export default function ThemeSection({ restaurant, onRefresh }) {
         {error && <p className="text-sm text-destructive">{error}</p>}
       </div>
 
+      {/* Section B2 — Card Borders Toggle */}
+      <div className="space-y-4 pt-4 border-t border-border">
+        <h3 className="font-display text-lg font-semibold">Card Borders</h3>
+        <p className="text-sm text-muted-foreground">Show or hide black borders on dish cards, category pills, and header buttons.</p>
+        <div className="glass rounded-xl p-4">
+          <div className="flex gap-3">
+            <button
+              onClick={() => handleBorderSave(true)}
+              className={`flex-1 py-3 rounded-xl border-2 transition-all ${borderEnabled ? 'border-primary bg-primary/10' : 'border-border'}`}
+            >
+              <span className="text-sm font-medium">🔲 Show Borders</span>
+            </button>
+            <button
+              onClick={() => handleBorderSave(false)}
+              className={`flex-1 py-3 rounded-xl border-2 transition-all ${!borderEnabled ? 'border-primary bg-primary/10' : 'border-border'}`}
+            >
+              <span className="text-sm font-medium">⬜ No Borders (Solid)</span>
+            </button>
+          </div>
+        </div>
+        {borderSaving && <p className="text-xs text-muted-foreground">Saving...</p>}
+        {borderSaved && <p className="text-xs text-green-500">Saved ✓</p>}
+        {borderError && <p className="text-sm text-destructive">{borderError}</p>}
+      </div>
+
       {/* Section C — Dish Card Scroll Animation */}
       <div className="space-y-4 pt-4 border-t border-border">
         <h3 className="font-display text-lg font-semibold">Dish Card Scroll Animation</h3>
@@ -276,5 +306,3 @@ export default function ThemeSection({ restaurant, onRefresh }) {
     </div>
   );
 }
-    
-  
