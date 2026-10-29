@@ -28,7 +28,7 @@ function DishTextRow({ dish, restaurant, onReviewOpen }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, ease: 'easeOut' }}
         onClick={() => setDetailOpen(true)}
-        className="glass rounded-xl px-4 py-3 flex items-center justify-between gap-3 cursor-pointer"
+        className="menu-text-row glass rounded-xl px-4 py-3 flex items-center justify-between gap-3 cursor-pointer"
       >
         <h4 className="font-display text-sm font-semibold text-foreground truncate min-w-0 flex-1">
           {dish.name}
