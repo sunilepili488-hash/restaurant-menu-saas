@@ -2,11 +2,13 @@ import React, { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, X } from 'lucide-react';
 
-export default function CategoryNav({ categories = [], activeCategory, onSelect, restaurant }) {
+// Change 4: border removed (dish cards keep their own border).
+// Change 6 (v2): chevron next to "All" now opens a CENTER modal card
+// listing every category in a clean grid — instead of expanding inline.
+export default function CategoryNav({ categories = [], activeCategory, onSelect }) {
   const scrollRef = useRef(null);
   const activeRef = useRef(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const showBorders = restaurant?.show_card_borders === true;
 
   useEffect(() => {
     if (activeRef.current && scrollRef.current) {
@@ -20,9 +22,9 @@ export default function CategoryNav({ categories = [], activeCategory, onSelect,
   const allCategories = [{ id: 'all', name: 'All' }, ...categories];
 
   return (
-    <div
+       <div
       id="category-nav"
-      className={`sticky z-40 glass ${showBorders ? 'border-y border-black dark:border-white/60' : 'border-y border-border/30'}`}
+       className="menu-category-nav sticky z-40 border-y"
       style={{
         top: 'calc(var(--header-h, 64px) + 1px)',
         boxShadow: '0 -1px 0 hsl(var(--background))',
@@ -32,7 +34,7 @@ export default function CategoryNav({ categories = [], activeCategory, onSelect,
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={() => setModalOpen(true)}
-          className={`flex-shrink-0 w-8 h-8 self-center rounded-full glass ${showBorders ? 'border border-black dark:border-white/60' : ''} flex items-center justify-center`}
+          className="category-overflow-button flex-shrink-0 self-center rounded-full flex items-center justify-center"
           title="Show all categories"
           aria-label="Show all categories"
         >
@@ -49,26 +51,16 @@ export default function CategoryNav({ categories = [], activeCategory, onSelect,
                 onClick={() => onSelect(cat.id)}
                 className="relative flex-shrink-0"
               >
-                <span
-                  className={`px-4 py-2 rounded-full ${showBorders ? 'border border-black dark:border-white/60' : 'border border-border/40'} text-sm font-medium transition-all duration-300 block whitespace-nowrap ${
-                    isActive ? 'text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
+                 <span className={`category-pill block ${isActive ? 'is-active' : ''}`}>
                   {cat.name}
                 </span>
-                {isActive && (
-                  <motion.div
-                    layoutId="category-pill"
-                    className="absolute inset-0 bg-primary rounded-full -z-10"
-                    transition={{ type: 'spring', stiffness: 500, damping: 32 }}
-                  />
-                )}
               </button>
             );
           })}
         </div>
       </div>
 
+      {/* Change 3 (waiter/toast speed applies here too): fast, snappy modal */}
       <AnimatePresence>
         {modalOpen && (
           <motion.div
