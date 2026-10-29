@@ -7,12 +7,10 @@ export default function MenuHeader({ restaurant, onSearchOpen, onFilterOpen, onU
   const [isOwnerMode, setIsOwnerMode] = useState(false);
 
   useEffect(() => {
-    // Check if owner mode is unlocked (icon_unlocked in localStorage)
     const unlocked = localStorage.getItem('icon_unlocked') === 'true';
     setIsOwnerMode(unlocked);
   }, []);
 
-  // Listen for icon unlock changes
   useEffect(() => {
     const check = () => {
       const unlocked = localStorage.getItem('icon_unlocked') === 'true';
@@ -26,7 +24,6 @@ export default function MenuHeader({ restaurant, onSearchOpen, onFilterOpen, onU
     };
   }, []);
 
-  // Animated header toggle: cycles between logo and hours every 3s
   useEffect(() => {
     if (!restaurant?.animated_header) return;
     const interval = setInterval(() => {
@@ -35,23 +32,24 @@ export default function MenuHeader({ restaurant, onSearchOpen, onFilterOpen, onU
     return () => clearInterval(interval);
   }, [restaurant?.animated_header]);
 
+  const showBorders = restaurant?.show_card_borders === true;
+
   const IconBtn = ({ children, onClick, label }) => (
     <motion.button
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.9 }}
       onClick={onClick}
       aria-label={label}
-     className="w-10 h-10 rounded-xl glass border border-black dark:border-white/60 flex items-center justify-center text-primary/80 hover:text-primary transition-colors"
+      className={`w-10 h-10 rounded-xl glass ${showBorders ? 'border border-black dark:border-white/60' : ''} flex items-center justify-center text-primary/80 hover:text-primary transition-colors`}
     >
       {children}
     </motion.button>
   );
 
-  // Change 4: header border removed — only dish cards keep a border now
   return (
-   <header id="menu-header" className="fixed top-0 left-0 right-0 z-50 glass border-b border-black dark:border-white/60">
-     <div className="max-w-7xl mx-auto px-2 py-3 flex items-center justify-between">
-        {/* Left: Logo + Name + Hours (animated or static) */}
+    <header id="menu-header" className={`fixed top-0 left-0 right-0 z-50 glass ${showBorders ? 'border-b border-black dark:border-white/60' : 'border-b border-border/20'}`}>
+      <div className="max-w-7xl mx-auto px-2 py-3 flex items-center justify-between">
+        {/* Left: Logo + Name + Hours */}
         <div className="flex items-center gap-3 min-w-0 flex-1">
           {restaurant?.animated_header ? (
             <div className="relative overflow-hidden flex-1 min-w-0 w-full" style={{ minHeight: '40px', height: '40px' }}>
