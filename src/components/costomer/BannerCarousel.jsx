@@ -27,9 +27,6 @@ function getSplitTimerMessage(remaining) {
   return 'Preparing... \u2728';
 }
 
-const BLUE_BG = 'linear-gradient(135deg, rgba(59,130,246,0.8) 0%, rgba(37,99,235,0.9) 100%)';
-const GREEN_BG = 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)';
-
 function useCountdown(estimatedReady) {
   const calc = () =>
     Math.max(0, Math.floor((new Date(estimatedReady).getTime() - Date.now()) / 1000));
@@ -51,8 +48,8 @@ function SingleTimerDisplay({ timer }) {
   if (waiting) {
     return (
       <div
-        className="flex flex-col items-center justify-center h-full gap-1 text-white"
-        style={{ background: BLUE_BG }}
+        className="flex flex-col items-center justify-center h-full gap-1"
+        style={{ background: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))' }}
       >
         <span className="text-xl font-bold">Order received ✓</span>
         <span className="text-sm opacity-80">Waiting for kitchen confirmation...</span>
@@ -65,16 +62,19 @@ function SingleTimerDisplay({ timer }) {
   return (
     <div
       className="flex flex-col items-center justify-center p-3 text-center w-full h-full"
-      style={{ background: isDone ? GREEN_BG : BLUE_BG }}
+      style={{
+        background: `hsl(var(--${isDone ? 'accent' : 'primary'}))`,
+        color: `hsl(var(--${isDone ? 'accent-foreground' : 'primary-foreground'}))`,
+      }}
     >
-      <Clock className={`w-5 h-5 mb-1 ${isDone ? 'animate-pulse' : ''}`} style={{ color: '#fff' }} />
-      <h3 className="font-display text-3xl md:text-4xl font-bold leading-none" style={{ color: '#fff' }}>
+      <Clock className={`w-5 h-5 mb-1 ${isDone ? 'animate-pulse' : ''}`} />
+      <h3 className="font-display text-3xl md:text-4xl font-bold leading-none">
         {isDone ? 'Order Ready!' : formatCountdown(remaining)}
       </h3>
-      <p className="text-base md:text-lg mt-1.5 font-semibold" style={{ color: '#fff' }}>
+      <p className="text-base md:text-lg mt-1.5 font-semibold">
         {timer.tableLabel || 'Estimated wait time'}
       </p>
-      <p className="text-sm md:text-base mt-1 opacity-90 font-medium" style={{ color: '#fff' }}>
+      <p className="text-sm md:text-base mt-1 opacity-90 font-medium">
         {getTimerMessage(remaining)}
       </p>
     </div>
@@ -90,12 +90,12 @@ function SplitTimerDisplay({ timer, side }) {
     return (
       <div
         className={`flex flex-col items-center justify-center p-3 text-center ${radius}`}
-        style={{ background: BLUE_BG, width: '50%' }}
+        style={{ background: 'hsl(var(--secondary))', color: 'hsl(var(--secondary-foreground))', width: '50%' }}
       >
-        <p className="text-sm font-semibold" style={{ color: '#fff' }}>
+        <p className="text-sm font-semibold">
           {timer.tableLabel || 'Table'}
         </p>
-        <p className="text-base font-bold mt-1" style={{ color: '#fff' }}>Waiting...</p>
+        <p className="text-base font-bold mt-1">Waiting...</p>
       </div>
     );
   }
@@ -105,15 +105,19 @@ function SplitTimerDisplay({ timer, side }) {
   return (
     <div
       className={`flex flex-col items-center justify-center p-3 text-center ${radius}`}
-      style={{ background: isDone ? GREEN_BG : BLUE_BG, width: '50%' }}
+      style={{
+        background: `hsl(var(--${isDone ? 'accent' : 'primary'}))`,
+        color: `hsl(var(--${isDone ? 'accent-foreground' : 'primary-foreground'}))`,
+        width: '50%',
+      }}
     >
-      <p className="text-sm font-semibold" style={{ color: '#fff' }}>
+      <p className="text-sm font-semibold">
         {timer.tableLabel || 'Table'}
       </p>
-      <h3 className="font-display text-2xl md:text-3xl font-bold leading-none mt-1" style={{ color: '#fff' }}>
+      <h3 className="font-display text-2xl md:text-3xl font-bold leading-none mt-1">
         {isDone ? 'Ready!' : formatCountdown(remaining)}
       </h3>
-      <p className="text-xs md:text-sm mt-1.5 opacity-90 font-medium" style={{ color: '#fff' }}>
+      <p className="text-xs md:text-sm mt-1.5 opacity-90 font-medium">
         {getSplitTimerMessage(remaining)}
       </p>
     </div>
@@ -155,17 +159,17 @@ function BannerSlide({ item }) {
       style={{
         background: item.data.image_url
           ? `linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 100%), url(${item.data.image_url}) center/cover`
-          : `linear-gradient(135deg, ${item.data.bg_color || 'hsl(38,45%,61%)'}, ${item.data.bg_color || 'hsl(38,45%,61%)'}88)`,
+           : `linear-gradient(135deg, ${item.data.bg_color || 'var(--theme-action-color)'}, ${item.data.bg_color || 'var(--theme-action-color)'})`,
       }}
     >
       <h3
         className="font-display text-xl md:text-2xl font-bold"
-        style={{ color: item.data.text_color || '#fff' }}
+        style={{ color: item.data.text_color || (item.data.image_url || item.data.bg_color ? '#fff' : 'hsl(var(--primary-foreground))') }}
       >
         {item.data.title}
       </h3>
       {item.data.subtitle && (
-        <p className="text-sm mt-1 opacity-90" style={{ color: item.data.text_color || '#fff' }}>
+        <p className="text-sm mt-1 opacity-90" style={{ color: item.data.text_color || (item.data.image_url || item.data.bg_color ? '#fff' : 'hsl(var(--primary-foreground))') }}>
           {item.data.subtitle}
         </p>
       )}
