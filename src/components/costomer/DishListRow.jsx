@@ -21,7 +21,7 @@ function DishListRow({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
       animate={{ opacity: 1, y: 0 }}
       style={{ willChange: 'transform, opacity' }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
-      className="glass rounded-xl p-3 flex items-center gap-3"
+      className="menu-product-row glass rounded-xl p-3 flex items-center gap-3"
     >
       <div
         className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-secondary cursor-pointer"
