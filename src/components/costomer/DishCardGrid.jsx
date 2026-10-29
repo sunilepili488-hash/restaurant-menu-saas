@@ -72,7 +72,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
 
   return (
     <motion.div
-      className="dish-card glass overflow-hidden group"
+     className="dish-card glass overflow-hidden group relative"
       layout={false}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
@@ -80,7 +80,18 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
       transition={{ duration: 0.25, ease: 'easeOut' }}
     >
       {/* Image */}
-      <div className="dish-card-image relative overflow-hidden cursor-pointer" onClick={() => onImageClick?.(dish)}>
+     <div
+  className="dish-card-image relative overflow-hidden cursor-pointer"
+  onClick={() => onImageClick?.(dish)}
+  role="button"
+  tabIndex={0}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onImageClick?.(dish);
+    }
+  }}
+>
         <LazyImage
           src={dish.image_url}
           alt={dish.name}
