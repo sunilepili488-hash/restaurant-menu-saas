@@ -29,25 +29,22 @@ function hexToHsl(hex) {
 }
 
 export default function ThemeSection({ restaurant, onRefresh }) {
-  const [primary, setPrimary] = useState('#C5A572');
-  const [bg, setBg] = useState('#1A1A1A');
+  const [primary, setPrimary] = useState('#0B6B50');
+  const [bg, setBg] = useState('#F0F4ED');
   const [currency, setCurrency] = useState('₹');
   const { saving, saved, error, save } = useSafeSave();
-  const [themeMode, setThemeMode] = useState('dark');
+  const [themeMode, setThemeMode] = useState('light');
   const [previewTheme, setPreviewTheme] = useState(null);
   const [scrollStyle, setScrollStyle] = useState('fade-up');
-  const [borderEnabled, setBorderEnabled] = useState(false);
   const { saving: scrollSaving, saved: scrollSaved, error: scrollError, save: scrollSave } = useSafeSave();
-  const { saving: borderSaving, saved: borderSaved, error: borderError, save: borderSave } = useSafeSave();
 
   useEffect(() => {
     if (restaurant) {
-      setPrimary(restaurant.theme_primary_color || '#C5A572');
-      setBg(restaurant.theme_bg_color || '#1A1A1A');
+      setPrimary(restaurant.theme_primary_color || '#0B6B50');
+      setBg(restaurant.theme_bg_color || '#F0F4ED');
       setCurrency(restaurant.currency_symbol || '₹');
-      setThemeMode(restaurant.theme_mode || 'dark');
+      setThemeMode(restaurant.theme_mode || 'light');
       setScrollStyle(restaurant.scroll_animation_style || 'fade-up');
-      setBorderEnabled(restaurant.show_card_borders || false);
     }
   }, [restaurant]);
 
@@ -55,12 +52,6 @@ export default function ThemeSection({ restaurant, onRefresh }) {
     setScrollStyle(styleId);
     if (!restaurant?.id) return;
     scrollSave(entities.Restaurant.update(restaurant.id, { scroll_animation_style: styleId }), onRefresh);
-  };
-
-  const handleBorderSave = (value) => {
-    setBorderEnabled(value);
-    if (!restaurant?.id) return;
-    borderSave(entities.Restaurant.update(restaurant.id, { show_card_borders: value }), onRefresh);
   };
 
   const handlePreviewTheme = (theme) => {
@@ -72,7 +63,11 @@ export default function ThemeSection({ restaurant, onRefresh }) {
     if (restaurant?.theme_css_vars && Object.keys(restaurant.theme_css_vars).length > 0) {
       applyThemeToCss({ theme_mode: restaurant.theme_mode, theme_css_vars: restaurant.theme_css_vars });
     } else {
-      applyThemeToCss({ theme_mode: restaurant?.theme_mode || 'dark', theme_css_vars: {} });
+      applyThemeToCss({
+        ...restaurant,
+        theme_mode: restaurant?.theme_mode || 'light',
+        theme_css_vars: {},
+      });
     }
     setPreviewTheme(null);
   };
@@ -81,7 +76,7 @@ export default function ThemeSection({ restaurant, onRefresh }) {
     if (!previewTheme || !restaurant?.id) return;
     save(
       entities.Restaurant.update(restaurant.id, {
-        theme_primary_color: previewTheme.primary,
+        theme_primary_color: previewTheme.action || previewTheme.primary,
         theme_bg_color: previewTheme.bg,
         theme_mode: previewTheme.mode,
         theme_css_vars: previewTheme.cssVars,
@@ -111,20 +106,18 @@ export default function ThemeSection({ restaurant, onRefresh }) {
     );
   };
 
-  const activeThemeId = THEMES.find(t =>
-    restaurant?.theme_css_vars && Object.keys(restaurant.theme_css_vars).length > 0 &&
-    JSON.stringify(t.cssVars) === JSON.stringify(restaurant.theme_css_vars)
-  )?.id;
+  // Determine which theme is currently active (saved in DB)
+  const activeThemeId = restaurant?.theme_css_vars?.['--theme-id'];
 
   return (
     <div className="space-y-8">
       {/* Section A — Theme Marketplace */}
       <div className="space-y-4">
         <h2 className="font-display text-2xl font-semibold">Theme</h2>
-        <p className="text-sm text-muted-foreground">Pick a curated theme — one click applies instantly.</p>
+        <p className="text-sm text-muted-foreground">Choose a complete visual identity for the customer menu.</p>
 
         <motion.div
-          className="grid grid-cols-2 md:grid-cols-4 gap-3"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5 gap-4"
           initial="hidden"
           animate="visible"
           variants={{
@@ -135,43 +128,69 @@ export default function ThemeSection({ restaurant, onRefresh }) {
           {THEMES.map(theme => (
             <motion.div
               key={theme.id}
+              role="button"
+              tabIndex={0}
+              aria-pressed={previewTheme?.id === theme.id || activeThemeId === theme.id}
               variants={{
                 hidden: { y: 12, opacity: 0 },
                 visible: { y: 0, opacity: 1 },
               }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ y: -3 }}
+              whileTap={{ scale: 0.99 }}
               onClick={() => handlePreviewTheme(theme)}
-              className={`rounded-2xl border-2 overflow-hidden cursor-pointer transition-colors ${
-                previewTheme?.id === theme.id ? 'border-primary ring-2 ring-primary/30' :
-                activeThemeId === theme.id ? 'border-primary/50' : 'border-border'
+              onKeyDown={event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  handlePreviewTheme(theme);
+                }
+              }}
+              className={`theme-choice ${
+                previewTheme?.id === theme.id ? 'is-previewing' :
+                activeThemeId === theme.id ? 'is-active' : ''
               }`}
+              style={{
+                '--preview-primary': theme.primary,
+                '--preview-action': theme.action || theme.primary,
+                '--preview-action-foreground': theme.cssVars['--primary-foreground'],
+                '--preview-secondary': theme.secondary,
+                '--preview-accent': theme.accent,
+                '--preview-background': theme.bg,
+                '--preview-surface': theme.surface,
+                '--preview-text': theme.cssVars['--theme-text'],
+              }}
             >
-              <div className="h-20 relative" style={{ backgroundColor: theme.bg }}>
-                <div className="absolute inset-x-0 top-0 h-[65%]" style={{ backgroundColor: theme.bg }} />
-                <div className="absolute inset-x-0 bottom-0 h-[35%]" style={{ backgroundColor: theme.bg, filter: 'brightness(1.3)' }} />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span
-                    className="px-2 py-0.5 rounded-full text-[10px] font-medium text-white"
-                    style={{ backgroundColor: theme.primary }}
-                  >
-                    {theme.name}
+              <div className="theme-choice-preview">
+                <div className="theme-preview-header">
+                  <span className="theme-preview-mark">{theme.emoji}</span>
+                  <span className="theme-preview-lines"><i /><i /></span>
+                  <span className="theme-preview-search" />
+                </div>
+                <div className="theme-preview-food">
+                  <span className="theme-preview-image" />
+                  <span className="theme-preview-food-copy">
+                    <i />
+                    <i />
+                    <b>{theme.name}</b>
                   </span>
                 </div>
+                <span className="theme-preview-button">Explore menu</span>
               </div>
-              <div className="p-2 text-center bg-card">
-                <p className="text-xs font-medium">{theme.emoji} {theme.name}</p>
+              <div className="theme-choice-details">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="theme-choice-name">{theme.emoji} {theme.name}</p>
+                    <p className="theme-choice-description">{theme.description}</p>
+                  </div>
+                  {(previewTheme?.id === theme.id || activeThemeId === theme.id) && (
+                    <span className="theme-choice-check"><Check className="w-3.5 h-3.5" /></span>
+                  )}
+                </div>
+                <div className="theme-choice-swatches" aria-label="Theme color palette">
+                  <span title={`Primary ${theme.primary}`} style={{ backgroundColor: theme.primary }} />
+                  <span title={`Secondary ${theme.secondary}`} style={{ backgroundColor: theme.secondary }} />
+                  <span title={`Accent ${theme.accent}`} style={{ backgroundColor: theme.accent }} />
+                </div>
               </div>
-              {previewTheme?.id === theme.id && (
-                <span className="absolute top-1 right-1 text-[9px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full animate-pulse">
-                  Previewing
-                </span>
-              )}
-              {activeThemeId === theme.id && previewTheme?.id !== theme.id && (
-                <span className="absolute top-1 right-1 text-[9px] bg-green-600 text-white px-1.5 py-0.5 rounded-full">
-                  Active
-                </span>
-              )}
             </motion.div>
           ))}
         </motion.div>
@@ -256,31 +275,6 @@ export default function ThemeSection({ restaurant, onRefresh }) {
         {error && <p className="text-sm text-destructive">{error}</p>}
       </div>
 
-      {/* Section B2 — Card Borders Toggle */}
-      <div className="space-y-4 pt-4 border-t border-border">
-        <h3 className="font-display text-lg font-semibold">Card Borders</h3>
-        <p className="text-sm text-muted-foreground">Show or hide black borders on dish cards, category pills, and header buttons.</p>
-        <div className="glass rounded-xl p-4">
-          <div className="flex gap-3">
-            <button
-              onClick={() => handleBorderSave(true)}
-              className={`flex-1 py-3 rounded-xl border-2 transition-all ${borderEnabled ? 'border-primary bg-primary/10' : 'border-border'}`}
-            >
-              <span className="text-sm font-medium">🔲 Show Borders</span>
-            </button>
-            <button
-              onClick={() => handleBorderSave(false)}
-              className={`flex-1 py-3 rounded-xl border-2 transition-all ${!borderEnabled ? 'border-primary bg-primary/10' : 'border-border'}`}
-            >
-              <span className="text-sm font-medium">⬜ No Borders (Solid)</span>
-            </button>
-          </div>
-        </div>
-        {borderSaving && <p className="text-xs text-muted-foreground">Saving...</p>}
-        {borderSaved && <p className="text-xs text-green-500">Saved ✓</p>}
-        {borderError && <p className="text-sm text-destructive">{borderError}</p>}
-      </div>
-
       {/* Section C — Dish Card Scroll Animation */}
       <div className="space-y-4 pt-4 border-t border-border">
         <h3 className="font-display text-lg font-semibold">Dish Card Scroll Animation</h3>
@@ -306,3 +300,5 @@ export default function ThemeSection({ restaurant, onRefresh }) {
     </div>
   );
 }
+    
+  
