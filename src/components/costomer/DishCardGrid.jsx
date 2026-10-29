@@ -32,7 +32,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
   const isLiked = store.likedDishes[dish.id] || false;
   const icons = restaurant?.icon_settings || {};
 
-  const hasDiscount = !!(dish.sale_price && dish.sale_price < dish.regular_price);
+    const hasDiscount = !!(dish.sale_price && dish.sale_price < dish.regular_price);
   const discountPct = hasDiscount
     ? Math.round(((dish.regular_price - dish.sale_price) / dish.regular_price) * 100)
     : 0;
@@ -44,9 +44,8 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
 
   const isHidden = (key) => icons[key]?.hidden === true;
   const themeVars = restaurant?.theme_css_vars || {};
-  const showBorders = restaurant?.show_card_borders === true;
-  const cardRadius = themeVars['--radius'] || '0.75rem';
-  const cardShadow = themeVars['--card-shadow'] || 'none';
+  const cardRadius = themeVars['--theme-card-radius'] || themeVars['--radius'] || '1.15rem';
+  const cardShadow = themeVars['--theme-card-shadow'] || themeVars['--card-shadow'] || '0 12px 30px rgba(20, 35, 30, 0.08)';
 
   const handleLike = async (e) => {
     e.stopPropagation();
@@ -73,15 +72,15 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
 
   return (
     <motion.div
-      className={`glass overflow-hidden group ${showBorders ? 'border border-black dark:border-white/60' : ''}`}
+      className="dish-card glass overflow-hidden group"
       layout={false}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      style={{ willChange: 'transform, opacity', borderRadius: '0.5rem', boxShadow: cardShadow }}
+     style={{ willChange: 'transform, opacity', borderRadius: cardRadius, boxShadow: cardShadow }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
     >
       {/* Image */}
-      <div className="relative aspect-[4/3] overflow-hidden cursor-pointer" onClick={() => onImageClick?.(dish)}>
+      <div className="dish-card-image relative overflow-hidden cursor-pointer" onClick={() => onImageClick?.(dish)}>
         <LazyImage
           src={dish.image_url}
           alt={dish.name}
@@ -100,12 +99,12 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
           </span>
         </div>
 
-        {/* Heart icon */}
+        {/* Heart icon — darker border */}
         {!isHidden('favorite') && (
           <motion.button
             whileTap={{ scale: 0.8 }}
             onClick={(e) => { e.stopPropagation(); menuStore.toggleFavorite(dish.id); }}
-            className={`absolute top-2 right-2 w-8 h-8 rounded-xl bg-black/50 backdrop-blur-sm ${showBorders ? 'border border-black dark:border-white/60' : ''} flex items-center justify-center shadow-md`}
+           className="absolute top-2 right-2 w-8 h-8 rounded-xl bg-black/50 backdrop-blur-sm border border-black dark:border-white/60 flex items-center justify-center shadow-md"
             title="Favorite"
           >
             <Heart className={`w-4 h-4 transition-colors ${isFav ? 'text-rose-500 fill-rose-500' : 'text-white/90'}`} />
@@ -121,8 +120,8 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
       </div>
 
       {/* Content */}
-      <div className="p-3">
-        <h3 className="font-display text-base font-semibold text-foreground leading-tight line-clamp-1">
+      <div className="dish-card-copy">
+        <h3 className="dish-card-title font-display font-semibold leading-tight line-clamp-1">
           {dish.name}
         </h3>
         {dish.short_description && (
@@ -130,7 +129,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
         )}
 
         <div className="flex items-center gap-2 mt-2">
-          <span className="text-primary font-bold text-sm">
+          <span className="dish-price">
             {curr}{(dish.sale_price || dish.regular_price).toLocaleString()}
           </span>
           {hasDiscount && (
@@ -167,7 +166,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={(e) => { e.stopPropagation(); menuStore.addToCart(dish); }}
-              className={`w-9 h-9 rounded-xl glass ${showBorders ? 'border border-black dark:border-white/60' : ''} flex items-center justify-center mx-auto`}
+              className="dish-card-icon-button flex items-center justify-center mx-auto"
               title="Add to cart"
             >
               <ShoppingBag className="w-4 h-4 text-foreground/70" />
@@ -177,7 +176,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={(e) => { e.stopPropagation(); onReviewOpen?.(dish); }}
-              className={`w-9 h-9 rounded-xl glass ${showBorders ? 'border border-black dark:border-white/60' : ''} flex items-center justify-center mx-auto`}
+              className="dish-card-icon-button flex items-center justify-center mx-auto"
               title="Review"
             >
               <MessageCircle className="w-4 h-4 text-foreground/70" />
@@ -187,7 +186,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-              className={`w-9 h-9 rounded-xl glass ${showBorders ? 'border border-black dark:border-white/60' : ''} flex items-center justify-center mx-auto`}
+              className="dish-card-icon-button flex items-center justify-center mx-auto"
               title="More"
             >
               <ChevronDown className={`w-4 h-4 text-foreground/70 transition-transform ${expanded ? 'rotate-180' : ''}`} />
