@@ -104,14 +104,16 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
       </AnimatePresence>
 
       {/* Full-width bottom bar — fixed at very bottom edge */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 px-2 pb-1.5">
-        <div className="glass rounded-2xl border border-black dark:border-white/60 flex items-center justify-between px-5 py-2.5 shadow-lg">
+      <div className="menu-bottom-bar-wrap fixed bottom-0 left-0 right-0 z-50">
+        <div className="menu-bottom-bar flex items-center justify-between">
           {/* 1st: Bag icon + cart count */}
           <div className="flex items-center gap-2">
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={onCartClick}
-              className="w-9 h-9 rounded-xl bg-primary text-primary-foreground flex items-center justify-center flex-shrink-0"
+              className="bottom-dock-button flex items-center justify-center flex-shrink-0"
+              aria-label="Open cart"
+              title="Cart"
             >
               <ShoppingBag className="w-4 h-4" />
             </motion.button>
@@ -125,16 +127,18 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
           {/* 2nd: Favorite Heart icon + count */}
           <div className="flex items-center gap-2">
             {favoritesCount > 0 && (
-              <span className="text-sm font-bold text-rose-500 tabular-nums min-w-[16px] text-center">
+              <span className="text-sm font-bold text-accent tabular-nums min-w-[16px] text-center">
                 {favoritesCount}
               </span>
             )}
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={onFavoritesClick}
-              className="w-9 h-9 rounded-xl bg-rose-500 text-white flex items-center justify-center flex-shrink-0"
+              className="bottom-dock-button is-secondary flex items-center justify-center flex-shrink-0"
+              aria-label="Open favorites"
+              title="Favorites"
             >
-              <Heart className="w-4 h-4 fill-white" />
+              <Heart className="w-4 h-4 fill-current" />
             </motion.button>
           </div>
 
@@ -142,7 +146,9 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={onPaymentClick}
-            className="w-9 h-9 rounded-xl bg-green-500 text-white flex items-center justify-center flex-shrink-0"
+            className="bottom-dock-button is-secondary flex items-center justify-center flex-shrink-0"
+            aria-label="Open payment"
+            title="Payment"
           >
             <CreditCard className="w-4 h-4" />
           </motion.button>
@@ -151,7 +157,9 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => setWaiterOpen(true)}
-            className="w-9 h-9 rounded-xl bg-yellow-400 text-white flex items-center justify-center flex-shrink-0"
+            className="bottom-dock-button is-secondary flex items-center justify-center flex-shrink-0"
+            aria-label="Call waiter"
+            title="Call waiter"
           >
             <Bell className="w-4 h-4" />
           </motion.button>
