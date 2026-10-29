@@ -323,12 +323,12 @@ export default function CustomerMenu() {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-32">
       <MenuHeader restaurant={restaurant} onSearchOpen={() => setSearchOpen(true)} onFilterOpen={() => setFilterOpen(true)} onUserClick={() => setAdminOpen(true)} onHistoryClick={() => setHistoryOpen(true)} hideUserIcon={restaurant?.hide_user_icon} />
 
       <div style={{ paddingTop: 'var(--header-h, 64px)' }}>
         <BannerCarousel banners={banners} liveOrderData={liveOrderData} />
-       <CategoryNav categories={sortedCategories} activeCategory={activeCategory} onSelect={setActiveCategory} restaurant={restaurant} />
+        <CategoryNav categories={sortedCategories} activeCategory={activeCategory} onSelect={setActiveCategory} />
         <TopDishesCarousel dishes={topDishes} restaurant={restaurant} />
 
         {/* View Toggle — with proper spacing */}
@@ -348,7 +348,7 @@ export default function CustomerMenu() {
           onClick={() => setViewMode(mode)}
           title={label}
           aria-label={label}
-          className={`flex-1 h-8 rounded-xl border border-black dark:border-white/60 flex items-center justify-center transition-colors ${viewMode === mode ? 'bg-primary text-primary-foreground' : 'glass text-muted-foreground'}`}
+          className={`flex-1 h-9 rounded-xl border border-border flex items-center justify-center transition-colors ${viewMode === mode ? 'bg-primary text-primary-foreground shadow-sm' : 'glass text-muted-foreground hover:text-foreground'}`}
         >
           <Icon className="w-4 h-4 flex-shrink-0" />
         </button>
@@ -360,7 +360,7 @@ export default function CustomerMenu() {
         {/* Dishes */}
 <div className="px-2 pt-3 max-w-7xl mx-auto">
           {viewMode === 'grid' ? (
-           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
+           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
               {visibleDishes.map((dish, index) => (
                 <DishCardGrid key={dish.id} dish={dish} restaurant={restaurant} onReviewOpen={setReviewDish} eager={index < 4} onImageClick={setQuickViewDish} />
               ))}
