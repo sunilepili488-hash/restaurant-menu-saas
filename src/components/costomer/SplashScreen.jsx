@@ -36,7 +36,7 @@ function ClassicSplash({ restaurant }) {
     <>
       <motion.div
         className="absolute w-[500px] h-[500px] rounded-full opacity-20"
-        style={{ background: 'radial-gradient(circle, hsl(38 45% 61%) 0%, transparent 70%)' }}
+        style={{ background: 'radial-gradient(circle, hsl(var(--accent)) 0%, transparent 70%)' }}
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1.5, opacity: 0.15 }}
         transition={{ duration: 2, ease: 'easeOut' }}
