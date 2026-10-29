@@ -28,7 +28,9 @@ export default React.memo(function TopDishesCarousel({ dishes, restaurant }) {
 
   if (!dishes || dishes.length === 0) return null;
   const curr = restaurant?.currency_symbol || '₹';
-  const cardRadius = '0.5rem';
+  const themeVars = restaurant?.theme_css_vars || {};
+  const cardRadius = themeVars['--theme-card-radius'] || themeVars['--radius'] || '1rem';
+  const cardShadow = themeVars['--theme-card-shadow'] || themeVars['--card-shadow'] || '0 8px 24px rgba(20, 35, 30, 0.08)';
 
   return (
     <div className="px-2 max-w-7xl mx-auto pt-3 mb-2">
@@ -55,8 +57,8 @@ export default React.memo(function TopDishesCarousel({ dishes, restaurant }) {
               key={dish.id}
               whileTap={{ scale: 0.97 }}
               onClick={() => setDetailDish(dish)}
-              className="flex-shrink-0 w-32 glass overflow-hidden text-left"
-              style={{ borderRadius: cardRadius }}
+              className="top-dish-card flex-shrink-0 w-36 glass overflow-hidden text-left"
+              style={{ borderRadius: cardRadius, boxShadow: cardShadow }}
             >
               <div className="relative aspect-[4/3] overflow-hidden">
                 <LazyImage
