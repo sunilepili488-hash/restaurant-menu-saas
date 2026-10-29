@@ -32,7 +32,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
   const isLiked = store.likedDishes[dish.id] || false;
   const icons = restaurant?.icon_settings || {};
 
-    const hasDiscount = !!(dish.sale_price && dish.sale_price < dish.regular_price);
+  const hasDiscount = !!(dish.sale_price && dish.sale_price < dish.regular_price);
   const discountPct = hasDiscount
     ? Math.round(((dish.regular_price - dish.sale_price) / dish.regular_price) * 100)
     : 0;
@@ -44,6 +44,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
 
   const isHidden = (key) => icons[key]?.hidden === true;
   const themeVars = restaurant?.theme_css_vars || {};
+  const showBorders = restaurant?.show_card_borders === true;
   const cardRadius = themeVars['--radius'] || '0.75rem';
   const cardShadow = themeVars['--card-shadow'] || 'none';
 
@@ -72,11 +73,11 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
 
   return (
     <motion.div
-      className="glass overflow-hidden group border border-black dark:border-white/60"
+      className={`glass overflow-hidden group ${showBorders ? 'border border-black dark:border-white/60' : ''}`}
       layout={false}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-     style={{ willChange: 'transform, opacity', borderRadius: '0.5rem', boxShadow: cardShadow }}
+      style={{ willChange: 'transform, opacity', borderRadius: '0.5rem', boxShadow: cardShadow }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
     >
       {/* Image */}
@@ -99,12 +100,12 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
           </span>
         </div>
 
-        {/* Heart icon — darker border */}
+        {/* Heart icon */}
         {!isHidden('favorite') && (
           <motion.button
             whileTap={{ scale: 0.8 }}
             onClick={(e) => { e.stopPropagation(); menuStore.toggleFavorite(dish.id); }}
-           className="absolute top-2 right-2 w-8 h-8 rounded-xl bg-black/50 backdrop-blur-sm border border-black dark:border-white/60 flex items-center justify-center shadow-md"
+            className={`absolute top-2 right-2 w-8 h-8 rounded-xl bg-black/50 backdrop-blur-sm ${showBorders ? 'border border-black dark:border-white/60' : ''} flex items-center justify-center shadow-md`}
             title="Favorite"
           >
             <Heart className={`w-4 h-4 transition-colors ${isFav ? 'text-rose-500 fill-rose-500' : 'text-white/90'}`} />
@@ -166,7 +167,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={(e) => { e.stopPropagation(); menuStore.addToCart(dish); }}
-             className="w-9 h-9 rounded-xl glass border border-black dark:border-white/60 flex items-center justify-center mx-auto"
+              className={`w-9 h-9 rounded-xl glass ${showBorders ? 'border border-black dark:border-white/60' : ''} flex items-center justify-center mx-auto`}
               title="Add to cart"
             >
               <ShoppingBag className="w-4 h-4 text-foreground/70" />
@@ -176,7 +177,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={(e) => { e.stopPropagation(); onReviewOpen?.(dish); }}
-              className="w-9 h-9 rounded-xl glass border border-black dark:border-white/60 flex items-center justify-center mx-auto"
+              className={`w-9 h-9 rounded-xl glass ${showBorders ? 'border border-black dark:border-white/60' : ''} flex items-center justify-center mx-auto`}
               title="Review"
             >
               <MessageCircle className="w-4 h-4 text-foreground/70" />
@@ -186,7 +187,7 @@ function DishCardGrid({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
             <motion.button
               whileTap={{ scale: 0.9 }}
               onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-              className="w-9 h-9 rounded-xl glass border border-black dark:border-white/60 flex items-center justify-center mx-auto"
+              className={`w-9 h-9 rounded-xl glass ${showBorders ? 'border border-black dark:border-white/60' : ''} flex items-center justify-center mx-auto`}
               title="More"
             >
               <ChevronDown className={`w-4 h-4 text-foreground/70 transition-transform ${expanded ? 'rotate-180' : ''}`} />
