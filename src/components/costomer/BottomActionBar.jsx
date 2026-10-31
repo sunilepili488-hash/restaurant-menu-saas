@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HandPlatter as ShoppingBag, CreditCard, Bell, X, Receipt, Droplets, HandHelping, Coffee, Heart, Check } from 'lucide-react';
+import {
+  HandPlatter as ShoppingBag, CreditCard, Bell, X,
+  Receipt, Droplets, HandHelping, Coffee, Heart, Check,
+} from 'lucide-react';
 import { menuStore } from '@/lib/menuStore';
 import { entities } from '@/api/entities';
 
@@ -18,15 +21,18 @@ const defaultToastMessages = {
   'Need Refill': 'Your refill is on the way! 🥤',
 };
 
-export default function BottomActionBar({ restaurant, favoritesCount, cartCount, onFavoritesClick, onCartClick, onPaymentClick }) {
+export default function BottomActionBar({
+  restaurant, favoritesCount, cartCount,
+  onFavoritesClick, onCartClick, onPaymentClick,
+}) {
   const [waiterOpen, setWaiterOpen] = useState(false);
   const [toast, setToast] = useState(null);
 
   const options = restaurant?.waiter_call_options?.length
     ? restaurant.waiter_call_options
     : [
-        { label: 'Need Bill', icon: 'receipt' },
-        { label: 'Need Water', icon: 'droplets' },
+        { label: 'Need Bill',   icon: 'receipt' },
+        { label: 'Need Water',  icon: 'droplets' },
         { label: 'Call Waiter', icon: 'hand' },
         { label: 'Need Refill', icon: 'coffee' },
       ];
@@ -34,26 +40,22 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
   const sendAlert = (label) => {
     const state = menuStore.getState();
     const tableNum = state.tableNumber;
-
     entities.Order.create({
       type: 'waiter_call',
       table_number: tableNum,
       waiter_call_label: label,
       status: 'pending',
     });
-
     const opt = options.find(o => o.label === label);
     const toastMsg = opt?.toast_message || defaultToastMessages[label] || `${label} request sent! ✨`;
     setToast(toastMsg);
-    // Change 12: confirmation stays visible for 4 seconds (was 3)
     setTimeout(() => setToast(null), 4000);
-
     setWaiterOpen(false);
   };
 
   return (
     <>
-      {/* Change 1: Waiter call — CENTER modal card (was a bottom sheet) */}
+      {/* ── Waiter Call Modal ── */}
       <AnimatePresence>
         {waiterOpen && (
           <motion.div
@@ -65,21 +67,25 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
             onClick={() => setWaiterOpen(false)}
           >
             <motion.div
-              className="bg-background rounded-2xl p-5 w-full max-w-sm shadow-2xl border border-border"
+              className="rounded-2xl p-5 w-full max-w-sm shadow-2xl border"
+              style={{ background: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}
               initial={{ scale: 0.9, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 10 }}
               transition={{ type: 'spring', stiffness: 550, damping: 34 }}
-              onClick={(e) => e.stopPropagation()}
+              onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-display text-lg font-semibold">Call Waiter</h3>
+                <h3 className="font-display text-lg font-semibold" style={{ color: 'var(--theme-text)' }}>
+                  Call Waiter
+                </h3>
                 <motion.button
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setWaiterOpen(false)}
-                  className="w-8 h-8 rounded-xl bg-secondary flex items-center justify-center"
+                  className="w-8 h-8 rounded-xl flex items-center justify-center"
+                  style={{ background: 'var(--theme-soft-surface)', color: 'var(--theme-text)' }}
                 >
-                  <X className="w-4 h-4 text-foreground" />
+                  <X className="w-4 h-4" />
                 </motion.button>
               </div>
               <div className="space-y-2">
@@ -90,10 +96,19 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
                       key={i}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => sendAlert(opt.label)}
-                      className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl glass hover:bg-secondary/50 transition-colors text-left"
+                      className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-left transition-colors"
+                      style={{
+                        background: 'var(--theme-soft-surface)',
+                        color: 'var(--theme-text)',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--theme-action-color)'}
+                      onMouseLeave={e => e.currentTarget.style.borderColor = 'transparent'}
                     >
-                      <Icon className="w-5 h-5 text-primary" />
-                      <span className="text-sm font-medium text-foreground">{opt.label}</span>
+                      <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                        style={{ background: 'color-mix(in srgb, var(--theme-action-color) 12%, transparent)' }}>
+                        <Icon className="w-4 h-4" style={{ color: 'var(--theme-action-color)' }} />
+                      </div>
+                      <span className="text-sm font-medium">{opt.label}</span>
                     </motion.button>
                   );
                 })}
@@ -103,61 +118,83 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
         )}
       </AnimatePresence>
 
-      {/* Full-width bottom bar — fixed at very bottom edge */}
+      {/* ── Bottom Navigation Dock ── */}
       <div className="menu-bottom-bar-wrap fixed bottom-0 left-0 right-0 z-50">
-        <div className="menu-bottom-bar flex items-center justify-between">
-          {/* 1st: Bag icon + cart count */}
+        <div className="menu-bottom-bar">
+
+          {/* Cart button — primary action */}
           <div className="flex items-center gap-2">
             <motion.button
-              whileTap={{ scale: 0.9 }}
+              whileTap={{ scale: 0.88 }}
               onClick={onCartClick}
-              className="bottom-dock-button flex items-center justify-center flex-shrink-0"
+              className="bottom-dock-button relative"
               aria-label="Open cart"
               title="Cart"
             >
               <ShoppingBag className="w-4 h-4" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
+                  style={{ background: 'var(--theme-accent)', color: '#1a1a1a' }}>
+                  {cartCount > 9 ? '9+' : cartCount}
+                </span>
+              )}
             </motion.button>
             {cartCount > 0 && (
-              <span className="text-sm font-bold text-primary tabular-nums min-w-[16px] text-center">
+              <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--theme-action-color)' }}>
                 {cartCount}
               </span>
             )}
           </div>
 
-          {/* 2nd: Favorite Heart icon + count */}
+          {/* Separator */}
+          <div className="w-px h-6 rounded-full" style={{ background: 'var(--theme-border)' }} />
+
+          {/* Favorites */}
           <div className="flex items-center gap-2">
             {favoritesCount > 0 && (
-              <span className="text-sm font-bold text-accent tabular-nums min-w-[16px] text-center">
+              <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--theme-accent)' }}>
                 {favoritesCount}
               </span>
             )}
             <motion.button
-              whileTap={{ scale: 0.9 }}
+              whileTap={{ scale: 0.88 }}
               onClick={onFavoritesClick}
-              className="bottom-dock-button is-secondary flex items-center justify-center flex-shrink-0"
-              aria-label="Open favorites"
+              className="bottom-dock-button is-secondary relative"
+              aria-label="Favorites"
               title="Favorites"
             >
               <Heart className="w-4 h-4 fill-current" />
+              {favoritesCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
+                  style={{ background: 'var(--theme-accent)', color: '#1a1a1a' }}>
+                  {favoritesCount > 9 ? '9+' : favoritesCount}
+                </span>
+              )}
             </motion.button>
           </div>
 
-          {/* 3rd: Payment (CreditCard) icon */}
+          {/* Separator */}
+          <div className="w-px h-6 rounded-full" style={{ background: 'var(--theme-border)' }} />
+
+          {/* Payment */}
           <motion.button
-            whileTap={{ scale: 0.9 }}
+            whileTap={{ scale: 0.88 }}
             onClick={onPaymentClick}
-            className="bottom-dock-button is-secondary flex items-center justify-center flex-shrink-0"
+            className="bottom-dock-button is-secondary"
             aria-label="Open payment"
             title="Payment"
           >
             <CreditCard className="w-4 h-4" />
           </motion.button>
 
-          {/* 4th: Bell icon (waiter call) */}
+          {/* Separator */}
+          <div className="w-px h-6 rounded-full" style={{ background: 'var(--theme-border)' }} />
+
+          {/* Waiter / Bell */}
           <motion.button
-            whileTap={{ scale: 0.9 }}
+            whileTap={{ scale: 0.88 }}
             onClick={() => setWaiterOpen(true)}
-            className="bottom-dock-button is-secondary flex items-center justify-center flex-shrink-0"
+            className="bottom-dock-button is-secondary"
             aria-label="Call waiter"
             title="Call waiter"
           >
@@ -166,9 +203,7 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
         </div>
       </div>
 
-      {/* Change 12: waiter-call confirmation — CENTER rectangle card, 4 seconds
-          (was a small pill near the top). Uses the per-option toast_message
-          that the owner can already edit in the admin Waiter Call section. */}
+      {/* ── Waiter Toast ── */}
       <AnimatePresence>
         {toast && (
           <motion.div
@@ -179,16 +214,18 @@ export default function BottomActionBar({ restaurant, favoritesCount, cartCount,
             transition={{ duration: 0.12 }}
           >
             <motion.div
-              className="bg-background rounded-2xl shadow-2xl p-6 max-w-sm w-full text-center border border-border pointer-events-auto"
+              className="rounded-2xl shadow-2xl p-6 max-w-sm w-full text-center border pointer-events-auto"
+              style={{ background: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}
               initial={{ scale: 0.85, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.85, opacity: 0, y: 10 }}
               transition={{ type: 'spring', stiffness: 550, damping: 34 }}
             >
-              <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-3">
-                <Check className="w-7 h-7 text-primary" />
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-3"
+                style={{ background: 'color-mix(in srgb, var(--theme-action-color) 12%, transparent)' }}>
+                <Check className="w-7 h-7" style={{ color: 'var(--theme-action-color)' }} />
               </div>
-              <p className="text-sm font-medium text-foreground leading-relaxed">{toast}</p>
+              <p className="text-sm font-medium leading-relaxed" style={{ color: 'var(--theme-text)' }}>{toast}</p>
             </motion.div>
           </motion.div>
         )}
