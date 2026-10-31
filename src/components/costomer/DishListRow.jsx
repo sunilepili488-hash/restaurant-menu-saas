@@ -44,7 +44,7 @@ function DishListRow({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
       <div className="flex-1 min-w-0">
         <h4 className="font-display text-sm font-semibold text-foreground truncate">{dish.name}</h4>
         <div className="flex items-center gap-2 mt-1">
-          <span className="text-primary font-bold text-xs">
+          <span className="dish-price text-xs">
             {curr}{(dish.sale_price || dish.regular_price).toLocaleString()}
           </span>
           {hasDiscount && (
@@ -73,7 +73,7 @@ function DishListRow({ dish, restaurant, onReviewOpen, eager, onImageClick }) {
             <motion.button
               whileTap={{ scale: 0.8 }}
               onClick={() => menuStore.addToCart(dish)}
-              className="w-8 h-8 rounded-xl bg-primary text-primary-foreground flex items-center justify-center"
+              className="w-8 h-8 rounded-xl flex items-center justify-center" style={{background:'var(--theme-action-color)',color:'#FFFFFF'}}
             >
               <ShoppingBag className="w-3.5 h-3.5" />
             </motion.button>
