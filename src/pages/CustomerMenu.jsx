@@ -331,26 +331,27 @@ export default function CustomerMenu() {
         <CategoryNav categories={sortedCategories} activeCategory={activeCategory} onSelect={setActiveCategory} />
         <TopDishesCarousel dishes={topDishes} restaurant={restaurant} />
 
-        {/* View Toggle — with proper spacing */}
+        {/* View Toggle — Premium Segmented Control */}
         <div
   className="sticky z-30 bg-background"
   style={{ top: 'calc(var(--header-h, 64px) + var(--cat-h, 60px))' }}
 >
-  <div className="px-2 py-2 max-w-7xl mx-auto">
-    <div className="flex items-center gap-2">
+  <div className="px-3 py-2 max-w-7xl mx-auto">
+    <div className="view-switcher-wrap">
       {[
-        { mode: 'grid', Icon: LayoutGrid, label: 'Grid view' },
-        { mode: 'list', Icon: List, label: 'List view' },
-        { mode: 'text', Icon: Type, label: 'Text-only view' },
+        { mode: 'grid', Icon: LayoutGrid, label: 'Grid' },
+        { mode: 'list', Icon: List, label: 'List' },
+        { mode: 'text', Icon: Type, label: 'Text' },
       ].map(({ mode, Icon, label }) => (
         <button
           key={mode}
           onClick={() => setViewMode(mode)}
-          title={label}
-          aria-label={label}
-          className={`flex-1 h-9 rounded-xl border border-border flex items-center justify-center transition-colors ${viewMode === mode ? 'bg-primary text-primary-foreground shadow-sm' : 'glass text-muted-foreground hover:text-foreground'}`}
+          title={label + ' view'}
+          aria-label={label + ' view'}
+          className={`view-switcher-btn ${viewMode === mode ? 'is-active' : ''}`}
         >
-          <Icon className="w-4 h-4 flex-shrink-0" />
+          <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+          <span>{label}</span>
         </button>
       ))}
     </div>
@@ -362,7 +363,7 @@ export default function CustomerMenu() {
           {viewMode === 'grid' ? (
            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
               {visibleDishes.map((dish, index) => (
-                <DishCardGrid key={dish.id} dish={dish} restaurant={restaurant} onReviewOpen={setReviewDish} eager={index < 4} onImageClick={setQuickViewDish} />
+                <DishCardGrid key={dish.id} dish={dish} restaurant={restaurant} onReviewOpen={setReviewDish} eager={index < 4} onImageClick={setQuickViewDish} cardIndex={index} />
               ))}
             </div>
           ) : viewMode === 'list' ? (
