@@ -1,59 +1,52 @@
-/* ═══════════════════════════════════════════════════════════════
-   AURA MENU — PREMIUM MULTICOLOR THEME SYSTEM
-   ═══════════════════════════════════════════════════════════════ */
-
+/* ═══════════════════════════════════════════════════════════════════════════
+   BASE THEME VARIABLES (emerald-luxe defaults — overridden per theme below)
+   ═══════════════════════════════════════════════════════════════════════════ */
 :root {
-  --theme-id: emerald-luxe;
-  --theme-primary: #087F5B;
-  --theme-action-color: #087F5B;
-  --theme-secondary: #123D32;
-  --theme-accent: #D8B779;
-  --theme-background: #F5F8F3;
+  --theme-id: saffron-street;
+  --theme-primary: #E8650A;
+  --theme-action-color: #E8650A;
+  --theme-secondary: #B84E08;
+  --theme-accent: #1A1A1A;
+  --theme-background: #FFFBF5;
   --theme-surface: #FFFFFF;
-  --theme-text: #23372E;
-  --theme-muted-text: #64796F;
-  --theme-soft-surface: #E8F0E5;
-  --theme-border: #D2E4D5;
+  --theme-text: #1A1A1A;
+  --theme-muted-text: #6B5E52;
+  --theme-soft-surface: #FFF0E0;
+  --theme-border: #F0D9C0;
   --theme-header-bg: #FFFFFF;
-  --theme-header-border: #D2E4D5;
-  --theme-card-radius: 1.25rem;
-  --theme-button-radius: 0.85rem;
+  --theme-header-border: #F0D9C0;
+  --theme-card-radius: 0.5rem;
+  --theme-button-radius: 0.25rem;
   --theme-pill-radius: 999px;
-  --theme-card-shadow: 0 12px 32px rgba(8, 127, 91, 0.10);
-  --theme-button-shadow: 0 5px 14px rgba(8, 127, 91, 0.22);
-  --theme-heading-font: "Cormorant Garamond", Georgia, serif;
-  --theme-body-font: "DM Sans", sans-serif;
-  /* Extended */
-  --theme-highlight: #DDF3E4;
-  --theme-terracotta: #C87556;
-  --theme-sage: #A8C9A0;
-  --theme-mint: #DDF3E4;
-  --theme-gold: #D8B779;
-  --theme-coral: #C87556;
-  --theme-teal: #087F5B;
-  --theme-plum: #123D32;
-  --theme-lavender: #E8F0E5;
-  --theme-seafoam: #E8F0E5;
+  --theme-card-shadow: 4px 4px 0px #E8650A;
+  --theme-button-shadow: 3px 3px 0px #B84E08;
+  --theme-heading-font: "Bebas Neue", "Impact", sans-serif;
+  --theme-body-font: "Outfit", sans-serif;
 }
 
-html[data-theme="midnight-noir"],
-html[data-theme="custom-dark"] {
+/* ─── Dark theme color-scheme ────────────────────────────────────────────── */
+html[data-theme="neon-nights"],
+html[data-theme="velvet-darbar"] {
   color-scheme: dark;
 }
-html[data-theme]:not([data-theme="midnight-noir"]):not([data-theme="custom-dark"]) {
+
+html[data-theme]:not([data-theme="neon-nights"]):not([data-theme="velvet-darbar"]) {
   color-scheme: light;
 }
+
 html[data-theme] body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
   font-family: var(--theme-body-font, "DM Sans", sans-serif);
 }
+
 html[data-theme] button,
 html[data-theme] input,
 html[data-theme] textarea,
 html[data-theme] select {
   font-family: var(--theme-body-font, "DM Sans", sans-serif);
 }
+
 html[data-theme] button:focus-visible,
 html[data-theme] a:focus-visible,
 html[data-theme] input:focus-visible,
@@ -63,687 +56,42 @@ html[data-theme] [role="button"]:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--theme-accent) 78%, transparent);
   outline-offset: 2px;
 }
+
+html[data-theme] button[class~="bg-primary"] {
+  border-radius: var(--theme-button-radius);
+  box-shadow: var(--theme-button-shadow);
+  transition: filter 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+html[data-theme] button[class~="bg-primary"]:hover:not(:disabled) {
+  filter: brightness(1.04);
+}
+
 html[data-theme] button:disabled {
   cursor: not-allowed;
   opacity: 0.58;
 }
+
 html[data-theme] [class~="border-black"],
 html[data-theme] [class~="dark:border-white/60"] {
   border-color: hsl(var(--border)) !important;
 }
+
 html[data-theme] .glass {
   background-color: color-mix(in srgb, var(--theme-surface) 96%, transparent);
 }
+
 html[data-theme] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
 html[data-theme] textarea,
 html[data-theme] select {
   border-color: hsl(var(--input));
   color: hsl(var(--foreground));
 }
+
 html[data-theme] input::placeholder,
 html[data-theme] textarea::placeholder {
   color: hsl(var(--muted-foreground));
 }
-
-/* ─── THEME BACKGROUNDS ─────────────────────────────────────── */
-
-/* Emerald Garden — botanical radial gradients + leaf silhouette */
-html[data-theme="emerald-luxe"] body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(ellipse 80% 50% at 110% -10%, rgba(168, 201, 160, 0.28) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at -10% 80%, rgba(8, 127, 91, 0.12) 0%, transparent 55%),
-    radial-gradient(ellipse 40% 30% at 80% 95%, rgba(216, 183, 121, 0.14) 0%, transparent 50%);
-}
-html[data-theme="emerald-luxe"] body::after {
-  content: '';
-  position: fixed;
-  top: -60px; right: -60px;
-  width: 320px; height: 320px;
-  pointer-events: none;
-  z-index: 0;
-  background: radial-gradient(circle, rgba(221, 243, 228, 0.55) 0%, transparent 70%);
-  border-radius: 50%;
-}
-
-/* Terracotta Mediterranean — warm layered gradients */
-html[data-theme="terracotta-artisan"] body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(ellipse 70% 45% at 100% 0%, rgba(229, 139, 69, 0.18) 0%, transparent 55%),
-    radial-gradient(ellipse 55% 35% at 0% 90%, rgba(198, 93, 66, 0.14) 0%, transparent 55%),
-    radial-gradient(ellipse 40% 25% at 60% 50%, rgba(232, 187, 86, 0.08) 0%, transparent 50%);
-}
-html[data-theme="terracotta-artisan"] body::after {
-  content: '';
-  position: fixed;
-  bottom: 0; left: 0;
-  width: 280px; height: 280px;
-  pointer-events: none;
-  z-index: 0;
-  background: radial-gradient(circle, rgba(245, 208, 181, 0.4) 0%, transparent 70%);
-  border-radius: 50%;
-}
-
-/* Midnight Royale — deep layered navy gradients */
-html[data-theme="midnight-noir"] body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(ellipse 75% 50% at 105% -5%, rgba(112, 72, 200, 0.20) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 40% at -5% 85%, rgba(76, 141, 255, 0.14) 0%, transparent 55%),
-    radial-gradient(ellipse 45% 30% at 50% 100%, rgba(67, 185, 174, 0.10) 0%, transparent 50%);
-}
-html[data-theme="midnight-noir"] body::after {
-  content: '';
-  position: fixed;
-  top: 10%; right: -80px;
-  width: 350px; height: 350px;
-  pointer-events: none;
-  z-index: 0;
-  background: radial-gradient(circle, rgba(230, 190, 114, 0.07) 0%, transparent 70%);
-  border-radius: 50%;
-}
-
-/* Ocean Carnival — wave-inspired gradients */
-html[data-theme="ocean-sapphire"] body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(ellipse 80% 50% at 100% -10%, rgba(55, 207, 195, 0.20) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 40% at -5% 80%, rgba(25, 118, 210, 0.14) 0%, transparent 55%),
-    radial-gradient(ellipse 40% 25% at 70% 100%, rgba(255, 120, 107, 0.10) 0%, transparent 50%);
-}
-html[data-theme="ocean-sapphire"] body::after {
-  content: '';
-  position: fixed;
-  bottom: -60px; right: -60px;
-  width: 300px; height: 300px;
-  pointer-events: none;
-  z-index: 0;
-  background: radial-gradient(circle, rgba(200, 183, 244, 0.25) 0%, transparent 70%);
-  border-radius: 50%;
-}
-
-/* Ruby Festival — warm geometric decorative bg */
-html[data-theme="ruby-royale"] body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    radial-gradient(ellipse 75% 45% at 105% -5%, rgba(243, 155, 50, 0.18) 0%, transparent 55%),
-    radial-gradient(ellipse 55% 35% at -5% 85%, rgba(165, 31, 67, 0.14) 0%, transparent 55%),
-    radial-gradient(ellipse 40% 25% at 50% 50%, rgba(100, 58, 120, 0.06) 0%, transparent 50%);
-}
-html[data-theme="ruby-royale"] body::after {
-  content: '';
-  position: fixed;
-  top: 0; right: -50px;
-  width: 260px; height: 260px;
-  pointer-events: none;
-  z-index: 0;
-  background: radial-gradient(circle, rgba(252, 232, 212, 0.55) 0%, transparent 70%);
-  border-radius: 50%;
-}
-
-/* ─── HEADER ────────────────────────────────────────────────── */
-
-.menu-header-surface {
-  background-color: color-mix(in srgb, var(--theme-header-bg) 94%, transparent);
-  border-color: var(--theme-header-border);
-  box-shadow: 0 4px 20px rgba(20, 35, 30, 0.06);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  position: relative;
-  z-index: 50;
-}
-
-/* Emerald — gold top accent line */
-html[data-theme="emerald-luxe"] .menu-header-surface {
-  border-top: 2.5px solid var(--theme-gold);
-  box-shadow: 0 4px 20px rgba(8, 127, 91, 0.08), 0 1px 0 rgba(216, 183, 121, 0.4);
-}
-/* Midnight — purple glow */
-html[data-theme="midnight-noir"] .menu-header-surface {
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.32), 0 1px 0 rgba(112, 72, 200, 0.25);
-  border-bottom-color: rgba(112, 72, 200, 0.3);
-}
-/* Ruby — ruby-red accent line */
-html[data-theme="ruby-royale"] .menu-header-surface {
-  border-top: 2px solid var(--theme-primary);
-  box-shadow: 0 4px 20px rgba(165, 31, 67, 0.08);
-}
-/* Ocean — aqua glow */
-html[data-theme="ocean-sapphire"] .menu-header-surface {
-  border-bottom-color: rgba(55, 207, 195, 0.35);
-}
-
-/* ─── HEADER ICON BUTTONS ───────────────────────────────────── */
-
-.menu-icon-button {
-  width: 2.6rem;
-  height: 2.6rem;
-  border: 1px solid var(--theme-border);
-  border-radius: var(--theme-button-radius);
-  background: var(--theme-surface);
-  color: var(--theme-action-color);
-  box-shadow: 0 2px 8px rgba(25, 45, 36, 0.06);
-  transition: transform 160ms ease, background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
-}
-.menu-icon-button:hover {
-  background: var(--theme-soft-surface);
-  transform: translateY(-1px);
-  box-shadow: 0 5px 14px rgba(25, 45, 36, 0.10);
-}
-
-/* Theme-specific icon button accent colors */
-html[data-theme="midnight-noir"] .menu-icon-button {
-  background: var(--theme-soft-surface);
-  border-color: rgba(112, 72, 200, 0.3);
-  color: var(--theme-gold);
-}
-html[data-theme="midnight-noir"] .menu-icon-button:hover {
-  border-color: rgba(112, 72, 200, 0.6);
-  background: rgba(112, 72, 200, 0.12);
-}
-html[data-theme="terracotta-artisan"] .menu-icon-button {
-  color: var(--theme-primary);
-  border-color: rgba(198, 93, 66, 0.25);
-}
-html[data-theme="ocean-sapphire"] .menu-icon-button {
-  color: var(--theme-primary);
-  border-color: rgba(55, 207, 195, 0.3);
-}
-html[data-theme="ocean-sapphire"] .menu-icon-button:hover {
-  border-color: var(--theme-accent);
-  background: rgba(55, 207, 195, 0.08);
-}
-html[data-theme="ruby-royale"] .menu-icon-button {
-  color: var(--theme-primary);
-  border-color: rgba(165, 31, 67, 0.2);
-}
-
-/* ─── CATEGORY NAV ─────────────────────────────────────────── */
-
-.menu-category-nav {
-  background-color: color-mix(in srgb, var(--theme-header-bg) 95%, transparent);
-  border-color: var(--theme-border);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  position: relative;
-  z-index: 40;
-}
-
-.category-pill {
-  min-height: 2.4rem;
-  padding: 0.5rem 1rem;
-  border: 1.5px solid var(--theme-border);
-  border-radius: var(--theme-pill-radius);
-  background: var(--theme-surface);
-  color: var(--theme-muted-text);
-  font-size: 0.825rem;
-  font-weight: 600;
-  line-height: 1;
-  white-space: nowrap;
-  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
-}
-.category-pill:hover {
-  color: var(--theme-action-color);
-  border-color: var(--theme-action-color);
-  transform: translateY(-1px);
-}
-
-/* Active category — theme-specific distinct styling */
-.category-pill.is-active {
-  border-color: var(--theme-action-color);
-  background: var(--theme-action-color);
-  color: #FFFFFF;
-  box-shadow: var(--theme-button-shadow);
-  transform: translateY(-1px);
-}
-
-/* Emerald active — gold text on deep green */
-html[data-theme="emerald-luxe"] .category-pill.is-active {
-  background: linear-gradient(135deg, #087F5B 0%, #0A9468 100%);
-  color: #FFFFFF;
-  border-color: #087F5B;
-  box-shadow: 0 4px 14px rgba(8, 127, 91, 0.30);
-}
-/* Terracotta active — warm orange bg */
-html[data-theme="terracotta-artisan"] .category-pill.is-active {
-  background: linear-gradient(135deg, #C65D42 0%, #D46B50 100%);
-  box-shadow: 0 4px 14px rgba(198, 93, 66, 0.30);
-}
-/* Midnight active — purple glow */
-html[data-theme="midnight-noir"] .category-pill {
-  background: rgba(37, 43, 58, 0.8);
-  border-color: rgba(112, 72, 200, 0.2);
-  color: var(--theme-muted-text);
-}
-html[data-theme="midnight-noir"] .category-pill:hover {
-  border-color: rgba(112, 72, 200, 0.6);
-  color: var(--theme-gold);
-}
-html[data-theme="midnight-noir"] .category-pill.is-active {
-  background: linear-gradient(135deg, #7048C8 0%, #8156D8 100%);
-  border-color: #7048C8;
-  color: #FFFFFF;
-  box-shadow: 0 4px 16px rgba(112, 72, 200, 0.40);
-}
-/* Ocean active — aqua teal */
-html[data-theme="ocean-sapphire"] .category-pill.is-active {
-  background: linear-gradient(135deg, #1976D2 0%, #2085E0 100%);
-  box-shadow: 0 4px 14px rgba(55, 207, 195, 0.25), 0 2px 8px rgba(25, 118, 210, 0.25);
-}
-/* Ruby active — rose pink indicator bar variant */
-html[data-theme="ruby-royale"] .category-pill.is-active {
-  background: linear-gradient(135deg, #A51F43 0%, #B82A4F 100%);
-  border-color: #A51F43;
-  box-shadow: 0 4px 14px rgba(165, 31, 67, 0.30);
-}
-
-.category-overflow-button {
-  width: 2.4rem;
-  height: 2.4rem;
-  border: 1.5px solid var(--theme-border);
-  border-radius: var(--theme-pill-radius);
-  background: var(--theme-soft-surface);
-  color: var(--theme-action-color);
-  transition: background 160ms, border-color 160ms, transform 160ms;
-}
-.category-overflow-button:hover {
-  border-color: var(--theme-action-color);
-  transform: translateY(-1px);
-}
-html[data-theme="midnight-noir"] .category-overflow-button {
-  background: rgba(37, 43, 58, 0.8);
-  color: var(--theme-gold);
-  border-color: rgba(112, 72, 200, 0.25);
-}
-
-/* ─── DISH CARD — BASE ─────────────────────────────────────── */
-
-.dish-card {
-  border: 1px solid var(--theme-border);
-  border-radius: var(--theme-card-radius);
-  background: var(--theme-surface);
-  box-shadow: var(--theme-card-shadow);
-  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.dish-card-image {
-  aspect-ratio: 4 / 3;
-  background: var(--theme-soft-surface);
-  position: relative;
-  overflow: hidden;
-}
-
-/* Emerald — subtle mint gradient overlay on card top */
-html[data-theme="emerald-luxe"] .dish-card {
-  border-color: rgba(210, 228, 213, 0.8);
-}
-html[data-theme="emerald-luxe"] .dish-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #087F5B 0%, #D8B779 100%);
-  opacity: 0;
-  transition: opacity 200ms ease;
-  z-index: 1;
-}
-html[data-theme="emerald-luxe"] .dish-card:hover::before { opacity: 1; }
-
-/* Terracotta — warm orange-left accent border */
-html[data-theme="terracotta-artisan"] .dish-card {
-  border-color: rgba(237, 213, 187, 0.8);
-}
-html[data-theme="terracotta-artisan"] .dish-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; bottom: 0;
-  width: 3px;
-  background: linear-gradient(180deg, #C65D42 0%, #E8BB56 100%);
-  opacity: 0;
-  transition: opacity 200ms ease;
-  z-index: 1;
-}
-html[data-theme="terracotta-artisan"] .dish-card:hover::before { opacity: 1; }
-
-/* Midnight — purple-gold gradient top line */
-html[data-theme="midnight-noir"] .dish-card {
-  border-color: rgba(53, 60, 82, 0.9);
-  background: linear-gradient(160deg, rgba(30, 33, 48, 0.98) 0%, rgba(25, 28, 45, 0.98) 100%);
-}
-html[data-theme="midnight-noir"] .dish-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #7048C8 0%, #E6BE72 50%, #43B9AE 100%);
-  z-index: 1;
-}
-
-/* Ocean — aqua-coral top accent on hover */
-html[data-theme="ocean-sapphire"] .dish-card {
-  border-color: rgba(200, 228, 244, 0.8);
-}
-html[data-theme="ocean-sapphire"] .dish-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, #1976D2 0%, #37CFC3 50%, #FF786B 100%);
-  opacity: 0;
-  transition: opacity 200ms ease;
-  z-index: 1;
-}
-html[data-theme="ocean-sapphire"] .dish-card:hover::before { opacity: 1; }
-
-/* Ruby — gold-ruby accent on right side */
-html[data-theme="ruby-royale"] .dish-card {
-  border-color: rgba(239, 213, 216, 0.8);
-}
-html[data-theme="ruby-royale"] .dish-card::before {
-  content: '';
-  position: absolute;
-  top: 0; right: 0; bottom: 0;
-  width: 2px;
-  background: linear-gradient(180deg, #F39B32 0%, #A51F43 100%);
-  opacity: 0;
-  transition: opacity 200ms ease;
-  z-index: 1;
-}
-html[data-theme="ruby-royale"] .dish-card:hover::before { opacity: 1; }
-
-/* ─── CARD CONTENT ─────────────────────────────────────────── */
-
-.dish-card-copy {
-  padding: 0.85rem;
-}
-.dish-card-title {
-  color: var(--theme-text);
-  font-family: var(--theme-heading-font, "Lora", Georgia, serif);
-  font-size: 1rem;
-  line-height: 1.2;
-  font-weight: 600;
-}
-
-/* Price — theme-specific colors */
-.dish-price {
-  font-size: 1rem;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-html[data-theme="emerald-luxe"] .dish-price { color: var(--theme-gold); }
-html[data-theme="terracotta-artisan"] .dish-price { color: var(--theme-primary); }
-html[data-theme="midnight-noir"] .dish-price { color: var(--theme-gold); }
-html[data-theme="ocean-sapphire"] .dish-price { color: var(--theme-primary); }
-html[data-theme="ruby-royale"] .dish-price { color: var(--theme-accent); }
-
-/* ─── DISCOUNT BADGE — MULTICOLOR ─────────────────────────── */
-
-/* Override generic bg-primary badge with theme-aware colors */
-html[data-theme="emerald-luxe"] .dish-card .bg-primary.text-primary-foreground {
-  background: var(--theme-terracotta) !important;
-  color: #FFFFFF !important;
-}
-html[data-theme="terracotta-artisan"] .dish-card .bg-primary.text-primary-foreground {
-  background: var(--theme-secondary) !important;
-  color: #FFFFFF !important;
-}
-html[data-theme="midnight-noir"] .dish-card .bg-primary.text-primary-foreground {
-  background: var(--theme-coral) !important;
-  color: #FFFFFF !important;
-}
-html[data-theme="ocean-sapphire"] .dish-card .bg-primary.text-primary-foreground {
-  background: var(--theme-coral) !important;
-  color: #FFFFFF !important;
-}
-html[data-theme="ruby-royale"] .dish-card .bg-primary.text-primary-foreground {
-  background: var(--theme-teal) !important;
-  color: #FFFFFF !important;
-}
-
-/* ─── CARD ICON BUTTONS ─────────────────────────────────────── */
-
-.dish-card-icon-button {
-  width: 2.45rem;
-  height: 2.45rem;
-  border: 1px solid var(--theme-border);
-  border-radius: var(--theme-button-radius);
-  background: var(--theme-soft-surface);
-  color: var(--theme-action-color);
-  transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease, color 160ms ease;
-}
-.dish-card-icon-button:hover {
-  background: var(--theme-action-color);
-  border-color: var(--theme-action-color);
-  color: #FFFFFF;
-  transform: scale(1.06);
-}
-html[data-theme="midnight-noir"] .dish-card-icon-button {
-  background: rgba(37, 43, 58, 0.8);
-  border-color: rgba(112, 72, 200, 0.25);
-  color: var(--theme-gold);
-}
-html[data-theme="midnight-noir"] .dish-card-icon-button:hover {
-  background: var(--theme-plum);
-  border-color: var(--theme-plum);
-  color: #FFFFFF;
-}
-
-/* ─── LIST ROW (list view) ─────────────────────────────────── */
-
-html[data-theme] .top-dish-card,
-html[data-theme] .menu-product-row,
-html[data-theme] .menu-text-row {
-  border: 1px solid var(--theme-border);
-  background-color: var(--theme-surface);
-  box-shadow: 0 6px 20px color-mix(in srgb, var(--theme-action-color) 7%, transparent);
-  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
-}
-html[data-theme="midnight-noir"] .menu-product-row,
-html[data-theme="midnight-noir"] .menu-text-row {
-  background: linear-gradient(160deg, rgba(30, 33, 48, 0.98) 0%, rgba(25, 28, 45, 0.98) 100%);
-  border-color: rgba(53, 60, 82, 0.9);
-}
-
-/* List row — price color */
-html[data-theme="emerald-luxe"] .menu-product-row .text-primary,
-html[data-theme="midnight-noir"] .menu-product-row .text-primary {
-  color: var(--theme-gold) !important;
-}
-html[data-theme="ruby-royale"] .menu-product-row .text-primary {
-  color: var(--theme-accent) !important;
-}
-
-/* ─── VIEW SWITCHER — SEGMENTED CONTROL ─────────────────────── */
-
-.view-switcher-wrap {
-  display: flex;
-  align-items: center;
-  background: var(--theme-soft-surface);
-  border: 1px solid var(--theme-border);
-  border-radius: var(--theme-pill-radius);
-  padding: 3px;
-  gap: 2px;
-}
-.view-switcher-btn {
-  flex: 1;
-  height: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: calc(var(--theme-pill-radius) - 3px);
-  color: var(--theme-muted-text);
-  font-size: 0.78rem;
-  font-weight: 600;
-  gap: 0.35rem;
-  transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
-  cursor: pointer;
-  border: none;
-  background: transparent;
-  white-space: nowrap;
-  padding: 0 0.75rem;
-}
-.view-switcher-btn:hover {
-  color: var(--theme-action-color);
-  background: rgba(255,255,255,0.5);
-}
-.view-switcher-btn.is-active {
-  background: var(--theme-surface);
-  color: var(--theme-action-color);
-  box-shadow: 0 2px 8px rgba(20,35,30,0.10);
-}
-
-/* Theme-specific active states */
-html[data-theme="emerald-luxe"] .view-switcher-btn.is-active {
-  background: var(--theme-primary);
-  color: #FFFFFF;
-  box-shadow: 0 3px 10px rgba(8, 127, 91, 0.25);
-}
-html[data-theme="terracotta-artisan"] .view-switcher-btn.is-active {
-  background: var(--theme-primary);
-  color: #FFFFFF;
-  box-shadow: 0 3px 10px rgba(198, 93, 66, 0.25);
-}
-html[data-theme="midnight-noir"] .view-switcher-wrap {
-  background: rgba(37, 43, 58, 0.8);
-  border-color: rgba(112, 72, 200, 0.25);
-}
-html[data-theme="midnight-noir"] .view-switcher-btn.is-active {
-  background: linear-gradient(135deg, #7048C8 0%, #8156D8 100%);
-  color: #FFFFFF;
-  box-shadow: 0 3px 12px rgba(112, 72, 200, 0.35);
-}
-html[data-theme="ocean-sapphire"] .view-switcher-btn.is-active {
-  background: var(--theme-primary);
-  color: #FFFFFF;
-  box-shadow: 0 3px 10px rgba(25, 118, 210, 0.25);
-}
-html[data-theme="ruby-royale"] .view-switcher-btn.is-active {
-  background: var(--theme-primary);
-  color: #FFFFFF;
-  box-shadow: 0 3px 10px rgba(165, 31, 67, 0.25);
-}
-
-/* ─── BOTTOM NAVIGATION DOCK ──────────────────────────────── */
-
-.menu-bottom-bar-wrap {
-  padding: 0 0.75rem max(0.6rem, env(safe-area-inset-bottom));
-}
-.menu-bottom-bar {
-  width: min(100%, 28rem);
-  margin: 0 auto;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--theme-border);
-  border-radius: 1.25rem;
-  background: color-mix(in srgb, var(--theme-surface) 96%, transparent);
-  box-shadow: 0 10px 28px rgba(19, 37, 31, 0.14), 0 2px 8px rgba(19, 37, 31, 0.08);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-html[data-theme="midnight-noir"] .menu-bottom-bar {
-  background: color-mix(in srgb, #1E2130 96%, transparent);
-  border-color: rgba(53, 60, 82, 0.9);
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.30);
-}
-
-/* Primary dock button — cart */
-.bottom-dock-button {
-  width: 2.6rem;
-  height: 2.6rem;
-  border-radius: var(--theme-button-radius);
-  background: var(--theme-action-color);
-  color: #FFFFFF;
-  box-shadow: var(--theme-button-shadow);
-  transition: transform 160ms ease, filter 160ms ease, box-shadow 160ms ease;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.bottom-dock-button:hover {
-  filter: brightness(1.06);
-  transform: translateY(-1px);
-}
-.bottom-dock-button:active {
-  transform: scale(0.93);
-}
-
-/* Secondary dock buttons */
-.bottom-dock-button.is-secondary {
-  border: 1.5px solid var(--theme-border);
-  background: var(--theme-soft-surface);
-  color: var(--theme-action-color);
-  box-shadow: none;
-}
-.bottom-dock-button.is-secondary:hover {
-  border-color: var(--theme-action-color);
-  background: color-mix(in srgb, var(--theme-action-color) 10%, var(--theme-surface));
-}
-
-/* Midnight — heart button uses magenta/coral, bell uses teal */
-html[data-theme="midnight-noir"] .bottom-dock-button {
-  background: linear-gradient(135deg, #7048C8 0%, #8156D8 100%);
-  box-shadow: 0 4px 14px rgba(112, 72, 200, 0.35);
-}
-html[data-theme="midnight-noir"] .bottom-dock-button.is-secondary {
-  background: rgba(37, 43, 58, 0.8);
-  border-color: rgba(53, 60, 82, 0.9);
-  color: var(--theme-gold);
-}
-html[data-theme="midnight-noir"] .bottom-dock-button.is-secondary:hover {
-  border-color: rgba(112, 72, 200, 0.5);
-  color: #FFFFFF;
-  background: rgba(112, 72, 200, 0.15);
-}
-
-/* Ocean — coral for favorites */
-html[data-theme="ocean-sapphire"] .bottom-dock-button {
-  background: linear-gradient(135deg, #1976D2 0%, #2085E0 100%);
-}
-
-/* Terracotta — warm buttons */
-html[data-theme="terracotta-artisan"] .bottom-dock-button {
-  background: linear-gradient(135deg, #C65D42 0%, #D46B50 100%);
-}
-
-/* Emerald — lush green */
-html[data-theme="emerald-luxe"] .bottom-dock-button {
-  background: linear-gradient(135deg, #087F5B 0%, #0A9468 100%);
-}
-
-/* Ruby — ruby gradient */
-html[data-theme="ruby-royale"] .bottom-dock-button {
-  background: linear-gradient(135deg, #A51F43 0%, #B82A4F 100%);
-}
-
-/* ─── AMBER OVERRIDES ─────────────────────────────────────── */
 
 html[data-theme] [class*="text-amber-"] {
   color: var(--theme-accent) !important;
@@ -755,27 +103,179 @@ html[data-theme] [class*="border-amber-"] {
   border-color: color-mix(in srgb, var(--theme-accent) 42%, var(--theme-border)) !important;
 }
 
-/* ─── HOVER INTERACTIONS ──────────────────────────────────── */
 
-@media (hover: hover) {
-  .dish-card:hover,
-  .top-dish-card:hover,
-  .menu-product-row:hover,
-  .menu-text-row:hover {
-    transform: translateY(-3px);
-    border-color: color-mix(in srgb, var(--theme-action-color) 32%, var(--theme-border));
-    box-shadow: 0 16px 38px color-mix(in srgb, var(--theme-action-color) 14%, transparent);
-  }
+/* ═══════════════════════════════════════════════════════════════════════════
+   HEADER
+   ═══════════════════════════════════════════════════════════════════════════ */
+.menu-header-surface {
+  background-color: color-mix(in srgb, var(--theme-header-bg) 96%, transparent);
+  border-color: var(--theme-header-border);
+  box-shadow: 0 8px 24px rgba(20, 35, 30, 0.06);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
-/* ─── THEME CHOICE CARDS (Admin) ─────────────────────────── */
+.menu-icon-button {
+  width: 2.65rem;
+  height: 2.65rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-button-radius);
+  background: var(--theme-surface);
+  color: var(--theme-action-color);
+  box-shadow: 0 3px 10px rgba(25, 45, 36, 0.06);
+  transition: transform 160ms ease, background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+.menu-icon-button:hover {
+  background: var(--theme-soft-surface);
+  box-shadow: 0 6px 16px rgba(25, 45, 36, 0.10);
+}
 
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CATEGORY NAV — BASE
+   ═══════════════════════════════════════════════════════════════════════════ */
+.menu-category-nav {
+  background-color: color-mix(in srgb, var(--theme-header-bg) 96%, transparent);
+  border-color: var(--theme-border);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.category-pill {
+  min-height: 2.6rem;
+  padding: 0.62rem 1rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-pill-radius);
+  background: var(--theme-surface);
+  color: var(--theme-muted-text);
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+.category-pill:hover {
+  color: var(--theme-action-color);
+  border-color: var(--theme-action-color);
+  transform: translateY(-1px);
+}
+.category-pill.is-active {
+  border-color: var(--theme-action-color);
+  background: var(--theme-action-color);
+  color: hsl(var(--primary-foreground));
+  box-shadow: var(--theme-button-shadow);
+}
+
+.category-overflow-button {
+  width: 2.6rem;
+  height: 2.6rem;
+  border: 1px solid var(--theme-border);
+  background: var(--theme-soft-surface);
+  color: var(--theme-action-color);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DISH CARD — BASE
+   ═══════════════════════════════════════════════════════════════════════════ */
+.dish-card {
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-card-radius);
+  background: var(--theme-surface);
+  box-shadow: var(--theme-card-shadow);
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+}
+.dish-card-image {
+  aspect-ratio: 4 / 3;
+  background: var(--theme-soft-surface);
+}
+.dish-card-copy {
+  padding: 0.9rem;
+}
+.dish-card-title {
+  color: var(--theme-text);
+  font-family: var(--theme-heading-font, "Lora", Georgia, serif);
+  font-size: 1.05rem;
+  line-height: 1.15;
+}
+.dish-price {
+  color: var(--theme-primary);
+  font-size: 1rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.dish-card-icon-button {
+  width: 2.55rem;
+  height: 2.55rem;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-button-radius);
+  background: var(--theme-soft-surface);
+  color: var(--theme-action-color);
+  transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+.dish-card-icon-button:hover {
+  background: var(--theme-action-color);
+  border-color: var(--theme-action-color);
+  color: hsl(var(--primary-foreground));
+}
+
+html[data-theme] .top-dish-card,
+html[data-theme] .menu-product-row,
+html[data-theme] .menu-text-row {
+  border: 1px solid var(--theme-border);
+  background-color: var(--theme-surface);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--theme-action-color) 8%, transparent);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BOTTOM BAR
+   ═══════════════════════════════════════════════════════════════════════════ */
+.menu-bottom-bar-wrap {
+  padding: 0 0.7rem max(0.5rem, env(safe-area-inset-bottom));
+}
+.menu-bottom-bar {
+  width: min(100%, 34rem);
+  margin: 0 auto;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--theme-border);
+  border-radius: 1.15rem;
+  background: color-mix(in srgb, var(--theme-surface) 96%, transparent);
+  box-shadow: 0 12px 32px rgba(19, 37, 31, 0.16);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+.bottom-dock-button {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: var(--theme-button-radius);
+  background: var(--theme-action-color);
+  color: hsl(var(--primary-foreground));
+  box-shadow: var(--theme-button-shadow);
+  transition: transform 160ms ease, filter 160ms ease, box-shadow 160ms ease;
+}
+.bottom-dock-button:hover {
+  filter: brightness(1.05);
+  box-shadow: 0 7px 18px rgba(19, 37, 31, 0.18);
+}
+.bottom-dock-button.is-secondary {
+  border: 1px solid var(--theme-border);
+  background: var(--theme-soft-surface);
+  color: var(--theme-action-color);
+  box-shadow: none;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME SELECTOR CARDS (admin panel)
+   ═══════════════════════════════════════════════════════════════════════════ */
 .theme-choice {
   position: relative;
   display: block;
   width: 100%;
   overflow: hidden;
-  border: 1.5px solid hsl(var(--border));
+  border: 1px solid hsl(var(--border));
   border-radius: 1.1rem;
   background: hsl(var(--card));
   color: hsl(var(--foreground));
@@ -809,7 +309,8 @@ html[data-theme] [class*="border-amber-"] {
 }
 .theme-preview-mark {
   display: grid;
-  width: 1.2rem; height: 1.2rem;
+  width: 1.2rem;
+  height: 1.2rem;
   place-items: center;
   border-radius: 0.35rem;
   background: var(--preview-primary);
@@ -824,13 +325,18 @@ html[data-theme] [class*="border-amber-"] {
 .theme-preview-lines i,
 .theme-preview-food-copy i {
   display: block;
-  width: 42%; height: 0.22rem;
+  width: 42%;
+  height: 0.22rem;
   border-radius: 999px;
   background: color-mix(in srgb, var(--preview-text) 22%, transparent);
 }
-.theme-preview-lines i + i { width: 26%; opacity: 0.65; }
+.theme-preview-lines i + i {
+  width: 26%;
+  opacity: 0.65;
+}
 .theme-preview-search {
-  width: 0.9rem; height: 0.9rem;
+  width: 0.9rem;
+  height: 0.9rem;
   border: 1px solid color-mix(in srgb, var(--preview-text) 28%, transparent);
   border-radius: 50%;
 }
@@ -845,7 +351,8 @@ html[data-theme] [class*="border-amber-"] {
   background: var(--preview-surface);
 }
 .theme-preview-image {
-  width: 2.7rem; height: 2.4rem;
+  width: 2.7rem;
+  height: 2.4rem;
   flex: 0 0 auto;
   border-radius: 0.55rem;
   background:
@@ -899,14 +406,16 @@ html[data-theme] [class*="border-amber-"] {
   gap: 0.35rem;
 }
 .theme-choice-swatches span {
-  width: 1rem; height: 1rem;
+  width: 1rem;
+  height: 1rem;
   border: 2px solid hsl(var(--card));
   border-radius: 50%;
   box-shadow: 0 0 0 1px hsl(var(--border));
 }
 .theme-choice-check {
   display: grid;
-  width: 1.55rem; height: 1.55rem;
+  width: 1.55rem;
+  height: 1.55rem;
   flex: 0 0 auto;
   place-items: center;
   border-radius: 50%;
@@ -914,25 +423,484 @@ html[data-theme] [class*="border-amber-"] {
   color: hsl(var(--preview-action-foreground, 0 0% 100%));
 }
 
-/* ─── RESPONSIVE ─────────────────────────────────────────── */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME 1 — SAFFRON STREET
+   Bold street-food. Flat shadow (offset box-shadow), thick borders,
+   square cards, ALL-CAPS heading font.
+   ═══════════════════════════════════════════════════════════════════════════ */
+html[data-theme="saffron-street"] .dish-card {
+  border: 2px solid #1A1A1A;
+  border-radius: 0.5rem;
+  box-shadow: 4px 4px 0px #E8650A;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+html[data-theme="saffron-street"] .dish-card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #E8650A;
+}
+html[data-theme="saffron-street"] .dish-card-image {
+  aspect-ratio: 1 / 1;
+  border-bottom: 2px solid #1A1A1A;
+}
+html[data-theme="saffron-street"] .dish-card-title {
+  font-family: "Bebas Neue", "Impact", sans-serif;
+  font-size: 1.25rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #1A1A1A;
+}
+html[data-theme="saffron-street"] .dish-price {
+  color: #E8650A;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+html[data-theme="saffron-street"] .dish-card-icon-button {
+  border: 2px solid #1A1A1A;
+  border-radius: 0.25rem;
+  background: #FFFBF5;
+  color: #1A1A1A;
+  box-shadow: 2px 2px 0px #E8650A;
+}
+html[data-theme="saffron-street"] .dish-card-icon-button:hover {
+  background: #E8650A;
+  color: #FFFFFF;
+  border-color: #1A1A1A;
+  box-shadow: none;
+  transform: translate(2px, 2px);
+}
+html[data-theme="saffron-street"] .category-pill {
+  border: 2px solid #1A1A1A;
+  border-radius: 0.25rem;
+  font-family: "Bebas Neue", "Impact", sans-serif;
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  background: #FFFBF5;
+  color: #1A1A1A;
+  box-shadow: 2px 2px 0px #F0D9C0;
+  padding: 0.5rem 1rem;
+}
+html[data-theme="saffron-street"] .category-pill.is-active {
+  background: #E8650A;
+  color: #FFFFFF;
+  border-color: #1A1A1A;
+  box-shadow: 2px 2px 0px #B84E08;
+}
+html[data-theme="saffron-street"] .category-pill:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px #E8650A;
+}
+html[data-theme="saffron-street"] .menu-bottom-bar {
+  border: 2px solid #1A1A1A;
+  border-radius: 0.5rem;
+  box-shadow: 4px 4px 0px #E8650A;
+}
+html[data-theme="saffron-street"] .bottom-dock-button {
+  border: 2px solid #1A1A1A;
+  border-radius: 0.25rem;
+  box-shadow: 2px 2px 0px #B84E08;
+}
+html[data-theme="saffron-street"] .menu-header-surface {
+  border-bottom: 3px solid #1A1A1A;
+  box-shadow: 0 4px 0px #E8650A;
+}
+html[data-theme="saffron-street"] .dish-price { color: #E8650A; }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME 2 — NEON NIGHTS
+   Dark club/lounge. Glowing borders, neon pink buttons, no border-radius
+   on buttons, glowing card hover, uppercase tracking.
+   ═══════════════════════════════════════════════════════════════════════════ */
+html[data-theme="neon-nights"] .dish-card {
+  border: 1px solid #2A0A1A;
+  border-radius: 0.75rem;
+  background: #121212;
+  box-shadow: 0 0 0 1px #2A0A1A, 0 4px 20px rgba(0,0,0,0.5);
+  transition: box-shadow 200ms ease, border-color 200ms ease;
+}
+html[data-theme="neon-nights"] .dish-card:hover {
+  border-color: #FF2D78;
+  box-shadow: 0 0 0 1px #FF2D78, 0 0 20px rgba(255, 45, 120, 0.30), 0 4px 20px rgba(0,0,0,0.5);
+  transform: none;
+}
+html[data-theme="neon-nights"] .dish-card-image {
+  aspect-ratio: 16 / 9;
+}
+html[data-theme="neon-nights"] .dish-card-title {
+  font-family: "Space Grotesk", "DM Sans", sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #F0F0F0;
+}
+html[data-theme="neon-nights"] .dish-price {
+  color: #00F5D4;
+  font-family: "Space Grotesk", monospace;
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-shadow: 0 0 8px rgba(0, 245, 212, 0.6);
+}
+html[data-theme="neon-nights"] .dish-card-icon-button {
+  border: 1px solid #FF2D78;
+  border-radius: 0;
+  background: transparent;
+  color: #FF2D78;
+  box-shadow: none;
+}
+html[data-theme="neon-nights"] .dish-card-icon-button:hover {
+  background: #FF2D78;
+  color: #080808;
+  box-shadow: 0 0 12px rgba(255, 45, 120, 0.5);
+}
+html[data-theme="neon-nights"] .category-pill {
+  border: 1px solid #2A0A1A;
+  border-radius: 0;
+  background: #0D0D0D;
+  color: #888888;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+html[data-theme="neon-nights"] .category-pill.is-active {
+  border-color: #FF2D78;
+  background: #FF2D78;
+  color: #080808;
+  box-shadow: 0 0 12px rgba(255, 45, 120, 0.4);
+}
+html[data-theme="neon-nights"] .category-pill:hover {
+  border-color: #FF2D78;
+  color: #FF2D78;
+  transform: none;
+}
+html[data-theme="neon-nights"] .menu-header-surface {
+  border-bottom: 1px solid #FF2D78;
+  box-shadow: 0 0 20px rgba(255, 45, 120, 0.15);
+}
+html[data-theme="neon-nights"] .menu-bottom-bar {
+  border: 1px solid #FF2D78;
+  border-radius: 0;
+  box-shadow: 0 0 20px rgba(255, 45, 120, 0.20), 0 -4px 20px rgba(0,0,0,0.4);
+}
+html[data-theme="neon-nights"] .bottom-dock-button {
+  border-radius: 0;
+  box-shadow: 0 0 12px rgba(255, 45, 120, 0.4);
+}
+html[data-theme="neon-nights"] .menu-bottom-bar-wrap {
+  background: #0D0D0D;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME 3 — ZEN GARDEN
+   Minimal, hairline borders, no shadows, generous spacing.
+   Serif headings, text-heavy, understated.
+   ═══════════════════════════════════════════════════════════════════════════ */
+html[data-theme="zen-garden"] .dish-card {
+  border: 1px solid #D8D5CE;
+  border-radius: 0.25rem;
+  background: #FDFCFA;
+  box-shadow: none;
+  transition: border-color 200ms ease;
+}
+html[data-theme="zen-garden"] .dish-card:hover {
+  border-color: #2D5016;
+  transform: none;
+  box-shadow: none;
+}
+html[data-theme="zen-garden"] .dish-card-image {
+  aspect-ratio: 3 / 2;
+  border-bottom: 1px solid #D8D5CE;
+}
+html[data-theme="zen-garden"] .dish-card-title {
+  font-family: "Noto Serif JP", "Lora", Georgia, serif;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #1C1C1A;
+}
+html[data-theme="zen-garden"] .dish-price {
+  color: #2D5016;
+  font-family: "Noto Serif JP", Georgia, serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+html[data-theme="zen-garden"] .dish-card-icon-button {
+  border: 1px solid #D8D5CE;
+  border-radius: 0.125rem;
+  background: transparent;
+  color: #2D5016;
+  box-shadow: none;
+  width: 2.2rem;
+  height: 2.2rem;
+}
+html[data-theme="zen-garden"] .dish-card-icon-button:hover {
+  background: #EFEDE8;
+  border-color: #2D5016;
+  color: #2D5016;
+}
+html[data-theme="zen-garden"] .category-pill {
+  border: 1px solid #D8D5CE;
+  border-radius: 0.125rem;
+  background: transparent;
+  color: #7A7A6E;
+  font-family: "Noto Sans JP", "DM Sans", sans-serif;
+  font-size: 0.8rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  padding: 0.55rem 0.85rem;
+  min-height: 2.3rem;
+}
+html[data-theme="zen-garden"] .category-pill.is-active {
+  border-color: #2D5016;
+  background: #2D5016;
+  color: #FFFFFF;
+  box-shadow: none;
+}
+html[data-theme="zen-garden"] .category-pill:hover {
+  color: #2D5016;
+  border-color: #2D5016;
+  transform: none;
+}
+html[data-theme="zen-garden"] .menu-header-surface {
+  border-bottom: 1px solid #D8D5CE;
+  box-shadow: none;
+}
+html[data-theme="zen-garden"] .menu-bottom-bar {
+  border: 1px solid #D8D5CE;
+  border-radius: 0.25rem;
+  box-shadow: none;
+}
+html[data-theme="zen-garden"] .bottom-dock-button {
+  border-radius: 0.125rem;
+  box-shadow: none;
+}
+html[data-theme="zen-garden"] .dish-card-copy { padding: 1.1rem; }
+html[data-theme="zen-garden"] .menu-category-nav {
+  border-top: 1px solid #D8D5CE;
+  border-bottom: 1px solid #D8D5CE;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME 4 — TROPICAL BURST
+   Vibrant, fully rounded pills, gradient buttons, big shadows,
+   colourful category pills.
+   ═══════════════════════════════════════════════════════════════════════════ */
+html[data-theme="tropical-burst"] .dish-card {
+  border: none;
+  border-radius: 1.75rem;
+  background: #FFFFFF;
+  box-shadow: 0 8px 32px rgba(0, 168, 107, 0.14), 0 2px 8px rgba(0,0,0,0.05);
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+html[data-theme="tropical-burst"] .dish-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 40px rgba(0, 168, 107, 0.22), 0 4px 12px rgba(0,0,0,0.08);
+  border: none;
+}
+html[data-theme="tropical-burst"] .dish-card-image {
+  aspect-ratio: 1 / 1;
+  border-radius: 1.75rem 1.75rem 0 0;
+}
+html[data-theme="tropical-burst"] .dish-card-title {
+  font-family: "Nunito", "DM Sans", sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0A2E1A;
+}
+html[data-theme="tropical-burst"] .dish-price {
+  color: #00A86B;
+  font-family: "Nunito", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+html[data-theme="tropical-burst"] .dish-card-icon-button {
+  border: none;
+  border-radius: 999px;
+  background: #D4F5E2;
+  color: #00A86B;
+  box-shadow: 0 3px 10px rgba(0, 168, 107, 0.15);
+  width: 2.4rem;
+  height: 2.4rem;
+}
+html[data-theme="tropical-burst"] .dish-card-icon-button:hover {
+  background: #00A86B;
+  color: #FFFFFF;
+  border: none;
+  box-shadow: 0 6px 16px rgba(0, 168, 107, 0.30);
+  transform: scale(1.08);
+}
+html[data-theme="tropical-burst"] .category-pill {
+  border: none;
+  border-radius: 999px;
+  background: #D4F5E2;
+  color: #007A4D;
+  font-family: "Nunito", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.55rem 1.1rem;
+  min-height: 2.4rem;
+  box-shadow: 0 3px 10px rgba(0, 168, 107, 0.10);
+}
+html[data-theme="tropical-burst"] .category-pill.is-active {
+  background: #00A86B;
+  color: #FFFFFF;
+  box-shadow: 0 6px 18px rgba(0, 168, 107, 0.35);
+}
+html[data-theme="tropical-burst"] .category-pill:hover {
+  background: #A8E6C3;
+  color: #007A4D;
+  border: none;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 168, 107, 0.18);
+}
+html[data-theme="tropical-burst"] .menu-header-surface {
+  border-bottom: none;
+  box-shadow: 0 4px 24px rgba(0, 168, 107, 0.10);
+}
+html[data-theme="tropical-burst"] .menu-bottom-bar {
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 12px 40px rgba(0, 168, 107, 0.18);
+}
+html[data-theme="tropical-burst"] .bottom-dock-button {
+  border-radius: 999px;
+  box-shadow: 0 6px 16px rgba(0, 168, 107, 0.30);
+}
+html[data-theme="tropical-burst"] .menu-category-nav {
+  border: none;
+  border-bottom: 2px solid #A8E6C3;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   THEME 5 — VELVET DARBAR
+   Royal Indian fine dining. Gold top accent line on cards, zero radius
+   on everything, full-bleed image, ornate typography.
+   ═══════════════════════════════════════════════════════════════════════════ */
+html[data-theme="velvet-darbar"] .dish-card {
+  border: 1px solid #4A1E2C;
+  border-top: 2px solid #C9A84C;
+  border-radius: 0;
+  background: #1C0910;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(201, 168, 76, 0.2);
+  transition: box-shadow 200ms ease, border-color 200ms ease;
+}
+html[data-theme="velvet-darbar"] .dish-card:hover {
+  border-top-color: #E0C575;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.7), inset 0 1px 0 rgba(201, 168, 76, 0.35), 0 0 0 1px rgba(201, 168, 76, 0.12);
+  transform: none;
+}
+html[data-theme="velvet-darbar"] .dish-card-image {
+  aspect-ratio: 4 / 3;
+  border-bottom: 1px solid #4A1E2C;
+}
+html[data-theme="velvet-darbar"] .dish-card-title {
+  font-family: "Playfair Display", "Cormorant Garamond", Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: -0.01em;
+  color: #F5EDD5;
+}
+html[data-theme="velvet-darbar"] .dish-price {
+  color: #C9A84C;
+  font-family: "EB Garamond", Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+html[data-theme="velvet-darbar"] .dish-card-icon-button {
+  border: 1px solid #4A1E2C;
+  border-radius: 0;
+  background: #2A0E16;
+  color: #C9A84C;
+  box-shadow: none;
+}
+html[data-theme="velvet-darbar"] .dish-card-icon-button:hover {
+  background: #C9A84C;
+  border-color: #C9A84C;
+  color: #0F0408;
+}
+html[data-theme="velvet-darbar"] .category-pill {
+  border: 1px solid #4A1E2C;
+  border-radius: 0;
+  background: #1C0910;
+  color: #B09A78;
+  font-family: "EB Garamond", Georgia, serif;
+  font-size: 0.9rem;
+  font-style: italic;
+  letter-spacing: 0.04em;
+  padding: 0.6rem 1.1rem;
+  min-height: 2.5rem;
+}
+html[data-theme="velvet-darbar"] .category-pill.is-active {
+  border-color: #C9A84C;
+  background: transparent;
+  color: #C9A84C;
+  box-shadow: inset 0 -2px 0 #C9A84C;
+}
+html[data-theme="velvet-darbar"] .category-pill:hover {
+  color: #C9A84C;
+  border-color: #C9A84C;
+  transform: none;
+}
+html[data-theme="velvet-darbar"] .menu-header-surface {
+  border-bottom: 1px solid #4A1E2C;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  border-top: 2px solid #C9A84C;
+}
+html[data-theme="velvet-darbar"] .menu-bottom-bar {
+  border: 1px solid #4A1E2C;
+  border-top: 2px solid #C9A84C;
+  border-radius: 0;
+  box-shadow: 0 -8px 32px rgba(0,0,0,0.4);
+}
+html[data-theme="velvet-darbar"] .bottom-dock-button {
+  border-radius: 0;
+  box-shadow: 0 4px 16px rgba(201, 168, 76, 0.25);
+}
+html[data-theme="velvet-darbar"] .menu-category-nav {
+  border-bottom: 1px solid #4A1E2C;
+}
+html[data-theme="velvet-darbar"] .dish-price { color: #C9A84C; }
+html[data-theme="velvet-darbar"] .dish-card-copy { padding: 1rem; }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE & ACCESSIBILITY
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (hover: hover) {
+  html[data-theme]:not([data-theme="zen-garden"]):not([data-theme="neon-nights"]):not([data-theme="velvet-darbar"]) .dish-card:hover,
+  html[data-theme]:not([data-theme="zen-garden"]):not([data-theme="neon-nights"]):not([data-theme="velvet-darbar"]) .top-dish-card:hover,
+  html[data-theme]:not([data-theme="zen-garden"]):not([data-theme="neon-nights"]):not([data-theme="velvet-darbar"]) .menu-product-row:hover,
+  html[data-theme]:not([data-theme="zen-garden"]):not([data-theme="neon-nights"]):not([data-theme="velvet-darbar"]) .menu-text-row:hover {
+    transform: translateY(-3px);
+    border-color: color-mix(in srgb, var(--theme-action-color) 36%, var(--theme-border));
+    box-shadow: 0 18px 40px color-mix(in srgb, var(--theme-action-color) 12%, transparent);
+  }
+}
 
 @media (max-width: 640px) {
   .menu-bottom-bar { border-radius: 1rem; }
+  html[data-theme="saffron-street"] .menu-bottom-bar { border-radius: 0.5rem; }
+  html[data-theme="neon-nights"] .menu-bottom-bar { border-radius: 0; }
+  html[data-theme="zen-garden"] .menu-bottom-bar { border-radius: 0.25rem; }
+  html[data-theme="tropical-burst"] .menu-bottom-bar { border-radius: 999px; }
+  html[data-theme="velvet-darbar"] .menu-bottom-bar { border-radius: 0; }
   .theme-choice-preview { min-height: 8rem; }
-  .view-switcher-btn { font-size: 0; padding: 0 0.6rem; }
-  .view-switcher-btn svg { display: block; }
 }
-
-/* ─── REDUCED MOTION ──────────────────────────────────────── */
 
 @media (prefers-reduced-motion: reduce) {
   .menu-icon-button,
   .category-pill,
   .dish-card,
-  .dish-card::before,
   .dish-card-icon-button,
   .bottom-dock-button,
-  .view-switcher-btn,
   .theme-choice {
     transition-duration: 0.01ms !important;
   }
