@@ -2,9 +2,6 @@ import React, { useRef, useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, X } from 'lucide-react';
 
-// Change 4: border removed (dish cards keep their own border).
-// Change 6 (v2): chevron next to "All" now opens a CENTER modal card
-// listing every category in a clean grid — instead of expanding inline.
 export default function CategoryNav({ categories = [], activeCategory, onSelect }) {
   const scrollRef = useRef(null);
   const activeRef = useRef(null);
@@ -22,26 +19,28 @@ export default function CategoryNav({ categories = [], activeCategory, onSelect 
   const allCategories = [{ id: 'all', name: 'All' }, ...categories];
 
   return (
-       <div
+    <div
       id="category-nav"
-       className="menu-category-nav sticky z-40 border-y"
+      className="menu-category-nav sticky z-40 border-y"
       style={{
         top: 'calc(var(--header-h, 64px) + 1px)',
         boxShadow: '0 -1px 0 hsl(var(--background))',
       }}
     >
-      <div className="flex items-center gap-2 px-2 py-3 max-w-7xl mx-auto">
+      <div className="flex items-center gap-2 px-2 py-2.5 max-w-7xl mx-auto">
+        {/* Overflow / all-categories button */}
         <motion.button
-          whileTap={{ scale: 0.9 }}
+          whileTap={{ scale: 0.88 }}
           onClick={() => setModalOpen(true)}
           className="category-overflow-button flex-shrink-0 self-center rounded-full flex items-center justify-center"
           title="Show all categories"
           aria-label="Show all categories"
         >
-          <ChevronDown className="w-4 h-4 text-primary" />
+          <ChevronDown className="w-4 h-4" style={{ color: 'var(--theme-action-color)' }} />
         </motion.button>
 
-        <div ref={scrollRef} className="flex gap-2 overflow-x-auto hide-scrollbar flex-1">
+        {/* Scrollable pill row */}
+        <div ref={scrollRef} className="flex gap-1.5 overflow-x-auto hide-scrollbar flex-1">
           {allCategories.map(cat => {
             const isActive = activeCategory === cat.id;
             return (
@@ -51,7 +50,7 @@ export default function CategoryNav({ categories = [], activeCategory, onSelect 
                 onClick={() => onSelect(cat.id)}
                 className="relative flex-shrink-0"
               >
-                 <span className={`category-pill block ${isActive ? 'is-active' : ''}`}>
+                <span className={`category-pill block ${isActive ? 'is-active' : ''}`}>
                   {cat.name}
                 </span>
               </button>
@@ -60,7 +59,7 @@ export default function CategoryNav({ categories = [], activeCategory, onSelect 
         </div>
       </div>
 
-      {/* Change 3 (waiter/toast speed applies here too): fast, snappy modal */}
+      {/* All-categories center modal */}
       <AnimatePresence>
         {modalOpen && (
           <motion.div
@@ -72,7 +71,11 @@ export default function CategoryNav({ categories = [], activeCategory, onSelect 
             onClick={() => setModalOpen(false)}
           >
             <motion.div
-              className="bg-background rounded-2xl p-5 w-full max-w-sm max-h-[70vh] overflow-y-auto shadow-2xl border border-border"
+              className="rounded-2xl p-5 w-full max-w-sm max-h-[70vh] overflow-y-auto shadow-2xl border"
+              style={{
+                background: 'var(--theme-surface)',
+                borderColor: 'var(--theme-border)',
+              }}
               initial={{ scale: 0.92, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.92, opacity: 0 }}
@@ -80,30 +83,38 @@ export default function CategoryNav({ categories = [], activeCategory, onSelect 
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-display text-lg font-semibold">All Categories</h3>
+                <h3 className="font-display text-lg font-semibold" style={{ color: 'var(--theme-text)' }}>
+                  All Categories
+                </h3>
                 <motion.button
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setModalOpen(false)}
-                  className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center"
+                  className="w-8 h-8 rounded-full flex items-center justify-center"
+                  style={{ background: 'var(--theme-soft-surface)', color: 'var(--theme-text)' }}
                 >
-                  <X className="w-4 h-4 text-foreground" />
+                  <X className="w-4 h-4" />
                 </motion.button>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {allCategories.map(cat => {
                   const isActive = activeCategory === cat.id;
                   return (
-                    <button
+                    <motion.button
                       key={cat.id}
+                      whileTap={{ scale: 0.96 }}
                       onClick={() => { onSelect(cat.id); setModalOpen(false); }}
-                      className={`px-3 py-2.5 rounded-xl text-sm font-medium text-center transition-colors ${
-                        isActive
-                          ? 'bg-primary text-primary-foreground'
-                          : 'glass text-foreground hover:bg-secondary/60'
-                      }`}
+                      className="px-3 py-2.5 rounded-xl text-sm font-medium text-center transition-all"
+                      style={isActive ? {
+                        background: 'var(--theme-action-color)',
+                        color: '#FFFFFF',
+                        boxShadow: 'var(--theme-button-shadow)',
+                      } : {
+                        background: 'var(--theme-soft-surface)',
+                        color: 'var(--theme-text)',
+                      }}
                     >
                       {cat.name}
-                    </button>
+                    </motion.button>
                   );
                 })}
               </div>
